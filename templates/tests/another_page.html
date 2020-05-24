@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Another page</h1>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    /**
+    *  Poll the '/tests/poll' every 5 seconds.
+    *  Redirecting to same endpoint, reloads all scripts.
+    */
+    async function poll() {
+        const response = await fetch('/tests/poll');
+
+        if (response.redirected) {
+            window.location.href = response.url;
+        }
+    }
+
+    const intervalId = setInterval(poll, 5 * 1000);
+</script>
+{% endblock %}

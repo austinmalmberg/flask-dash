@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="clock">
+    {% if g.user %}
+    <p>Hello {{ g.user.name }}</p>
+    {% endif %}
+    <div>
+        {% for message in get_flashed_messages() %}
+        <p class="flash">{{ message }}</p>
+        {% endfor %}
+    </div>
+    <h1>TIME</h1>
+</section>
+<section class="primary">
+    <div>
+        Hello, world!
+    </div>
+</section>
+
+<section class="secondary">
+    <div>1</div>
+    <div>2</div>
+    <div>3</div>
+    <div>4</div>
+    <div>5</div>
+    <div>6</div>
+</section>
+{% endblock %}

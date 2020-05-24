@@ -1,0 +1,27 @@
+User {
+    id,
+    email,
+    pw_hash,
+    default_config
+}
+
+Config {
+    id,
+    user_id,
+    time_format,
+    am_pm,
+    show_seconds
+}
+
+Devices {
+    id,
+    uid,
+    user_id,
+    config_id
+}
+
+Calendar {
+    id,
+    user_id,
+    calendar_id
+}
