@@ -1,6 +1,18 @@
+# environmental files
+.env**
+*.pem
+*.key
+
+# IDE files
+.idea/
+
+# python temp files
+__pycache__/
+
+# virtual environments
 venv/
 
+# vim files
 *~
 
-__pycache__/
 
