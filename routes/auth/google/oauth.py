@@ -6,9 +6,9 @@ from flask import Blueprint, session, url_for, redirect, request, flash, g
 import requests
 
 from routes.auth.google import flow, api_endpoints
-from database import User, db, clear_user_tokens
+from database import User, db
 
-bp = Blueprint('oauth', __name__)
+bp = Blueprint('oauth', __name__, url_prefix='/oauth')
 
 
 @bp.route('/authorize')
@@ -32,7 +32,7 @@ def authorize():
     return redirect(authorization_url)
 
 
-@bp.route('/oauth2callback')
+@bp.route('/callback')
 def oauth2callback():
     error = None
 
@@ -108,14 +108,21 @@ def revoke():
             params={'token': g.user.token}
         )
 
-        token_cleared = clear_user_tokens(g.user.id)
-        if token_cleared:
+        data = response.json()
+        if response.status_code == 200 or data.get('error') == 'invalid_token':
+
+            user = User.query.filter_by(id=g.user.id).first()
+
+            user.token = None
+            user.refresh_token = None
+
+            db.session.commit()
+
             session.clear()
             flash('Credentials revoked', 'success')
 
-        data = response.json()
-        if response.status_code != 200 or data.get('error') != 'invalid_token':
-            print(f"An unhandled error ocurred at { url_for('oauth.revoke') }", data)
+        else:
+            print('An unhandled error occurred on revoke attempt', data)
 
     return redirect(url_for('index'))
 

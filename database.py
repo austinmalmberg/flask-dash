@@ -9,25 +9,6 @@ def init_app(app):
         db.create_all()
 
 
-def clear_user_tokens(id):
-    """
-    Clears user tokens.
-
-    :param id: The user id
-    :return: The user that was cleared or None
-    """
-
-    user = User.query.filter_by(id=id).first()
-
-    if user:
-        user.token = None
-        user.refresh_token = None
-
-        db.session.commit()
-
-    return user
-
-
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(), nullable=False)
