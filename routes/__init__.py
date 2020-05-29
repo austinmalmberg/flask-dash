@@ -8,8 +8,8 @@ def register_blueprints(app):
     """
 
     # endpoints for index and dashboard
-    from . import index
-    app.register_blueprint(index.bp)
+    from . import dashboard
+    app.register_blueprint(dashboard.bp)
     app.add_url_rule('/', endpoint='index')
 
     # general methods to load user and logout

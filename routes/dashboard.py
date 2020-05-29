@@ -7,8 +7,8 @@ from routes.auth.google import oauth_limited_input_device
 bp = Blueprint('main', __name__)
 
 
-@bp.route('/')
-def index():
+@bp.route('/login')
+def login():
     if g.user and g.user.token:
         return redirect(url_for('main.dashboard'))
 
@@ -16,14 +16,22 @@ def index():
     credentials_expired = 'device_credentials' in session and \
                           datetime.utcnow() > session['device_credentials']['valid_until']
 
-    # if no_credentials or credentials_expired:
-    session['device_credentials'] = oauth_limited_input_device.create_device_credentials()
+    if no_credentials or credentials_expired:
+        session['device_credentials'] = oauth_limited_input_device.create_device_credentials()
 
     return render_template('index.html', device_credentials=session.get('device_credentials'))
 
 
-@bp.route('/dashboard')
+@bp.route('/')
 def dashboard():
-    # get events
+    """
+    Sends basic template. Uses frontend AJAX calls to app endpoints that populate weather and events
+
+    :return: The template
+    """
+    if g.user is None or g.user.token is None:
+        return redirect(url_for('main.login'))
+
+
 
     return render_template('dashboard.html')
