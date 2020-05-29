@@ -1,5 +1,8 @@
+# database
+*.sqlite
+
 # environmental files
-.env**
+*.env**
 *.pem
 *.key
 
