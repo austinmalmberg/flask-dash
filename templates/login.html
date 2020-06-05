@@ -2,10 +2,7 @@
 
 {% block title %}Home{% endblock %}
 
-{% block head %}{% endblock %}
-
 {% block content %}
-    {% if device_credentials %}
     <h1>Authentication</h1>
     <p>Visit <a href="{{ device_credentials.verification_url }}">{{ device_credentials.verification_url }}</a> from another device and enter the code below.</p>
     <h2>{{ device_credentials.user_code }}</h2>
@@ -13,7 +10,6 @@
     <p>Code valid until UTC {{ device_credentials.valid_until }}</p>
 
     <p>Want to login directly from this device? <a href="{{ url_for('oauth.authorize') }}">Click here</a></p>
-    {% endif %}
 
     {% for message in get_flashed_messages() %}
     <p class="flash">{{ message }}</p>

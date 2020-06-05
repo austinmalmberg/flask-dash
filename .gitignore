@@ -11,11 +11,10 @@
 
 # python temp files
 __pycache__/
+.pytest_cache/
 
 # virtual environments
 venv/
 
 # vim files
 *~
-
-

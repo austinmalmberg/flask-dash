@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{% block title %}Settings{% endblock %}</h1>
+<nav>
+    <ul>
+        <li><a href="#general">General</a></li>
+        <li><a href="#calendar">Calendar</a></li>
+    </ul>
+</nav>
+
+<form method="post">
+    <input type="submit" value="Save">
+
+    <h2 id="general">General</h2>
+    <!-- Datetime field order -->
+    <!-- Time zone -->
+    <!-- 24-hour clock -->
+
+    <h2 id="calendar">Calendar</h2>
+    <h3>Your Calendars</h3>
+        {% for cal in calendars %}
+            <input id="{{ cal['summary'] }}" type="checkbox" {{ 'checked' if cal['checked'] }}>
+            <label for="{{ cal['summary'] }}">{{ cal['summary'] }}</label>
+        {% endfor %}
+    <!-- Hide Weekends -->
+
+    <input type="submit" value="Save">
+</form>
+
+{% endblock %}

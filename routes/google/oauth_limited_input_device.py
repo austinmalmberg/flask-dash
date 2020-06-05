@@ -2,9 +2,11 @@ import os
 from datetime import datetime, timedelta
 
 from flask import Blueprint, session, Response, redirect, url_for, flash
+from flask_login import login_user
+
 import requests
 
-from routes.auth.google import api_endpoints, scopes
+from routes.google import scopes, GoogleApis
 from database import User, db
 
 bp = Blueprint('oauth_lid', __name__)
@@ -12,7 +14,7 @@ bp = Blueprint('oauth_lid', __name__)
 
 def create_device_credentials():
     response = requests.post(
-        api_endpoints['limited_input_device_code'],
+        GoogleApis.auth['limited_input_device_code'],
         params={
             'client_id': os.environ['GOOGLE_OAUTH2_CLIENT_ID_LIMITED'],
             'scope': ' '.join(scopes)
@@ -23,8 +25,6 @@ def create_device_credentials():
     if response.status_code == 200:
         device_credentials = response.json()
         device_credentials['valid_until'] = datetime.utcnow() + timedelta(seconds=device_credentials['expires_in'])
-
-        print('Device requesting credentials', device_credentials)
 
         return device_credentials
 
@@ -45,7 +45,7 @@ def poll():
         )
 
     token_response = requests.post(
-        api_endpoints['oauth_token'],
+        GoogleApis.auth['oauth_token'],
         params={
             'client_id': os.environ['GOOGLE_OAUTH2_CLIENT_ID_LIMITED'],
             'client_secret': os.environ['GOOGLE_OAUTH2_CLIENT_SECRET_LIMITED'],
@@ -57,8 +57,8 @@ def poll():
 
     token_data = token_response.json()
 
+    # user denied access
     if token_response.status_code == 403:
-        # user denied access
         flash('Code timeout.', 'info')
         session.pop('device_credentials')
         return redirect(
@@ -66,12 +66,13 @@ def poll():
             code=303
         )
 
+    # device has not been authenticated through Google yet
     if token_response.status_code == 428:
-        # device has not been authenticated through Google yet
         return Response(status=202)
 
+    # on other 400+ status code
     if token_response.status_code >= 400:
-        flash('There was a problem retreiving your credentials. Please try again.', 'error')
+        flash('There was a problem retrieving your credentials. Please try again.', 'error')
         flash(token_data, 'info')
         return redirect(
             location=url_for('index'),
@@ -83,7 +84,7 @@ def poll():
 
     # make a request for userinfo
     user_response = requests.get(
-        url=api_endpoints['userinfo'],
+        url=GoogleApis.user_info,
         headers={
             'Content-Type': 'application/json',
             'Authorization': f'Bearer {token}'
@@ -115,7 +116,7 @@ def poll():
 
         db.session.commit()
 
-        session['user_id'] = user.id
+        login_user(user)
 
         # redirect to dashboard on creation
         return redirect(

@@ -8,8 +8,8 @@
 
 {% block content %}
 <section class="clock">
-    {% if g.user %}
-    <p>Hello {{ g.user.name }}</p>
+    {% if current_user %}
+    <p>Hello {{ current_user.name }}</p>
     {% endif %}
     <div>
         {% for message in get_flashed_messages() %}

@@ -2,14 +2,15 @@ import os
 
 from flask import Flask
 
-import database as db
+import database
+import login_manager
 
 
 def create_app(test_config=None):
-    app = Flask(__name__, instance_relative_config=True)
+    app = Flask(__name__)
     app.config.from_mapping(
-        SECRET_KEY=os.environ.get('SECRET_KEY', 'dev'),
-        SQLALCHEMY_DATABASE_URI=os.environ.get('DATABASE_URL', 'sqlite:///flask-dash.sqlite'),
+        SECRET_KEY=os.environ['SECRET_KEY'],
+        SQLALCHEMY_DATABASE_URI=os.environ['DATABASE_URL'],
         SQLALCHEMY_TRACK_MODIFICATIONS=False
     )
 
@@ -18,10 +19,14 @@ def create_app(test_config=None):
     else:
         app.config.from_mapping(test_config)
 
-    # TODO: make GET request to discovery doc
-    # store as json
+    database.init_app(app)
 
-    db.init_app(app)
+    login_manager.init_app(app)
+
+    # test route
+    @app.route('/hello')
+    def hello():
+        return b'Hello, World!'
 
     import routes
     routes.register_blueprints(app)
