@@ -1,24 +1,19 @@
-from flask_login import current_user
 from googleapiclient.discovery import build
 
 
-def get_service():
-    credentials = current_user.build_credentials()
-
+def _get_service(credentials):
     return build('calendar', 'v3', credentials=credentials)
 
 
-def get_calendar(id):
-    service = get_service()
-
-    calendar = service.calendars().get(calendarId=id).execute()
+def get_calendar(credentials, calendar_id):
+    service = _get_service(credentials)
+    calendar = service.calendars().get(calendarId=calendar_id).execute()
 
     return calendar
 
 
-def get_calendar_list():
-    service = get_service()
-
+def get_calendar_list(credentials):
+    service = _get_service(credentials)
     calendars = []
 
     page_token = None
@@ -32,9 +27,8 @@ def get_calendar_list():
     return calendars
 
 
-def get_calendar_settings():
-    service = get_service()
-
+def get_calendar_settings(credentials):
+    service = _get_service(credentials)
     settings = []
 
     page_token = None

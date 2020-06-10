@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify
-from flask_login import login_required
+from flask_login import login_required, current_user
 
 
 from helpers.google.calendars import get_calendar_list, get_calendar_settings
@@ -16,7 +16,8 @@ def list_all():
     Returns a list of all calendars for the user.
     :return:
     """
-    calendars = get_calendar_list()
+    credentials = current_user.build_credentials()
+    calendars = get_calendar_list(credentials)
 
     return jsonify(calendars)
 
@@ -32,6 +33,7 @@ def upcoming_events():
 @login_required
 @validate_oauth_token
 def settings():
-    settings = get_calendar_settings()
+    credentials = current_user.build_credentials()
+    settings = get_calendar_settings(credentials)
 
     return jsonify(settings)

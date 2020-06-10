@@ -1,20 +1,11 @@
 import requests
-from flask_login import current_user
 
 from routes.google import GoogleApis
 
 
 def get_userinfo(token=None, credentials=None):
-    if token is None:
-
-        if credentials:
-            token = credentials.token
-        elif current_user and current_user.token:
-            token = current_user.token
-        else:
-            return {
-                'error': 'No token provided'
-            }
+    if token is None and credentials:
+        token = credentials.token
 
     # make a request for userinfo with the newly received token
     response = requests.get(

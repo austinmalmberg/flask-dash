@@ -113,7 +113,8 @@ def callback():
         user = add_or_update_user(credentials=credentials)
         if user:
             login_user(user)
-            add_calendar('primary')
+
+            add_calendar(credentials, 'primary')
 
             return redirect(url_for('main.dashboard'))
 

@@ -76,13 +76,14 @@ def add_or_update_user(token=None, refresh_token=None, credentials=None):
     return user
 
 
-def add_calendar(id):
+def add_calendar(credentials, id):
     """
 
+    :param credentials: google.oauth.credentials.Credentials for the user
     :param id: The calendar id
     :return:
     """
-    calendar = get_calendar(id)
+    calendar = get_calendar(credentials, id)
 
     if calendar.get('error'):
         return None

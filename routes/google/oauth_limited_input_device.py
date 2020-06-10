@@ -82,7 +82,9 @@ def poll():
     user = add_or_update_user(token=token, refresh_token=refresh_token)
     if user:
         login_user(user)
-        add_calendar('primary')
+
+        credentials = user.build_credentials()
+        add_calendar(credentials, 'primary')
 
     # redirect to dashboard on creation
     return redirect(
