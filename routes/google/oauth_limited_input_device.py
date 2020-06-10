@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timedelta
 
-from flask import Blueprint, session, Response, redirect, url_for, flash
+from flask import Blueprint, session, Response, redirect, url_for
 from flask_login import login_user
 
 import requests
@@ -82,8 +82,7 @@ def poll():
     user = add_or_update_user(token=token, refresh_token=refresh_token)
     if user:
         login_user(user)
-
-    add_calendar('primary')
+        add_calendar('primary')
 
     # redirect to dashboard on creation
     return redirect(
