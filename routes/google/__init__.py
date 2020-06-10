@@ -1,4 +1,5 @@
 import os
+
 from google_auth_oauthlib.flow import Flow
 
 
@@ -31,13 +32,12 @@ class GoogleApis:
         'limited_input_device_code': 'https://oauth2.googleapis.com/device/code',
     }
 
+
 client_secrets = {
-    'web': {
-        'client_id': os.environ['GOOGLE_OAUTH2_CLIENT_ID'],
-        'client_secret': os.environ['GOOGLE_OAUTH2_CLIENT_SECRET'],
-        'auth_uri': GoogleApis.auth['auth_uri'],
-        'token_uri': GoogleApis.auth['token_uri']
-    }
+    'client_id': os.environ['GOOGLE_OAUTH2_CLIENT_ID'],
+    'client_secret': os.environ['GOOGLE_OAUTH2_CLIENT_SECRET'],
+    'auth_uri': GoogleApis.auth['auth_uri'],
+    'token_uri': GoogleApis.auth['token_uri']
 }
 
 scopes = [
@@ -48,7 +48,9 @@ scopes = [
 ]
 
 # used to control the flow of the OAuth2.0 authentication process
-flow = Flow.from_client_config(client_secrets, scopes)
+flow = Flow.from_client_config({
+    'web': client_secrets
+}, scopes)
 
 
 def register_blueprints(app):
@@ -63,3 +65,4 @@ def register_blueprints(app):
     # Endpoints for getting calendar JSON data
     from routes.google import calendars
     app.register_blueprint(calendars.bp)
+

@@ -3,14 +3,15 @@ import os
 import hashlib
 
 from flask import Blueprint, session, url_for, redirect, request, flash
-from flask_login import login_user, logout_user, current_user, login_required
+from flask_login import logout_user, current_user, login_required, login_user
 
 import requests
-from google.oauth2.credentials import Credentials
+from google.auth.exceptions import RefreshError
 from google.auth.transport.requests import Request
 
-from routes.google import flow, client_secrets, scopes, GoogleApis
-from database import User, db
+from helpers.user_manager import init_user, init_calendar
+from routes.google import flow, GoogleApis
+from database import db
 
 bp = Blueprint('oauth', __name__, url_prefix='/oauth')
 
@@ -48,74 +49,36 @@ def callback():
 
     if error:
         flash(error, 'error')
-    else:
-        # use the request url (or more specifically, the params passed in the url)
-        # to exchange the authentication code for an access token
-        flow.fetch_token(authorization_response=request.url)
+        return redirect(url_for('index'))
 
-        credentials = flow.credentials
+    # use the request url (or more specifically, the params passed in the url)
+    # to exchange the authentication code for an access token
+    flow.fetch_token(authorization_response=request.url)
 
-        # make a request for userinfo with the newly received token
-        response = requests.get(
-            url=GoogleApis.user_info,
-            headers={
-                'Content-Type': 'application/json',
-                'Authorization': f'Bearer {credentials.token}'
-            }
-        )
+    credentials = flow.credentials
 
-        data = response.json()
+    user = init_user(credentials=credentials)
+    if user:
+        login_user(user)
 
-        # store userinfo on successful response
-        if response.status_code == 200:
-            name = data['name']
-            email = data['email']
+    init_calendar('primary')
 
-            user = User.query.filter_by(email=email).first()
 
-            if user:
-                user.name = name
-                user.token = credentials.token
-                user.refresh_token = credentials.refresh_token
-            else:
-                user = User(
-                    name=name,
-                    email=email,
-                    token=credentials.token,
-                    refresh_token=credentials.refresh_token
-                )
-
-                db.session.add(user)
-
-            db.session.commit()
-
-            login_user(user)
-
-            return redirect(url_for('main.dashboard'))
-
-        else:
-            error = 'Unable to retrieve user information'
-            flash(error, 'error')
-            flash(data, 'info')
-
-    return redirect(url_for('index'))
+    return redirect(url_for('main.dashboard'))
 
 
 @bp.route('/revoke')
 @login_required
 def revoke():
-    if current_user.token is not None:
+    if current_user.token:
         response = requests.post(
             GoogleApis.auth['oauth_token_revoke'],
             headers={'content-type': 'application/x-www-form-urlencoded'},
             params={'token': current_user.token}
         )
 
-        data = response.json()
-
         current_user.token = None
         current_user.refresh_token = None
-
         db.session.commit()
 
         logout_user()
@@ -123,54 +86,69 @@ def revoke():
         flash('Credentials revoked', 'success')
 
         if response.status_code != 200:
-            print('An unhandled error occurred on revoke attempt', data)
+            print('An unhandled error occurred on revoke attempt', response.json())
 
     return redirect(url_for('index'))
 
 
-def validate_oauth_token(func):
+def validate_oauth_token(view):
     """
     Decorator function for maintaining the user's oauth tokens. Should be present on all methods that use oauth.
 
-    :param func:
-    :return:
+    :param view: A view that requires a valid token
+    :return: The view if the token is successfully refreshed. Otherwise, an error object
     """
 
-    @functools.wraps(func)
-    def wrapped_func(*args, **kwargs):
+    @functools.wraps(view)
+    def wrapped_view(*args, **kwargs):
 
-        # manually build credentials
-        credentials = Credentials(
-            token=current_user.token,
-            refresh_token=current_user.refresh_token,
-            token_uri=GoogleApis.auth['token_uri'],
-            client_id=client_secrets['web']['client_id'],
-            client_secret=client_secrets['web']['client_secret'],
-            scopes=scopes
-        )
+        refresh_attempt = refresh_credentials()
 
-        # on invalid credentials:
-        if not credentials.valid:
-            # attempt to refresh expired credentials
-            if credentials.expired and credentials.refresh_token:
-                try:
-                    credentials.refresh(Request())
+        if refresh_attempt.get('error'):
+            return refresh_attempt
 
-                    current_user.token = credentials.token
-                    current_user.refresh_token = credentials.refresh_token
+        return view(*args, **kwargs)
 
-                    db.session.commit()
-                except Exception as e:
-                    return {
-                        'message': 'Unable to refresh your token. Please login again.',
-                        'error': e
-                    }
+    return wrapped_view
 
+
+def refresh_credentials():
+    token_refreshed = False
+    error = None
+
+    if not current_user or current_user.refresh_token is None:
+        error = 'No stored credentials'
+
+    else:
+        credentials = current_user.build_credentials()
+
+        if credentials.valid:
             return {
-                'message': 'Your credentials are no longer valid. Please login again.',
-                'error': 'Invalid credentials'
+                'message': 'Valid token',
+                'token_refreshed': token_refreshed
             }
 
-        return func(*args, **kwargs)
+        if credentials.expired:
+            try:
+                # attempt to refresh token
+                credentials.refresh(Request())
 
-    return wrapped_func
+                # update the credentials in the database
+                current_user.token = credentials.token
+                current_user.refresh_token = credentials.refresh_token
+                db.session.commit()
+
+                token_refreshed = True
+
+            except RefreshError:
+                current_user.token = None
+                current_user.refresh_token = None
+                db.session.commit()
+
+        if not token_refreshed:
+            error = 'Token refresh error'
+
+    return {
+        'token_refreshed': token_refreshed,
+        'error': error
+    }

@@ -28,7 +28,21 @@ Revokes and deletes any tokens stored in the database for the currently logged i
 
 #### `/weather`
 
-Sends weather conditions for current location.
+**POST** | Sends weather conditions for the location supplied in the request body. 
+
+    {
+        latitude: <float>,
+        longitude: <float>,
+    }
+    
+#### `/events`
+
+**POST** | Sends a list of events for the timeframe supplied in the request body
+
+    {
+        startTime: <UTC formatted date>,
+        endTime: <UTC formatted date>,
+    }
 
 #### `/notifications`
 

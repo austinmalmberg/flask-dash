@@ -3,7 +3,7 @@ import os
 from flask import Flask
 
 import database
-import login_manager
+from helpers import user_manager
 
 
 def create_app(test_config=None):
@@ -21,7 +21,7 @@ def create_app(test_config=None):
 
     database.init_app(app)
 
-    login_manager.init_app(app)
+    user_manager.init_app(app)
 
     # test route
     @app.route('/hello')

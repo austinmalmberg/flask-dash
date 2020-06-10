@@ -8,14 +8,13 @@
 
 {% block content %}
 <section class="clock">
-    {% if current_user %}
-    <p>Hello {{ current_user.name }}</p>
-    {% endif %}
+    <a href="{{ url_for('main.settings') }}">Settings</a>
     <div>
         {% for message in get_flashed_messages() %}
         <p class="flash">{{ message }}</p>
         {% endfor %}
     </div>
+    <p>Hello {{ current_user.name }}</p>
     <h1>TIME</h1>
 </section>
 <section class="primary">

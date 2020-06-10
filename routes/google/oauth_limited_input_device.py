@@ -6,8 +6,8 @@ from flask_login import login_user
 
 import requests
 
+from helpers.user_manager import init_user, init_calendar
 from routes.google import scopes, GoogleApis
-from database import User, db
 
 bp = Blueprint('oauth_lid', __name__)
 
@@ -32,7 +32,7 @@ def create_device_credentials():
 @bp.route('/poll', methods=('GET',))
 def poll():
     """
-    Used by frontend (index.js) to check when the user authenticates with Google.
+    Used by frontend script to check when the user authenticates with Google.
 
     :return:
     """
@@ -55,7 +55,7 @@ def poll():
         headers={'content-type': 'application/x-www-form-urlencoded'}
     )
 
-    token_data = token_response.json()
+    data = token_response.json()
 
     # user denied access
     if token_response.status_code == 403:
@@ -73,61 +73,23 @@ def poll():
     # on other 400+ status code
     if token_response.status_code >= 400:
         flash('There was a problem retrieving your credentials. Please try again.', 'error')
-        flash(token_data, 'info')
+        flash(data, 'info')
         return redirect(
             location=url_for('index'),
             code=303
         )
 
-    token = token_data['access_token']
-    refresh_token = token_data['refresh_token']
+    token = data.get('access_token')
+    refresh_token = data.get('refresh_token')
 
-    # make a request for userinfo
-    user_response = requests.get(
-        url=GoogleApis.user_info,
-        headers={
-            'Content-Type': 'application/json',
-            'Authorization': f'Bearer {token}'
-        }
-    )
-
-    user_data = user_response.json()
-
-    if user_response.status_code == 200:
-
-        email = user_data['email']
-        name = user_data['name']
-
-        user = User.query.filter_by(email=email).first()
-
-        if user:
-            user.name = name
-            user.token = token
-            user.refresh_token = refresh_token
-        else:
-            user = User(
-                name=name,
-                email=email,
-                token=token,
-                refresh_token=refresh_token
-            )
-
-            db.session.add(user)
-
-        db.session.commit()
-
+    user = init_user(token=token, refresh_token=refresh_token)
+    if user:
         login_user(user)
 
-        # redirect to dashboard on creation
-        return redirect(
-            location=url_for('main.dashboard'),
-            code=303
-        )
+    init_calendar('primary')
 
-    else:
-        flash('There was a problem retreiving your user information. Please try again later.', 'error')
-        flash(user_data, 'info')
-        return redirect(
-            location=url_for('index'),
-            code=303
-        )
+    # redirect to dashboard on creation
+    return redirect(
+        location=url_for('main.dashboard'),
+        code=303
+    )
