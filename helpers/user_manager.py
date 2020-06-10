@@ -81,8 +81,14 @@ def add_calendar(credentials, id):
 
     :param credentials: google.oauth.credentials.Credentials for the user
     :param id: The calendar id
-    :return:
+    :return: Return the newly created Calendar model or None if:
+        - The calendar already exists
+        - There was an error getting the calendar from Google
     """
+    exists = Calendar.query.filter_by(calendar_id=id).first()
+    if exists:
+        return None
+
     calendar = get_calendar(credentials, id)
 
     if calendar.get('error'):
