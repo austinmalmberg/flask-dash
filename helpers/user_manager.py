@@ -27,20 +27,16 @@ def handle_unauthorized_user():
     return redirect(url_for('main.login'))
 
 
-def init_user(token=None, refresh_token=None, credentials=None):
+def add_or_update_user(token=None, refresh_token=None, credentials=None):
     """
-    Creates a new user.
-
-    - Pulls userinfo
-    - Saves new user in database
-    - Saves primary calendar
+    Creates a new user by making a request to Google for user info. If the Google id matches any stored in the database,
+    updates the existing user.  Otherwise, creates a new user.
 
     :param token: The OAuth 2.0 token
     :param refresh_token: The refresh token
     :param credentials: google.oauth2.credentials.Credentials. If provided, takes precedence over token and
     refresh_token
-    :return: The created or modified User, or None if:
-        - There was a problem retrieving userinfo
+    :return: The created/modified User or None if there was a problem retrieving userinfo
     """
     if credentials:
         token = credentials.token
@@ -80,7 +76,7 @@ def init_user(token=None, refresh_token=None, credentials=None):
     return user
 
 
-def init_calendar(id):
+def add_calendar(id):
     """
 
     :param id: The calendar id

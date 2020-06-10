@@ -9,7 +9,7 @@ import requests
 from google.auth.exceptions import RefreshError
 from google.auth.transport.requests import Request
 
-from helpers.user_manager import init_user, init_calendar
+from helpers.user_manager import add_or_update_user, add_calendar
 from routes.google import flow, GoogleApis
 from database import db
 
@@ -57,12 +57,11 @@ def callback():
 
     credentials = flow.credentials
 
-    user = init_user(credentials=credentials)
+    user = add_or_update_user(credentials=credentials)
     if user:
         login_user(user)
 
-    init_calendar('primary')
-
+    add_calendar('primary')
 
     return redirect(url_for('main.dashboard'))
 
@@ -139,6 +138,8 @@ def refresh_credentials():
                 db.session.commit()
 
                 token_refreshed = True
+
+                print(f'Token refreshed for {current_user}.')
 
             except RefreshError:
                 current_user.token = None

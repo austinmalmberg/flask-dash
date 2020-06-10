@@ -6,7 +6,7 @@ from flask_login import login_user
 
 import requests
 
-from helpers.user_manager import init_user, init_calendar
+from helpers.user_manager import add_or_update_user, add_calendar
 from routes.google import scopes, GoogleApis
 
 bp = Blueprint('oauth_lid', __name__)
@@ -44,7 +44,7 @@ def poll():
             code=303
         )
 
-    token_response = requests.post(
+    response = requests.post(
         GoogleApis.auth['oauth_token'],
         params={
             'client_id': os.environ['GOOGLE_OAUTH2_CLIENT_ID_LIMITED'],
@@ -55,25 +55,22 @@ def poll():
         headers={'content-type': 'application/x-www-form-urlencoded'}
     )
 
-    data = token_response.json()
+    data = response.json()
 
-    # user denied access
-    if token_response.status_code == 403:
-        flash('Code timeout.', 'info')
-        session.pop('device_credentials')
-        return redirect(
-            location=url_for('index'),
-            code=303
-        )
+    error = data.get('error')
 
-    # device has not been authenticated through Google yet
-    if token_response.status_code == 428:
+    if error == 'authorization_pending':
+        # status 428, user has not completed the authorization flow
         return Response(status=202)
-
-    # on other 400+ status code
-    if token_response.status_code >= 400:
-        flash('There was a problem retrieving your credentials. Please try again.', 'error')
-        flash(data, 'info')
+    if error == 'slow_down':
+        # status 403, polling too quickly
+        return Response(status=202)
+    elif error == 'access_denied' or response.status_code > 400:
+        # Occurs on notable status codes
+        # 400, invalid code or grant_type parameters
+        # 401, invalid client_id
+        # 403, user denied access
+        session.pop('device_credentials')
         return redirect(
             location=url_for('index'),
             code=303
@@ -82,11 +79,11 @@ def poll():
     token = data.get('access_token')
     refresh_token = data.get('refresh_token')
 
-    user = init_user(token=token, refresh_token=refresh_token)
+    user = add_or_update_user(token=token, refresh_token=refresh_token)
     if user:
         login_user(user)
 
-    init_calendar('primary')
+    add_calendar('primary')
 
     # redirect to dashboard on creation
     return redirect(
