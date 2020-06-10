@@ -9,8 +9,8 @@ bp = Blueprint('calendars', __name__, url_prefix='/calendars')
 
 
 @bp.route('/list', methods=('GET',))
-@validate_oauth_token
 @login_required
+@validate_oauth_token
 def list_all():
     """
     Returns a list of all calendars for the user.
@@ -22,15 +22,15 @@ def list_all():
 
 
 @bp.route('/upcoming_events', methods=('GET',))
-@validate_oauth_token
 @login_required
+@validate_oauth_token
 def upcoming_events():
     pass
 
 
 @bp.route('/settings', methods=('GET',))
-@validate_oauth_token
 @login_required
+@validate_oauth_token
 def settings():
     settings = get_calendar_settings()
 

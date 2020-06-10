@@ -9,12 +9,68 @@ import requests
 from google.auth.exceptions import RefreshError
 from google.auth.transport.requests import Request
 
+from database.models import User
 from helpers.user_manager import add_or_update_user, add_calendar
 from routes.google import flow, GoogleApis
 from database import db
 
 bp = Blueprint('oauth', __name__, url_prefix='/oauth')
 
+
+def validate_oauth_token(view):
+    """
+    Decorator function for maintaining the user's OAuth tokens. Should be present on all methods that use OAuth.
+
+    NOTE: This method assumes current_user is present and not anonymous
+
+    :param view: A view that requires a valid token
+    :return: The view if the token is successfully refreshed. Otherwise, an error object
+    """
+
+    @functools.wraps(view)
+    def wrapped_view(*args, **kwargs):
+
+        credentials = current_user.build_credentials()
+
+        if not credentials or not credentials.valid:
+            err = refresh_credentials(credentials)
+
+            if err:
+                flash(err, 'error')
+                return redirect(url_for('main.login'))
+
+        return view(*args, **kwargs)
+
+    return wrapped_view
+
+
+def refresh_credentials(credentials=None):
+    if not credentials or credentials.refresh_token is None:
+        return 'No refresh token'
+
+    try:
+        # attempt to refresh token
+        credentials.refresh(Request())
+
+        # update the credentials in the database
+        current_user.token = credentials.token
+        current_user.refresh_token = credentials.refresh_token
+
+        db.session.commit()
+
+        # test that this is updating the database since we're updating the current_user
+        user = User.query.get(current_user.id)
+        print(f'Token refreshed for {current_user}. Database updated? {user.token == current_user.token}')
+
+    except RefreshError:
+        current_user.token = None
+        current_user.refresh_token = None
+        db.session.commit()
+
+        return 'Token refresh error'
+
+
+# ROUTES
 
 @bp.route('/authorize')
 def authorize():
@@ -47,27 +103,29 @@ def callback():
     elif request.args.get('state', '') != session['state']:
         error = 'Invalid state'
 
-    if error:
-        flash(error, 'error')
-        return redirect(url_for('index'))
+    else:
+        # use the request url (or more specifically, the params passed in the url)
+        # to exchange the authentication code for an access token
+        flow.fetch_token(authorization_response=request.url)
 
-    # use the request url (or more specifically, the params passed in the url)
-    # to exchange the authentication code for an access token
-    flow.fetch_token(authorization_response=request.url)
+        credentials = flow.credentials
 
-    credentials = flow.credentials
+        user = add_or_update_user(credentials=credentials)
+        if user:
+            login_user(user)
+            add_calendar('primary')
 
-    user = add_or_update_user(credentials=credentials)
-    if user:
-        login_user(user)
+            return redirect(url_for('main.dashboard'))
 
-    add_calendar('primary')
+        error = 'Unable to create user profile'
 
-    return redirect(url_for('main.dashboard'))
+    flash(error, 'error')
+    return redirect(url_for('index'))
 
 
 @bp.route('/revoke')
 @login_required
+@validate_oauth_token
 def revoke():
     if current_user.token:
         response = requests.post(
@@ -88,68 +146,3 @@ def revoke():
             print('An unhandled error occurred on revoke attempt', response.json())
 
     return redirect(url_for('index'))
-
-
-def validate_oauth_token(view):
-    """
-    Decorator function for maintaining the user's oauth tokens. Should be present on all methods that use oauth.
-
-    :param view: A view that requires a valid token
-    :return: The view if the token is successfully refreshed. Otherwise, an error object
-    """
-
-    @functools.wraps(view)
-    def wrapped_view(*args, **kwargs):
-
-        refresh_attempt = refresh_credentials()
-
-        if refresh_attempt.get('error'):
-            return refresh_attempt
-
-        return view(*args, **kwargs)
-
-    return wrapped_view
-
-
-def refresh_credentials():
-    token_refreshed = False
-    error = None
-
-    if not current_user or current_user.refresh_token is None:
-        error = 'No stored credentials'
-
-    else:
-        credentials = current_user.build_credentials()
-
-        if credentials.valid:
-            return {
-                'message': 'Valid token',
-                'token_refreshed': token_refreshed
-            }
-
-        if credentials.expired:
-            try:
-                # attempt to refresh token
-                credentials.refresh(Request())
-
-                # update the credentials in the database
-                current_user.token = credentials.token
-                current_user.refresh_token = credentials.refresh_token
-                db.session.commit()
-
-                token_refreshed = True
-
-                print(f'Token refreshed for {current_user}.')
-
-            except RefreshError:
-                current_user.token = None
-                current_user.refresh_token = None
-                db.session.commit()
-
-        if not token_refreshed:
-            error = 'Token refresh error'
-
-    return {
-        'token_refreshed': token_refreshed,
-        'error': error
-    }

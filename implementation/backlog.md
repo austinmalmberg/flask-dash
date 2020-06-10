@@ -1,15 +1,17 @@
 Backlog
 =======
 
-### General
+#### General
 - [ ] Implement tests
-- [ ] Implement SSE
-On account creation,
-    - [x] Begin watching primary calendar
+- [ ] On account creation,
+    - [x] Add primary calendar to database
+    - [ ] Set user calendar settings
+    - [ ] Begin watching primary calendar
     - [ ] Watch for Google settings to change
-- [ ] If visible calendars change, make sure 
+- [ ] Implement SSE
 
-### `/`
+#### Dashboard
+- [ ] Display date
 - [ ] Display calendar events
 - [ ] Display weather
 - [ ] Watch all calendars the user selected in the `/settings` menu
@@ -17,7 +19,7 @@ On account creation,
     - [ ] to update watch when `/settings` are changed
 - [ ] Change day header to holiday theme
 
-### `/settings`
+#### `/settings`
 
-- [x] Make calendar list reflect currently watched calendars
-- [ ] Update watched calendars through POST request
+- [x] Make calendar list reflect currently selected calendars
+- [ ] Add newly checked calendars to database through POST request
