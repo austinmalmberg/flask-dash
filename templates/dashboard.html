@@ -8,27 +8,55 @@
 
 {% block content %}
 <section class="clock">
-    <a href="{{ url_for('main.settings') }}">Settings</a>
-    <div>
+    <div id="flash--container">
         {% for message in get_flashed_messages() %}
-        <p class="flash">{{ message }}</p>
+        <span class="flash">{{ message }}</span>
         {% endfor %}
     </div>
-    <p>Hello {{ current_user.name }}</p>
-    <h1>TIME</h1>
+    <a class="settings" href="{{ url_for('main.settings') }}">Settings</a>
+    <h1 id="clock--time"></h1>
 </section>
 <section class="primary">
-    <div>
-        Hello, world!
+    <div class="day--card">
+        <div class="header">
+            <h2>{{ date }}</h2>
+        </div>
+        <div id="{{ starting_date }}" class="event--card today"></div>
     </div>
 </section>
 
 <section class="secondary">
-    <div>1</div>
-    <div>2</div>
-    <div>3</div>
-    <div>4</div>
-    <div>5</div>
-    <div>6</div>
+    {% for date in other_dates %}
+    <div class="day--card">
+        <div class="header">
+            <h2>{{ date }}</h2>
+        </div>
+        <div id="{{ date }}" class="event--card"></div>
+    </div>
+    {% endfor %}
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const flashContainer = document.getElementById('flash--container');
+
+    const timeOptions = {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+    };
+</script>
+<script src="{{ url_for('static', filename='scripts/dashboard/general.js') }}"></script>
+
+<script>
+    const clockElement = document.getElementById('clock--time');
+</script>
+<script src="{{ url_for('static', filename='scripts/dashboard/clock.js') }}"></script>
+
+<script>
+    const eventsUrl = "{{ url_for('calendars.events') }}";
+    const eventCards = document.getElementsByClassName('event--card');
+</script>
+<script src="{{ url_for('static', filename='scripts/dashboard/events.js') }}"></script>
 {% endblock %}

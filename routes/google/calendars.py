@@ -1,8 +1,7 @@
 from flask import Blueprint, jsonify
 from flask_login import login_required, current_user
 
-
-from helpers.google.calendars import get_calendar_list, get_calendar_settings
+from helpers.google.calendars import get_calendar_list, get_calendar_settings, get_events_from_multiple_calendars
 from routes.google.oauth import validate_oauth_token
 
 bp = Blueprint('calendars', __name__, url_prefix='/calendars')
@@ -11,7 +10,7 @@ bp = Blueprint('calendars', __name__, url_prefix='/calendars')
 @bp.route('/list', methods=('GET',))
 @login_required
 @validate_oauth_token
-def list_all():
+def list():
     """
     Returns a list of all calendars for the user.
     :return:
@@ -22,11 +21,16 @@ def list_all():
     return jsonify(calendars)
 
 
-@bp.route('/upcoming_events', methods=('GET',))
+@bp.route('/events', methods=('GET',))
 @login_required
 @validate_oauth_token
-def upcoming_events():
-    pass
+def events():
+    credentials = current_user.build_credentials()
+    watched_calendars = [cal.calendar_id for cal in current_user.calendars if cal.watching]
+
+    events = get_events_from_multiple_calendars(credentials, watched_calendars, current_user.timezone)
+
+    return jsonify(events)
 
 
 @bp.route('/settings', methods=('GET',))

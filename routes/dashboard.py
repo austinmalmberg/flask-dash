@@ -1,9 +1,12 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+import pytz
 
-from flask import Blueprint, render_template, session, redirect, url_for
+from flask import Blueprint, render_template, session, redirect, url_for, request
 from flask_login import login_required, current_user
 
-from database.models import Calendar
+from database import db
+
+from helpers.user_manager import sync_calendars
 from routes.google import oauth_limited_input_device
 from routes.google.calendars import get_calendar_list
 from routes.google.oauth import validate_oauth_token
@@ -15,22 +18,20 @@ bp = Blueprint('main', __name__)
 @login_required
 def dashboard():
     """
-    Sends basic template. Uses frontend AJAX calls to app endpoints that populate weather and events
+    Sends basic dashboard template.
 
     :return: The template
     """
+    locale_date = datetime.now(pytz.timezone(current_user.timezone)).date()
 
-    # get events for each calendar
-    # start watching calendars
+    other_dates = [str(locale_date + timedelta(days=i)) for i in range(1, 7)]
 
-    # get weather
-
-    return render_template('dashboard.html')
+    return render_template('dashboard.html', starting_date=str(locale_date), other_dates=other_dates)
 
 
 @bp.route('/settings', methods=('GET', 'POST'))
-@validate_oauth_token
 @login_required
+@validate_oauth_token
 def settings():
     """
     View and update user settings
@@ -40,14 +41,24 @@ def settings():
 
     :return:
     """
-    calendars = get_calendar_list()
+    if request.method == 'POST':
+        checked_ids = set(request.form.getlist('calendar'))
 
-    for calendar in calendars:
-        found = Calendar.query.filter_by(calendar_id=calendar.get('id', '')).first()
-        if found:
-            calendar['checked'] = True
+        for calendar in current_user.calendars:
+            # begin watching checked calendars and stop watching unchecked calendars
+            calendar.watching = str(calendar.id) in checked_ids
 
-    return render_template('settings.html', calendars=calendars)
+        db.session.commit()
+
+        return redirect(url_for('main.dashboard'))
+
+    # get an updated calendar list from Google
+    credentials = current_user.build_credentials()
+    google_calendars = get_calendar_list(credentials)
+
+    sync_calendars(current_user.id, google_calendars, current_user.calendars)
+
+    return render_template('settings.html', calendars=current_user.calendars)
 
 
 @bp.route('/login')

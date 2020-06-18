@@ -1,6 +1,7 @@
 import functools
 import os
 import hashlib
+from datetime import timedelta, datetime
 
 from flask import Blueprint, session, url_for, redirect, request, flash
 from flask_login import logout_user, current_user, login_required, login_user
@@ -10,7 +11,8 @@ from google.auth.exceptions import RefreshError
 from google.auth.transport.requests import Request
 
 from database.models import User
-from helpers.user_manager import add_or_update_user, add_calendar
+from helpers.google.userinfo import get_userinfo
+from helpers.user_manager import find_user, init_new_user, update_existing_user
 from routes.google import flow, GoogleApis
 from database import db
 
@@ -110,15 +112,23 @@ def callback():
 
         credentials = flow.credentials
 
-        user = add_or_update_user(credentials=credentials)
-        if user:
+        userinfo = get_userinfo(credentials=credentials)
+
+        error = userinfo.get('error')
+
+        if not error:
+            user = find_user(userinfo.get('id'))
+
+            if user is None:
+                user = init_new_user(userinfo, credentials=credentials)
+
+            elif user and datetime.utcnow() > user.last_updated + timedelta(days=7):
+                # update the existing user's info after 7 days since the last update
+                update_existing_user(user.id, userinfo, credentials=credentials)
+
             login_user(user)
 
-            add_calendar(credentials, 'primary')
-
             return redirect(url_for('main.dashboard'))
-
-        error = 'Unable to create user profile'
 
     flash(error, 'error')
     return redirect(url_for('index'))

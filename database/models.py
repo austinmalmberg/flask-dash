@@ -10,6 +10,7 @@ from routes.google import GoogleApis, client_secrets, scopes
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     created_on = db.Column(db.DateTime, default=datetime.utcnow())
+    last_updated = db.Column(db.DateTime, default=datetime.utcnow())
 
     # Google OAuth
     token = db.Column(db.String())
@@ -21,7 +22,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(100), unique=True)
     name = db.Column(db.String())
 
-    # calendar settinsg
+    # calendar settings
     locale=db.Column(db.String(10), default='en')
     timezone=db.Column(db.String(), default='Etc/GMT')
     date_field_order = db.Column(db.String(3), default='MDY')
@@ -65,4 +66,6 @@ class Calendar(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     calendar_id = db.Column(db.String(), nullable=False)
+    summary = db.Column(db.String())
+    watching = db.Column(db.Boolean, default=False)
     # sync_token = db.Column(db.String())

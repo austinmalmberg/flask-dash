@@ -32,9 +32,3 @@ main {
 .clock * {
     text-align: center;
 }
-
-.secondary div {
-    padding: 1em;
-
-    border: 1px solid black;
-}

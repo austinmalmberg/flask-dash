@@ -6,7 +6,8 @@ from flask_login import login_user
 
 import requests
 
-from helpers.user_manager import add_or_update_user, add_calendar
+from helpers.google.userinfo import get_userinfo
+from helpers.user_manager import find_user, init_new_user, update_existing_user
 from routes.google import scopes, GoogleApis
 
 bp = Blueprint('oauth_lid', __name__)
@@ -79,12 +80,21 @@ def poll():
     token = data.get('access_token')
     refresh_token = data.get('refresh_token')
 
-    user = add_or_update_user(token=token, refresh_token=refresh_token)
-    if user:
-        login_user(user)
+    userinfo = get_userinfo(token=token)
 
-        credentials = user.build_credentials()
-        add_calendar(credentials, 'primary')
+    error = userinfo.get('error')
+
+    if not error:
+        user = find_user(userinfo.get('id'))
+
+        if user is None:
+            user = init_new_user(userinfo, token=token, refresh_token=refresh_token)
+
+        elif user and datetime.utcnow() > user.last_updated + timedelta(days=7):
+            # update the existing user's info after 7 days since the last update
+            update_existing_user(user.id, userinfo, token=token, refresh_token=refresh_token)
+
+        login_user(user)
 
     # redirect to dashboard on creation
     return redirect(

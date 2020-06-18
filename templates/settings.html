@@ -20,8 +20,8 @@
     <h2 id="calendar">Calendar</h2>
     <h3>Your Calendars</h3>
         {% for calendar in calendars %}
-            <input id="{{ calendar['summary'] }}" type="checkbox" {{ 'checked' if calendar['checked'] }}>
-            <label for="{{ calendar['summary'] }}">{{ calendar['summary'] }}</label>
+            <input id="{{ calendar.calendar_id }}" name="calendar" type="checkbox" value="{{ calendar.id }}"{{ ' checked' if calendar.watching }}>
+            <label for="{{ calendar.calendar_id }}">{{ calendar.summary }}</label>
             <br>
         {% endfor %}
     <!-- Hide Weekends -->
