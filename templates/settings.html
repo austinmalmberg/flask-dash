@@ -18,12 +18,15 @@
     <!-- 24-hour clock -->
 
     <h2 id="calendar">Calendar</h2>
+
     <h3>Your Calendars</h3>
-        {% for calendar in calendars %}
-            <input id="{{ calendar.calendar_id }}" name="calendar" type="checkbox" value="{{ calendar.id }}"{{ ' checked' if calendar.watching }}>
-            <label for="{{ calendar.calendar_id }}">{{ calendar.summary }}</label>
-            <br>
-        {% endfor %}
+
+    {% for calendar in calendars %}
+    <input id="{{ calendar.calendar_id }}" name="calendar" type="checkbox" value="{{ calendar.id }}"{{ ' checked' if calendar.watching }}>
+    <label for="{{ calendar.calendar_id }}">{{ calendar.summary }}</label>
+    <br>
+    {% endfor %}
+
     <!-- Hide Weekends -->
 
     <input type="submit" value="Save">
