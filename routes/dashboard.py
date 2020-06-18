@@ -23,10 +23,9 @@ def dashboard():
     :return: The template
     """
     locale_date = datetime.now(pytz.timezone(current_user.timezone)).date()
+    dates = [str(locale_date + timedelta(days=i)) for i in range(7)]
 
-    other_dates = [str(locale_date + timedelta(days=i)) for i in range(1, 7)]
-
-    return render_template('dashboard.html', starting_date=str(locale_date), other_dates=other_dates)
+    return render_template('dashboard.html', dates=dates)
 
 
 @bp.route('/settings', methods=('GET', 'POST'))

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from 'components/daycard.html' import daycard with context %}
 
 {% block title %}Home{% endblock %}
 
@@ -13,26 +14,16 @@
         <span class="flash">{{ message }}</span>
         {% endfor %}
     </div>
-    <a class="settings" href="{{ url_for('main.settings') }}">Settings</a>
+    <a id="settings" class="settings" href="{{ url_for('main.settings') }}">Settings</a>
     <h1 id="clock--time"></h1>
 </section>
 <section class="primary">
-    <div class="day--card">
-        <div class="header">
-            <h2>{{ date }}</h2>
-        </div>
-        <div id="{{ starting_date }}" class="event--card today"></div>
-    </div>
+    {{ daycard(dates[0]) }}
 </section>
 
 <section class="secondary">
-    {% for date in other_dates %}
-    <div class="day--card">
-        <div class="header">
-            <h2>{{ date }}</h2>
-        </div>
-        <div id="{{ date }}" class="event--card"></div>
-    </div>
+    {% for date in dates[1:] %}
+        {{ daycard(date) }}
     {% endfor %}
 </section>
 {% endblock %}
