@@ -88,6 +88,7 @@ function addEventToElement(element, event) {
     summaryP.innerText = event.summary;
 
     const eventDiv = document.createElement('div');
+    eventDiv.classList.add('event')
     eventDiv.id = event.id;
     eventDiv.appendChild(timeDiv);
     eventDiv.appendChild(summaryP);
