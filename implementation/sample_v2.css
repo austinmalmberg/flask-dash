@@ -1,0 +1,180 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+
+  border: 1px solid black;
+}
+
+html {
+  font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0.25em;
+
+  overflow: hidden;
+}
+
+.content {
+  height: 100vh;
+
+  display: grid;
+  grid-template-areas:
+    "info    secondary"
+    "primary secondary";
+  grid-template-rows: 30% 1fr;
+  grid-gap: 0.25em;
+}
+
+
+/* INFO PANEL */
+
+.info {
+  position: relative;
+
+  grid-area: info;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-color: lightblue;
+}
+
+.settings {
+  position: absolute;
+  top: 0.5em;
+  left: 0.5em;
+
+  text-decoration: none;
+}
+
+.flash--container {
+  position: absolute;
+  top: 0;
+  width: 75%;
+}
+
+.flash {
+  padding: 0.125em 0;
+  margin: 0;
+  text-align: center;
+  font-weight: bold;
+}
+
+.flash.error {
+  background: red;
+  color: gainsboro;
+}
+
+.flash.info {
+  background: cornflowerblue;
+  color: black;
+}
+
+
+/* PRIMARY */
+
+.primary {
+  grid-area: primary;
+}
+
+.primary .day--card {
+  font-size: 1.4em;
+}
+
+.primary .day--card .header {
+  font-size: 1.4em;
+}
+
+
+
+/* SECONDARY */
+
+.secondary {
+  grid-area: secondary;
+
+  display: grid;
+  grid-template-rows: repeat(6, 1fr);
+  grid-gap: 0.25em;
+}
+
+.secondary .day--card {
+  grid-template-columns: 25% 1fr;
+
+  font-size: 0.75em;
+}
+
+.secondary .day--card .header {
+  font-size: 1.4em;
+}
+
+.secondary .event .time .end {
+  display: none;
+}
+
+
+/* DAY CARD */
+
+.day--card {
+  display: grid;
+}
+
+.day--card .header {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  background-color: steelblue;
+}
+
+.day--card .header h3 {
+  font-size: 1.4em;
+  margin-bottom: 0.25em;
+}
+
+.day--card .header p {
+  margin-top: 0;
+}
+
+
+/* EVENTS */
+
+/* wrapper around the event container to limit bounds */
+.wrapper {
+  position: relative;
+  border: 1px solid red;
+}
+
+.event--container {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+
+  display: flex;
+  flex-flow: column wrap;
+
+  margin: 0.5em;
+}
+
+.event {
+  display: flex;
+  align-items: center;
+
+  white-space: nowrap;
+  margin-left: 0.5em;
+}
+
+.event .time + * {
+  margin: 0.125em 0;
+}
+
+.event .summary {
+  font-size: 1.2em;
+  font-weight: bold;
+
+  margin-left: 0.5em;
+}
