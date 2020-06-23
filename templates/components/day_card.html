@@ -1,8 +1,9 @@
 {% macro day_card(date) %}
 <div class="day--card">
     <div class="header">
-        <h2>{{ date }}</h2>
+        <h2>{{ date.strftime('%A') }}</h2>
+        <p>{{ date.strftime('%B %d') }}</p>
     </div>
-    <div id="{{ date }}" class="event--container"></div>
+    <div id="{{ date|string }}" class="event--container"></div>
 </div>
 {% endmacro %}
