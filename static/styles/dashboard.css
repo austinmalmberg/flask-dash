@@ -31,6 +31,11 @@ body {
 }
 
 
+@keyframes fadein {
+  0% { opacity: 0 }
+  100% { opacity: 1 }
+}
+
 /* INFO PANEL */
 
 #info {
@@ -84,6 +89,8 @@ body {
 .day--card {
   display: grid;
 
+  height: 100%;
+
   opacity: 0.8;
 
   background-color: var(--primary-color);
@@ -118,7 +125,7 @@ body {
 }
 
 #primary .day--card {
-  grid-template-rows: minmax(120px, 30%) auto;
+  grid-template-rows: minmax(200px, 30%) auto;
 
   font-size: 1.4em;
 }
@@ -193,7 +200,8 @@ body {
   color: var(--event-color);
   background-color: var(--event-bg-color);
   border-radius: var(--default-border-radius);
-  opacity: 0.8;
+
+  animation: fadein 1000ms;
 }
 
 .event * {
