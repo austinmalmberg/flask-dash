@@ -10,6 +10,10 @@ function clearContainer(element) {
     element.innerHTML = '';
 }
 
-function flashMessage(message) {
+function flashError(message) {
     appendTextElement(flashContainer, 'span', ['flash', 'error'], message);
+}
+
+function flashInfo(message) {
+    appendTextElement(flashContainer, 'span', ['flash', 'info'], message);
 }

@@ -11,7 +11,7 @@ async function fetchCalendarEvents(callback) {
         callback(data);
     } else {
         clearContainer(flashContainer);
-        flashMessage(`${response.status} | ${response.statusText}`);
+        flashError(`${response.status} | ${response.statusText}`);
     }
 }
 
@@ -26,7 +26,7 @@ function addEventsToDOM(events) {
         const dayStart = new Date(card.id);
 
         const dayEnd = new Date(card.id);
-        dayEnd.setHours(dayEnd.getHours() + 23, 59, 59, 999);
+        dayEnd.setHours(dayStart.getHours() + 23, 59, 59, 999);
 
         let i = 0;
 
@@ -40,20 +40,23 @@ function addEventsToDOM(events) {
             // remove events that start before the current day
             if (eventEnd <= dayStart) {
                 events.shift();
+                continue;
 
-            // do nothing if the event occurs at a future date
+            // since events are sorted, if the event occurs at a future date then go to the next card
             } else if (eventStart >= dayEnd) {
                 break;
+            }
 
+            addEventToElement(card, event);
+
+            const eventEndsToday = (dayEnd.getFullYear() === eventEnd.getFullYear() &&
+                dayEnd.getMonth() === eventEnd.getMonth() &&
+                dayEnd.getDate() === eventEnd.getDate());
+
+            if (eventEndsToday) {
+                events.shift();
             } else {
-                addEventToElement(card, event);
-
-                const eventEndsToday = (dayEnd.getFullYear() === eventEnd.getFullYear() &&
-                    dayEnd.getMonth() === eventEnd.getMonth() &&
-                    dayEnd.getDate() === eventEnd.getDate());
-
-                if (eventEndsToday) events.shift();
-                else i++;
+                i++;
             }
         }
     }
