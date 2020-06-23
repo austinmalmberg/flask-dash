@@ -122,3 +122,10 @@ def get_events_from_multiple_calendars(credentials, calendar_ids, tz_str, option
         res = zip_sorted(event_comparator, res, events)
 
     return res
+
+
+def get_colors(credentials):
+    service = _getservice(credentials)
+
+    colors = service.colors().get().execute()
+    return colors
