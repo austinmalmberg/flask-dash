@@ -8,20 +8,20 @@
 {% endblock %}
 
 {% block content %}
-<section class="clock">
+<section id="info">
     <div id="flash--container">
         {% for message in get_flashed_messages() %}
         <span class="flash">{{ message }}</span>
         {% endfor %}
     </div>
-    <a id="settings" class="settings" href="{{ url_for('main.settings') }}">Settings</a>
+    <a id="settings" href="{{ url_for('main.settings') }}">Settings</a>
     <h1 id="clock--time"></h1>
 </section>
-<section class="primary">
+<section id="primary">
     {{ day_card(dates[0]) }}
 </section>
 
-<section class="secondary">
+<section id="secondary">
     {% for date in dates[1:] %}
         {{ day_card(date) }}
     {% endfor %}
