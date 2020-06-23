@@ -1,34 +1,214 @@
-main {
-    padding: 1em;
-
-    display: grid;
-
-    /* sets clock to 20vh and fills the rest with primary */
-    grid-template-rows: 20vh 1fr;
-    grid-template-areas: "clock   secondary"
-                         "primary secondary";
-    grid-gap: 1em;
-    height: 100vh;
+:root {
+  --bg-color: rgb(3, 80, 156);
+  --header-color: rgb(9, 115, 214);
+  --default-border-radius: 0.3125rem;
+  --event-bg-color: rgb(164, 189, 252);
+  --primary-color: white;
+  --event-color: black;
 }
 
-.clock {
-    grid-area: clock;
-    background-color: #bdc3c7;
+html {
+  color: var(--primary-color);
 }
 
-.primary {
-    grid-area: primary;
-    background-color: #3498db;
-    height: auto;
+body {
+  margin: 0;
+
+  background: url("/static/images/backgrounds/partly-cloudy-day.jpg") no-repeat;
+  background-size: cover;
 }
 
-.secondary {
-    grid-area: secondary;
-    background-color: #2980b9;
-    display: grid;
-    grid-row-gap: 0.5em;
+.content {
+  display: grid;
+  grid-template-areas:
+    "info    secondary"
+    "primary secondary";
+  grid-template-rows: 25% auto;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 0.5em;
+
+  height: 100vh;
 }
 
-.clock * {
-    text-align: center;
+
+/* INFO PANEL */
+
+#info {
+  position: relative;
+
+  grid-area: info;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#settings {
+  position: absolute;
+  top: 0.5em;
+  left: 0.5em;
+
+  text-decoration: none;
+  color: inherit;
+}
+
+#flash--container {
+  position: absolute;
+  top: 0;
+  width: 75%;
+}
+
+.flash {
+  padding: 0.125em 0;
+  margin: 0;
+  text-align: center;
+  font-weight: bold;
+}
+
+.flash.error {
+  background: red;
+  color: gainsboro;
+}
+
+.flash.info {
+  background: cornflowerblue;
+  color: black;
+}
+
+#clock--time {
+  font-size: 4em;
+}
+
+/* DAY CARD */
+
+.day--card {
+  display: grid;
+
+  opacity: 0.8;
+
+  background-color: var(--primary-color);
+  box-shadow: -0.05rem 0.05rem 0.1rem var(--event-color);
+
+  border-radius: var(--default-border-radius);
+}
+
+.day--card .header {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  background-color: var(--header-color);
+}
+
+.day--card .header h2 {
+  font-size: 1.8em;
+  margin-bottom: 0.25em;
+}
+
+.day--card .header p {
+  margin-top: 0;
+}
+
+
+/* PRIMARY */
+
+#primary {
+  grid-area: primary;
+}
+
+#primary .day--card {
+  grid-template-rows: minmax(120px, 30%) auto;
+
+  font-size: 1.4em;
+}
+
+#primary .day--card .header {
+  font-size: 1.4em;
+
+  border-top-left-radius: var(--default-border-radius);
+  border-top-right-radius: var(--default-border-radius);
+}
+
+#primary .event .time {
+  min-width: 110px;
+}
+
+/* SECONDARY */
+
+#secondary {
+  grid-area: secondary;
+
+  display: grid;
+  grid-template-rows: repeat(6, 1fr);
+  grid-gap: 0.25em;
+}
+
+#secondary .day--card {
+  grid-template-columns: minmax(150px, 30%) auto;
+
+  font-size: 0.75em;
+}
+
+#secondary .day--card .header {
+  font-size: 1.4em;
+
+  border-top-left-radius: var(--default-border-radius);
+  border-bottom-left-radius: var(--default-border-radius);
+}
+
+#secondary .event .time {
+  min-width: 60px;
+}
+
+#secondary .event .time .end {
+  display: none;
+}
+
+
+
+/* EVENTS */
+
+.event--container {
+  overflow-x: hidden;
+
+  margin: 0.5em;
+}
+
+.event > * {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.event {
+  display: flex;
+  align-items: center;
+
+  padding: 0.125em 0;
+  padding-right: 0.5em;
+  margin: 0.125em;
+  border-radius: 0.1em;
+
+  color: var(--event-color);
+  background-color: var(--event-bg-color);
+  border-radius: var(--default-border-radius);
+  opacity: 0.8;
+}
+
+.event * {
+  margin: 0;
+}
+
+.event .time {
+  text-align: right;
+  padding-right: 0.25em;
+  border-right: 0.15em solid var(--primary-color);
+}
+
+.event .summary {
+  font-size: 1.2em;
+  font-weight: bold;
+
+  margin-left: 0.5em;
 }
