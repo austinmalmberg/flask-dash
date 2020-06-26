@@ -2,7 +2,9 @@
 <div class="date--card">
     <div class="header">
         <h2>{{ date.strftime('%A') }}</h2>
-        <p>{{ date.strftime('%B %d') }}</p>
+
+        {# The hash (#) is platform specific to Windows. On Unix systems, use a hyphen (-) #}
+        <p>{{ date.strftime('%B %#d') }}</p>
     </div>
     <div id="{{ date|string }}" class="event--container"></div>
 </div>
