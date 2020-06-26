@@ -11,9 +11,9 @@ function clearContainer(element) {
 }
 
 function flashError(message) {
-    appendTextElement(flashContainer, 'span', ['flash', 'error'], message);
+    appendTextElement(flashContainer, 'p', ['flash', 'error'], message);
 }
 
 function flashInfo(message) {
-    appendTextElement(flashContainer, 'span', ['flash', 'info'], message);
+    appendTextElement(flashContainer, 'p', ['flash', 'info'], message);
 }
