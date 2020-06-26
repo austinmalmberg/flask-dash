@@ -41,7 +41,7 @@ def init_new_user(userinfo, token=None, refresh_token=None, credentials=None):
     :param userinfo: userinfo from Google
     :param token: OAuth token
     :param refresh_token: OAuth refresh token
-    :param credentials: google.oauth.credentials.Credentials
+    :param credentials: google.oauth2.credentials.Credentials
     :return: The newly created user, or None if a user already exists
     """
 
@@ -106,7 +106,7 @@ def update_existing_user(user_id, userinfo, token=None, refresh_token=None, cred
     :param userinfo: The userinfo from Google
     :param token: OAuth token
     :param refresh_token: OAuth refresh token
-    :param credentials: google.oauth.credentials.Credentials
+    :param credentials: google.oauth2.credentials.Credentials
     :return: The user that was updated, or None if the user was not found
     """
 
