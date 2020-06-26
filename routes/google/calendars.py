@@ -8,7 +8,7 @@ from routes.google.oauth import validate_oauth_token
 bp = Blueprint('calendars', __name__, url_prefix='/calendars')
 
 
-@bp.route('/list', methods=('GET',))
+@bp.route('/', methods=('GET',))
 @login_required
 @validate_oauth_token
 def calendar_list():
