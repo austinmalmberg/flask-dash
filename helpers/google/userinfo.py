@@ -1,6 +1,6 @@
 import requests
 
-from routes.google import GoogleApis
+from helpers.google import GoogleApis
 
 
 def get_userinfo(token=None, credentials=None):

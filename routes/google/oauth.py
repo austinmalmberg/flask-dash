@@ -13,7 +13,7 @@ from google.auth.transport.requests import Request
 from database.models import User
 from helpers.google.userinfo import get_userinfo
 from helpers.user_manager import find_user, init_new_user, update_existing_user
-from routes.google import flow, GoogleApis
+from helpers.google import flow, GoogleApis
 from database import db
 
 bp = Blueprint('oauth', __name__, url_prefix='/oauth')

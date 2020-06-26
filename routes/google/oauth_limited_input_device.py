@@ -8,7 +8,7 @@ import requests
 
 from helpers.google.userinfo import get_userinfo
 from helpers.user_manager import find_user, init_new_user, update_existing_user
-from routes.google import scopes, GoogleApis
+from helpers.google import scopes, GoogleApis
 
 bp = Blueprint('oauth_lid', __name__)
 

@@ -4,7 +4,7 @@ from flask_login import UserMixin
 from google.oauth2.credentials import Credentials
 
 from database import db
-from routes.google import GoogleApis, client_secrets, scopes
+from helpers.google import GoogleApis, client_secrets, scopes
 
 
 class User(UserMixin, db.Model):
