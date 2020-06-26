@@ -3,7 +3,7 @@ from flask_login import LoginManager
 
 from database import db
 from database.models import User, Calendar
-from database.queries import add_calendar, remove_calendar
+from database.queries import add_calendar
 from helpers.google.calendars import get_calendar_list, get_calendar_settings
 
 login = LoginManager()
@@ -113,26 +113,26 @@ def update_existing_user(user_id, userinfo, token=None, refresh_token=None, cred
     # ensure the user doesn't already exist
     user = User.query.get(user_id)
 
-    if user:
-        if credentials:
-            token = credentials.token
-            refresh_token = credentials.refresh_token
+    if not user:
+        return None
 
-        user.google_id=userinfo.get('id', user.google_id)
-        user.name = userinfo.get('name', user.name)
-        user.email = userinfo.get('email', user.email)
+    if credentials:
+        token = credentials.token
+        refresh_token = credentials.refresh_token
 
-        if token:
-            user.token = token
+    user.google_id=userinfo.get('id', user.google_id)
+    user.name = userinfo.get('name', user.name)
+    user.email = userinfo.get('email', user.email)
 
-        if refresh_token:
-            user.refresh_token = refresh_token
+    if token:
+        user.token = token
 
-        db.session.commit()
+    if refresh_token:
+        user.refresh_token = refresh_token
 
-        return user
+    db.session.commit()
 
-    return None
+    return user
 
 
 def sync_calendar(user_id, google_calendar, user_calendar):
