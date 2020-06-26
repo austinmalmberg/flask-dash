@@ -11,6 +11,7 @@ async function fetchCalendarEvents(callback) {
         callback(data);
     } else {
         clearContainer(flashContainer);
+        console.log(response);
         flashError(`${response.status} | ${response.statusText}`);
     }
 }
