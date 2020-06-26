@@ -33,3 +33,7 @@ Project Backlog
 - [x] Begin watching checked calendars through POST request
 - [x] Add styling
 - [ ] Implement general settings
+- [ ] Center select options
+
+#### `/userinfo`
+- [ ] **Bug**: Fix 401 UNAUTHENTICATED error when attempting to get user info
