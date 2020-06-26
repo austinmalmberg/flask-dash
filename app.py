@@ -3,7 +3,7 @@ import os
 from flask import Flask
 
 import database
-from helpers import user_manager
+from helpers import user_manager, brand
 
 
 def create_app(test_config=None):
@@ -23,10 +23,9 @@ def create_app(test_config=None):
 
     user_manager.init_app(app)
 
-    # test route
-    @app.route('/hello')
-    def hello():
-        return b'Hello, World!'
+    @app.context_processor
+    def inject_brand():
+        return dict(brand=brand)
 
     import routes
     routes.register_blueprints(app)
