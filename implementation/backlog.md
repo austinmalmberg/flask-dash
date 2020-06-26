@@ -11,8 +11,11 @@ Project Backlog
 #### Dashboard
 - [x] Display date
 - [x] Display calendar events
-- [ ] Create proper headers
-- [ ] Add styling
+- [x] Create proper headers
+- [x] Add styling
+- [ ] Roll events over to the next card on date change
+- [ ] **Bug**: Account for timezone when getting Google calendar events
+- [ ] **Bug**: Correct time on all-day events
 - [ ] Display weather
 - [ ] Implement SSE/polling
     - [ ] Begin watching selected calendars for event changes
@@ -23,10 +26,10 @@ Project Backlog
 - [ ] Change day header to holiday theme
 
 #### `/login`
-- [ ] Add styling
+- [x] Add styling
 
 #### `/settings`
 - [x] Make calendar list reflect currently selected calendars
 - [x] Begin watching checked calendars through POST request
-- [ ] Add option to change timezone
-- [ ] Add styling
+- [x] Add styling
+- [ ] Implement general settings
