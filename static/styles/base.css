@@ -52,6 +52,7 @@ a.btn {
 button, input[type='submit'], a.btn {
   padding: 0.5em 1em;
 
+  color: white;
   background-color: var(--header-color);
   opacity: 0.8;
 
