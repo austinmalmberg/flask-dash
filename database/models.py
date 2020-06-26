@@ -49,17 +49,20 @@ class User(UserMixin, db.Model):
 
         :return: google.oauth2.credentials.Credentials or None if both token and refresh token are not present
         """
-        if self.token or self.refresh_token:
-            return Credentials(
-                token=self.token,
-                refresh_token=self.refresh_token,
-                token_uri=GoogleApis.auth['token_uri'],
-                client_id=client_secrets['client_id'],
-                client_secret=client_secrets['client_secret'],
-                scopes=scopes
-            )
+        credentials = Credentials(
+            token=self.token,
+            refresh_token=self.refresh_token,
+            token_uri=GoogleApis.auth['token_uri'],
+            client_id=client_secrets['client_id'],
+            client_secret=client_secrets['client_secret'],
+            scopes=scopes
+        )
 
-        return None
+        return credentials
+
+    def is_authenticated(self):
+        credentials = self.build_credentials()
+        return credentials.valid
 
 
 class Calendar(db.Model):
