@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% from 'components/day_card.html' import day_card with context %}
+{% from 'components/date_card.html' import date_card with context %}
 
 {% block title %}Home{% endblock %}
 
@@ -18,12 +18,12 @@
         <h1 id="clock--time"></h1>
     </section>
     <section id="primary">
-        {{ day_card(dates[0]) }}
+        {{ date_card(dates[0]) }}
     </section>
 
     <section id="secondary">
         {% for date in dates[1:] %}
-            {{ day_card(date) }}
+            {{ date_card(date) }}
         {% endfor %}
     </section>
 {% endblock %}

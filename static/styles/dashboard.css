@@ -72,7 +72,7 @@ body {
 
 /* DAY CARD */
 
-.day--card {
+.date--card {
   display: grid;
 
   height: 100%;
@@ -85,7 +85,7 @@ body {
   border-radius: var(--default-border-radius);
 }
 
-.day--card .header {
+.date--card .header {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -94,12 +94,12 @@ body {
   background-color: var(--header-color);
 }
 
-.day--card .header h2 {
+.date--card .header h2 {
   font-size: 1.8em;
   margin-bottom: 0.25em;
 }
 
-.day--card .header p {
+.date--card .header p {
   margin-top: 0;
 }
 
@@ -110,13 +110,13 @@ body {
   grid-area: primary;
 }
 
-#primary .day--card {
+#primary .date--card {
   grid-template-rows: minmax(200px, 30%) auto;
 
   font-size: 1.4em;
 }
 
-#primary .day--card .header {
+#primary .date--card .header {
   font-size: 1.4em;
 
   border-top-left-radius: var(--default-border-radius);
@@ -137,13 +137,13 @@ body {
   grid-gap: 0.25em;
 }
 
-#secondary .day--card {
+#secondary .date--card {
   grid-template-columns: minmax(150px, 30%) auto;
 
   font-size: 0.75em;
 }
 
-#secondary .day--card .header {
+#secondary .date--card .header {
   font-size: 1.4em;
 
   border-top-left-radius: var(--default-border-radius);
