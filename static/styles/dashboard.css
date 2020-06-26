@@ -1,21 +1,11 @@
-:root {
-  --bg-color: rgb(3, 80, 156);
-  --header-color: rgb(9, 115, 214);
-  --default-border-radius: 0.3125rem;
-  --event-bg-color: rgb(164, 189, 252);
-  --primary-color: white;
-  --event-color: black;
-}
-
-html {
-  color: var(--primary-color);
-}
-
 body {
-  margin: 0;
-
   background: url("/static/images/backgrounds/partly-cloudy-day.jpg") no-repeat;
   background-size: cover;
+
+  background-color: var(--bg-color);
+  color: var(--primary-color);
+
+  overflow: hidden;
 }
 
 .content {
@@ -27,8 +17,9 @@ body {
   grid-template-columns: 1fr 1fr;
   grid-gap: 0.5em;
 
-  margin: 0.5em;
-  height: calc(100vh - 1em);
+  padding: 0.5em;
+  height: 100vh;
+  width: 100%;
 }
 
 
@@ -51,34 +42,28 @@ body {
 
 #settings {
   position: absolute;
-  top: 0.5em;
-  left: 0.5em;
+  top: 0;
+  left: 0;
 
   text-decoration: none;
   color: inherit;
+
+  text-indent: -9999px;
+}
+
+#settings::before {
+  content: '\2630';
+
+  position: absolute;
+  left: calc(9999px + 0.25em);
+
+  font-size: 2em;
 }
 
 #flash--container {
   position: absolute;
   top: 0;
   width: 75%;
-}
-
-.flash {
-  padding: 0.125em 0;
-  margin: 0;
-  text-align: center;
-  font-weight: bold;
-}
-
-.flash.error {
-  background: red;
-  color: gainsboro;
-}
-
-.flash.info {
-  background: cornflowerblue;
-  color: black;
 }
 
 #clock--time {

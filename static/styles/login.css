@@ -1,0 +1,31 @@
+body {
+  justify-content: center;
+}
+
+.content {
+  position: relative;
+
+  flex: auto;
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  font-size: 1.4em;
+}
+
+p#device--code {
+  font-size: 3em;
+  margin: 1em 0;
+}
+
+#flash--container {
+  position: absolute;
+  bottom: 0;
+
+  width: 75%;
+
+  font-size: 1rem;
+}

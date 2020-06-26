@@ -1,0 +1,84 @@
+.content {
+  /* stretch content to body */
+  flex: auto;
+
+  display: grid;
+  grid-template-areas:
+    "sidebar content";
+  grid-template-columns: minmax(100px, 350px) minmax(400px, 1090px);
+}
+
+#settings--container {
+  grid-area: content;
+  align-self: start;
+}
+
+/* SIDEBAR */
+
+#sidebar {
+  grid-area: sidebar;
+}
+
+.page--nav {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  font-size: 1.4em;
+}
+
+.page--nav .nav--item {
+  border-bottom: 1px solid darkgray;
+}
+
+.page--nav .nav--item a {
+  display: block;
+
+  text-decoration: none;
+  color: inherit;
+
+  padding: 1em 0 1em 1em;
+
+  transition-duration: 1000ms;
+}
+
+.page--nav .nav--item a:hover::after, .page--nav .nav--item a:focus::after {
+  content: '\21B4';
+}
+
+/* FORM */
+
+#settings--form {
+  margin-top: 1em;
+  padding: 0 1em;
+
+  background-color: var(--primary-color);
+}
+
+fieldset.no-border {
+  border: none;
+}
+
+fieldset legend {
+  font-size: 2em;
+  padding: 0 0.5em;
+}
+
+label {
+  display: block;
+}
+
+label + label, label + select {
+  margin-top: 0.5em;
+}
+
+input[type='submit'], button {
+  margin: 1em;
+}
+
+.whisper {
+  margin-left: 1em;
+}

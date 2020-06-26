@@ -4,50 +4,55 @@
 {% block title %}Home{% endblock %}
 
 {% block head %}
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/dashboard.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/dashboard.css') }}">
 {% endblock %}
 
 {% block content %}
-<section id="info">
-    <div id="flash--container">
-        {% for message in get_flashed_messages() %}
-        <span class="flash">{{ message }}</span>
-        {% endfor %}
-    </div>
-    <a id="settings" href="{{ url_for('main.settings') }}">Settings</a>
-    <h1 id="clock--time"></h1>
-</section>
-<section id="primary">
-    {{ day_card(dates[0]) }}
-</section>
+    <section id="info">
+        <div id="flash--container">
+            {% for message in get_flashed_messages() %}
+            <span class="flash">{{ message }}</span>
+            {% endfor %}
+        </div>
+        <a id="settings" href="{{ url_for('main.settings') }}">Settings</a>
+        <h1 id="clock--time"></h1>
+    </section>
+    <section id="primary">
+        {{ day_card(dates[0]) }}
+    </section>
 
-<section id="secondary">
-    {% for date in dates[1:] %}
-        {{ day_card(date) }}
-    {% endfor %}
-</section>
+    <section id="secondary">
+        {% for date in dates[1:] %}
+            {{ day_card(date) }}
+        {% endfor %}
+    </section>
 {% endblock %}
 
 {% block scripts %}
-<script>
-    const flashContainer = document.getElementById('flash--container');
+    {# GENERAL SCRIPTS #}
+    <script>
+        const flashContainer = document.getElementById('flash--container');
 
-    const timeOptions = {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-    };
-</script>
-<script src="{{ url_for('static', filename='scripts/dashboard/general.js') }}"></script>
+        const timeOptions = {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true,
+        };
+    </script>
+    <script src="{{ url_for('static', filename='scripts/dashboard/general.js') }}"></script>
 
-<script>
-    const clockElement = document.getElementById('clock--time');
-</script>
-<script src="{{ url_for('static', filename='scripts/dashboard/clock.js') }}"></script>
 
-<script>
-    const eventsUrl = "{{ url_for('calendars.events') }}";
-    const eventCards = document.getElementsByClassName('event--container');
-</script>
-<script src="{{ url_for('static', filename='scripts/dashboard/events.js') }}"></script>
+    {# CLOCK SCRIPTS #}
+    <script>
+        const clockElement = document.getElementById('clock--time');
+    </script>
+    <script src="{{ url_for('static', filename='scripts/dashboard/clock.js') }}"></script>
+
+
+    {# EVENT SCRIPTS #}
+    <script>
+        const eventsUrl = "{{ url_for('calendars.events') }}";
+        const eventCards = document.getElementsByClassName('event--container');
+    </script>
+    <script src="{{ url_for('static', filename='scripts/dashboard/events.js') }}"></script>
 {% endblock %}
