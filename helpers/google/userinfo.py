@@ -4,7 +4,7 @@ from routes.google import GoogleApis
 
 
 def get_userinfo(token=None, credentials=None):
-    if token is None and credentials:
+    if credentials:
         token = credentials.token
 
     # make a request for userinfo with the newly received token
