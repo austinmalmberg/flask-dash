@@ -31,14 +31,13 @@ def validate_oauth_token(view):
 
     @functools.wraps(view)
     def wrapped_view(*args, **kwargs):
-
         credentials = current_user.build_credentials()
 
-        if not credentials or not credentials.valid:
+        if not credentials.valid:
             err = refresh_credentials(credentials)
 
             if err:
-                flash(err, 'error')
+                flash(f'{err}. Please login again.', 'error')
                 return redirect(url_for('main.login'))
 
         return view(*args, **kwargs)
@@ -46,8 +45,8 @@ def validate_oauth_token(view):
     return wrapped_view
 
 
-def refresh_credentials(credentials=None):
-    if not credentials or credentials.refresh_token is None:
+def refresh_credentials(credentials):
+    if credentials.refresh_token is None:
         return 'No refresh token'
 
     try:
@@ -151,7 +150,7 @@ def revoke():
 
         logout_user()
 
-        flash('Credentials revoked', 'success')
+        flash('Credentials revoked', 'info')
 
         if response.status_code != 200:
             print('An unhandled error occurred on revoke attempt', response.json())
