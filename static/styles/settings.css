@@ -41,8 +41,6 @@
   color: inherit;
 
   padding: 1em 0 1em 1em;
-
-  transition-duration: 1000ms;
 }
 
 .page--nav .nav--item a:hover::after, .page--nav .nav--item a:focus::after {
