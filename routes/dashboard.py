@@ -57,7 +57,7 @@ def settings():
 
     sync_calendars(current_user.id, google_calendars, current_user.calendars)
 
-    return render_template('settings.html', calendars=current_user.calendars)
+    return render_template('settings.html')
 
 
 @bp.route('/login')
