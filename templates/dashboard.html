@@ -10,8 +10,8 @@
 {% block content %}
     <section id="info">
         <div id="flash--container">
-            {% for message in get_flashed_messages() %}
-            <span class="flash">{{ message }}</span>
+            {% for category, message in get_flashed_messages(with_categories=true) %}
+                <p class="flash {{ category }}">{{ message }}</p>
             {% endfor %}
         </div>
         <a id="settings" href="{{ url_for('main.settings') }}">Settings</a>

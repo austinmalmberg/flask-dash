@@ -21,8 +21,8 @@
     <p class="whisper">Want to login directly from this device? <a href="{{ url_for('oauth.authorize') }}">Click here</a></p>
 
     <div id="flash--container">
-        {% for message in get_flashed_messages() %}
-            <p class="flash">{{ message }}</p>
+        {% for category, message in get_flashed_messages(with_categories=true) %}
+            <p class="flash {{ category }}">{{ message }}</p>
         {% endfor %}
     </div>
 {% endblock %}
