@@ -65,7 +65,7 @@ body {
 }
 
 #clock--time {
-  font-size: 4em;
+  font-size: 6em;
 }
 
 /* DAY CARD */
@@ -89,11 +89,12 @@ body {
   justify-content: center;
   align-items: center;
 
+  font-size: 1.6em;
+
   background-color: var(--header-color);
 }
 
 .date--card .header h2 {
-  font-size: 1.8em;
   margin-bottom: 0.25em;
 }
 
@@ -109,19 +110,19 @@ body {
 
   margin-left: 0.5em;
   margin-bottom: 0.5em;
+
+  font-size: 1.4em;
 }
 
 #primary .date--card {
   grid-template-rows: minmax(200px, 30%) auto;
-
-  font-size: 1.4em;
 }
 
 #primary .date--card .header {
-  font-size: 1.4em;
-
   border-top-left-radius: var(--default-border-radius);
   border-top-right-radius: var(--default-border-radius);
+
+  font-size: 2em;
 }
 
 #primary .event .time {
@@ -138,23 +139,21 @@ body {
   grid-gap: 0.25em;
 
   margin: 0.5em;
+
+  font-size: 0.85;
 }
 
 #secondary .date--card {
   grid-template-columns: minmax(150px, 30%) auto;
-
-  font-size: 0.75em;
 }
 
 #secondary .date--card .header {
-  font-size: 1.4em;
-
   border-top-left-radius: var(--default-border-radius);
   border-bottom-left-radius: var(--default-border-radius);
 }
 
 #secondary .event .time {
-  min-width: 60px;
+  min-width: 70px;
 }
 
 #secondary .event .time .end {
