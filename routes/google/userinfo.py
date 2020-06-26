@@ -15,7 +15,6 @@ def userinfo():
     Returns a list of all calendars for the user.
     :return:
     """
-    credentials = current_user.build_credentials()
-    userinfo = get_userinfo(credentials)
+    userinfo = get_userinfo(token=current_user.token)
 
     return jsonify(userinfo)
