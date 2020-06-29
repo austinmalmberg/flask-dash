@@ -14,7 +14,9 @@ Project Backlog
 - [x] Create proper headers
 - [x] Add styling
 - [ ] Roll events over to the next card on date change
-- [ ] **Bug**: Account for timezone when getting Google calendar events
+- [x] **Bug**: Retrieving events after 8:00pm does not populate the current day
+    - This is related to timezones. Being in EST on DST, we are -4:00 behind UTC. Server calculates based off UTC date.
+    - **Fix**: Send date information during `/events` fetch
 - [ ] **Bug**: Correct time on all-day events
 - [ ] Display weather
 - [ ] Implement SSE/polling

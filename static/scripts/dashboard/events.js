@@ -2,20 +2,32 @@
 
 
 // populate calendar with events
-async function fetchCalendarEvents(callback) {
-    const response = await fetch(eventsUrl);
+function fetchCalendarEvents(callback) {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    const date = now.getDate().toString().padStart(2, '0');
 
-    if (response.status === 200) {
-        // add events to calendar
-        const data = await response.json();
-        callback(data);
-    } else {
-        clearContainer(flashContainer);
-        console.log(response);
-        flashError(`${response.status} | ${response.statusText}`);
-    }
+    const params = new URLSearchParams({ timeMin: `${now.getFullYear()}-${month}-${date}` });
+
+    fetch(`${eventsUrl}?${params}`)
+        .then(handleFetchErrors)
+        .then(response => response.json())
+        .then(data => callback(data))
+        .catch(err => {
+            clearContainer(flashContainer);
+            flashError(`Error fetching events: ${err}`);
+        });
 }
 
+
+function handleFetchErrors(response) {
+    if (!response.ok) {
+        console.log(response);
+        throw `${response.status} ${response.statusText}`;
+    }
+    return response;
+}
 
 /*
  *

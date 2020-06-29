@@ -1,9 +1,9 @@
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 import pytz
 
 from googleapiclient.discovery import build
 
-from helpers.zip_sorted import zip_sorted
+from helpers.event_sort import sort_events
 
 # TODO: Add option to fail silently if credentials are invalid or _getservice fails
 # Right now, any problem getting the service or executing the action will throw an error or pass along an error
@@ -50,34 +50,29 @@ def get_calendar_settings(credentials):
     return { setting['id']: setting['value'] for setting in settings }
 
 
-def get_events(credentials, calendar_id, options=None):
+def get_events(credentials, calendar_id, date_min=date.today(), range=7):
     """
     Get events of the given calendar. Events are ordered by start time.  If no time range is specified, the time range
     will be set as UTC midnight - 6 days later.
 
     :param credentials: OAuth 2.0 credentials
     :param calendar_id: The calendar id
-    :param options: Optional parameters as defined here: https://developers.google.com/calendar/v3/reference/events/list
-        If options is None, time range will be set to:
-            - timeMin: today at 12:00AM UTC
-            - timeMax: timeMin + 6 days
-    :return:
+    :param date_min: The min date range to get events
+    :param range: The date range to query the Google Calendar API for events. range=1 will get events from midnight to
+        11:59:59 of the same day
+    :return: A list of events, ordered by start time
     """
 
-    if options is None:
-        # get UTC midnight
-        range_min = datetime.combine(datetime.utcnow(), datetime.min.time())
+    # add 6 days to it
+    time_min = datetime.combine(date_min, datetime.min.time())
+    time_max = time_min + timedelta(days=range, seconds=-1)
 
-        # add 6 days to it
-        range_max = range_min + timedelta(days=7) - timedelta(seconds=1)
-
-        options = {
-            'timeMin': f'{str(range_min.isoformat())}Z',
-            'timeMax': f'{str(range_max.isoformat())}Z',
-        }
-
-    options['orderBy'] = 'startTime'
-    options['singleEvents'] = True
+    options = {
+        'timeMin': f'{str(time_min.isoformat())}Z',
+        'timeMax': f'{str(time_max.isoformat())}Z',
+        'orderBy': 'startTime',
+        'singleEvents': True
+    }
 
     service = _getservice(credentials)
 
@@ -104,7 +99,9 @@ def get_event_start_dt(event, tz_str):
     return tz.fromutc(datetime.fromisoformat(start))
 
 
-def get_events_from_multiple_calendars(credentials, calendar_ids, tz_str, options=None):
+def get_events_from_multiple_calendars(credentials, calendar_ids, date_min=None, time_range=None):
+    tz_str = 'America/New_York'
+
     def event_comparator(event1, event2):
         d1 = get_event_start_dt(event1, tz_str)
         d2 = get_event_start_dt(event2, tz_str)
@@ -116,10 +113,21 @@ def get_events_from_multiple_calendars(credentials, calendar_ids, tz_str, option
 
         return 1
 
+    kwargs = dict(
+        credentials=credentials
+    )
+
+    if date_min:
+        kwargs['date_min'] = date_min
+
+    if time_range:
+        kwargs['range'] = time_range
+
     res = []
     for calendar_id in calendar_ids:
-        events = get_events(credentials, calendar_id, options)
-        res = zip_sorted(event_comparator, res, events)
+        kwargs['calendar_id'] = calendar_id
+        event_list = get_events(**kwargs)
+        res = sort_events(event_comparator, res, event_list)
 
     return res
 

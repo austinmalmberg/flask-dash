@@ -1,4 +1,6 @@
-from flask import Blueprint, jsonify
+from datetime import date
+
+from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
 
 from helpers.google.calendars import get_calendar_list, get_calendar_settings, get_events_from_multiple_calendars,\
@@ -26,10 +28,44 @@ def calendar_list():
 @login_required
 @validate_oauth_token
 def events():
-    credentials = current_user.build_credentials()
-    watched_calendars = [cal.calendar_id for cal in current_user.calendars if cal.watching]
+    time_min = request.args.get('timeMin')
+    time_range = request.args.get('range')
 
-    events = get_events_from_multiple_calendars(credentials, watched_calendars, current_user.timezone)
+    error_msg = None
+
+    if time_min:
+        try:
+            date_min = date.fromisoformat(time_min[:10])
+        except ValueError:
+            error_msg = 'timeMin must be a date in ISO format'
+    else:
+        error_msg = "Missing request parameter 'timeMin'"
+
+    if time_range and error_msg is None:
+        try:
+            time_range = int(time_range)
+            if time_range <= 0:
+                error_msg = 'Range must be greater than 0'
+        except ValueError:
+            error_msg = 'Range must be a number, if present'
+
+    if error_msg:
+        return jsonify({
+            'error': 'Invalid parameter',
+            'message': error_msg
+        }), 400
+
+    if not time_range:
+        time_range = 7
+
+    credentials = current_user.build_credentials()
+    watched_calendar_ids = [cal.calendar_id for cal in current_user.calendars if cal.watching]
+
+    events = get_events_from_multiple_calendars(
+        credentials, watched_calendar_ids,
+        date_min=date_min,
+        time_range=time_range
+    )
 
     return jsonify(events)
 
