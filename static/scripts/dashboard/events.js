@@ -34,7 +34,7 @@ function handleFetchErrors(response) {
  * @param {object} eventList
  * @returns
 */
-function addEventsToDOM(events) {
+function handleEvents(events) {
     for (let card of eventCards) {
         const dayStart = new Date(card.id);
 
@@ -50,70 +50,76 @@ function addEventsToDOM(events) {
             let eventStart = new Date(event.start.dateTime || event.start.date);
             let eventEnd = new Date(event.end.dateTime || event.end.date);
 
-            // remove events that start before the current day
             if (eventEnd <= dayStart) {
+                // remove events that start before the current day
                 events.shift();
                 continue;
 
-            // since events are sorted, if the event occurs at a future date then go to the next card
             } else if (eventStart >= dayEnd) {
+                // since events are sorted, if the event occurs at a future date then go to the next card
                 break;
             }
 
-            addEventToElement(card, event);
+            const eventElement = document.getElementById(event.id);
+
+            // update the element if it exists. Otherwise, create a new element
+            if (eventElement) {
+                updateEventElement(eventElement, event);
+            } else {
+                addEventToElement(event, card);
+            }
 
             const eventEndsToday = (dayEnd.getFullYear() === eventEnd.getFullYear() &&
                 dayEnd.getMonth() === eventEnd.getMonth() &&
                 dayEnd.getDate() === eventEnd.getDate());
 
-            if (eventEndsToday) {
-                events.shift();
-            } else {
-                i++;
-            }
+            // remove elements that end on the current date. Otherwise, increment the index
+            if (eventEndsToday) events.shift();
+            else i++;
         }
     }
 }
 
 
 /*
- * Adds an event to a given element.
+ * Generates an event and adds it to the given element.
+ *    <div class="event" id="[event.id]">
+ *        <div class="time">
+ *            <p class="start">9:30 AM</p>
+ *            <p class="end">6:00 PM</p>
+ *        </div>
+ *        <p class="summary">Work</p>
+ *    </div>
  *
  * @param {object} event
- * @param {index} event
- * @returns
+ * @param {HTMLObject} element
+ * @returns null
 */
-function addEventToElement(element, event) {
+function addEventToElement(event, element) {
+    const eventDiv = appendToElement(element, 'div', event.id, ['event']);
+    const timeDiv = appendToElement(eventDiv, 'div', null, ['time']);
+
     const eventStart = new Date(event.start.dateTime || event.start.date);
-    const startP = document.createElement('p');
-    startP.classList.add('start');
-    startP.innerText = eventStart.toLocaleTimeString(undefined, timeOptions);
+    appendToElement(timeDiv, 'p', null, ['start'], eventStart.toLocaleTimeString(undefined, timeOptions));
 
     const eventEnd = new Date(event.end.dateTime || event.end.date);
-    const endP = document.createElement('p');
-    endP.classList.add('end');
-    endP.innerText = eventEnd.toLocaleTimeString(undefined, timeOptions);
+    appendToElement(timeDiv, 'p', null, ['end'], eventEnd.toLocaleTimeString(undefined, timeOptions));
 
-    const timeDiv = document.createElement('div');
-    timeDiv.classList.add('time');
-    timeDiv.appendChild(startP);
-    timeDiv.appendChild(endP);
-
-    const summaryP = document.createElement('p');
-    summaryP.classList.add('summary');
-    summaryP.innerText = event.summary;
-
-    const eventDiv = document.createElement('div');
-    eventDiv.classList.add('event')
-    eventDiv.id = event.id;
-    eventDiv.appendChild(timeDiv);
-    eventDiv.appendChild(summaryP);
-
-    element.appendChild(eventDiv);
+    appendToElement(eventDiv, 'p', null, ['summary'], event.summary);
 }
 
 
-fetchCalendarEvents(addEventsToDOM);
+function updateEventElement(element, event) {
+    const eventStart = new Date(event.start.dateTime || event.start.date);
+    element.querySelector('.start').innerHTML = eventStart.toLocaleTimeString(undefined, timeOptions);
 
+    const eventEnd = new Date(event.end.dateTime || event.end.date);
+    element.querySelector('.end').innerHTML = eventEnd.toLocaleTimeString(undefined, timeOptions);
 
-// populate weather
+    element.querySelector('.summary').innerHTML = event.summary;
+}
+
+fetchCalendarEvents(handleEvents);
+
+// reload the page every 5 minutes
+setTimeout(() => location.reload(), 1000 * 60 * 5);
