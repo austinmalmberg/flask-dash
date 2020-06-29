@@ -1,5 +1,5 @@
 
-def zip_sorted(comparator, list_a, list_b):
+def sort_events(comparator, list_a, list_b):
     """
     Combines two sorted arrays so that they remain sorted.
     
