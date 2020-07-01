@@ -13,7 +13,7 @@ body {
   grid-template-areas:
     "info    secondary"
     "primary secondary";
-  grid-template-rows: 25% auto;
+  grid-template-rows: 25% 75%;
   grid-template-columns: repeat(2, minmax(440px, 1fr));
 
   height: 100vh;
@@ -76,7 +76,7 @@ body {
 
   height: 100%;
 
-  opacity: 0.8;
+  opacity: 0.9;
 
   background-color: var(--primary-color);
   box-shadow: -0.05rem 0.05rem 0.1rem var(--event-color);
@@ -109,8 +109,8 @@ body {
 #primary {
   grid-area: primary;
 
-  margin-left: 0.5em;
-  margin-bottom: 0.5em;
+  margin-left: 0.3036em;
+  margin-bottom: 0.3036em;
 
   font-size: 1.4em;
 }
@@ -127,7 +127,7 @@ body {
 }
 
 #primary .event .time {
-  min-width: 110px;
+  min-width: 125px;
 }
 
 /* SECONDARY */
@@ -141,7 +141,7 @@ body {
 
   margin: 0.5em;
 
-  font-size: 0.85;
+  font-size: 0.85em;
 }
 
 #secondary .date--card {
@@ -154,13 +154,17 @@ body {
 }
 
 #secondary .event .time {
-  min-width: 70px;
+  min-width: 90px;
 }
 
-#secondary .event .time .end {
+#secondary .event .time * {
   display: none;
 }
 
+/* display only the first element in time */
+#secondary .event .time p:first-child {
+  display: block;
+}
 
 
 /* EVENTS */
