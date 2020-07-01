@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import datetime
 
 from flask import Blueprint, jsonify, request
 from flask_login import login_required, current_user
@@ -29,25 +29,27 @@ def calendar_list():
 @validate_oauth_token
 def events():
     time_min = request.args.get('timeMin')
-    time_range = request.args.get('range')
+    max_days = request.args.get('maxDays')
 
     error_msg = None
 
     if time_min:
         try:
-            date_min = date.fromisoformat(time_min[:10])
+            time_min = time_min.replace('Z', '')
+            date_min = datetime.fromisoformat(time_min)
         except ValueError:
             error_msg = 'timeMin must be a date in ISO format'
+            print(time_min, error_msg)
     else:
         error_msg = "Missing request parameter 'timeMin'"
 
-    if time_range and error_msg is None:
+    if max_days and error_msg is None:
         try:
-            time_range = int(time_range)
-            if time_range <= 0:
-                error_msg = 'Range must be greater than 0'
+            max_days = int(max_days)
+            if max_days <= 0:
+                error_msg = 'maxDays must be greater than 0'
         except ValueError:
-            error_msg = 'Range must be a number, if present'
+            error_msg = 'maxDays must be a number, if present'
 
     if error_msg:
         return jsonify({
@@ -55,19 +57,18 @@ def events():
             'message': error_msg
         }), 400
 
-    if not time_range:
-        time_range = 7
-
     credentials = current_user.build_credentials()
     watched_calendar_ids = [cal.calendar_id for cal in current_user.calendars if cal.watching]
 
     events = get_events_from_multiple_calendars(
         credentials, watched_calendar_ids,
         date_min=date_min,
-        time_range=time_range
+        max_days=max_days
     )
 
     return jsonify(events)
+
+
 
 
 @bp.route('/settings', methods=('GET',))
