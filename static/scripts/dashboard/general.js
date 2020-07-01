@@ -7,8 +7,7 @@
  * param {string or HTMLObject} html
  * return The newly created element
 */
-function appendToElement(parentElement = document.body, tag = 'div',
-        id = null, classes = null, html = null) {
+function appendToElement(parentElement = document.body, tag = 'div', id = null, classes = null, html = null) {
     const e = document.createElement(tag);
     if (id) e.id = id;
     if (classes) e.classList.add(...classes);

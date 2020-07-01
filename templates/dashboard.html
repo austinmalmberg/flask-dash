@@ -49,10 +49,12 @@
     <script src="{{ url_for('static', filename='scripts/dashboard/clock.js') }}"></script>
 
 
+    {# CALENDAR MANAGER - USED BY events.js #}
+    <script type="module" src="{{ url_for('static', filename='scripts/dashboard/calendarManager.mjs') }}"></script>
+
     {# EVENT SCRIPTS #}
     <script>
         const eventsUrl = "{{ url_for('calendars.events') }}";
-        const eventCards = document.getElementsByClassName('event--container');
     </script>
-    <script src="{{ url_for('static', filename='scripts/dashboard/events.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='scripts/dashboard/fetchEvents.mjs') }}"></script>
 {% endblock %}
