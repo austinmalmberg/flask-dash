@@ -1,13 +1,20 @@
+Daily Dashboard
+===============
+
+A productivity application that can be used in your home or office to manage your week.
+
 Endpoints
-=========
+---------
 
 #### `/`
 
 *Valid OAuth 2.0 token required*
 
-The main dashboard. Shows users an overview of weather and events happening in the current week. *Login required.*
+The main dashboard. Shows users an overview of weather and events happening in the current week.
 
 #### `/settings`
+
+*Valid OAuth 2.0 token required*
 
 An interface to update user settings.  This includes, date and time formatting, timezone, and which calendars are
 displayed on the dashboard.

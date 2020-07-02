@@ -1,1 +1,1 @@
-name = 'Digital Dashboard'
+name = 'Daily Dashboard'
