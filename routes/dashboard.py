@@ -16,6 +16,7 @@ bp = Blueprint('main', __name__)
 
 @bp.route('/')
 @login_required
+@validate_oauth_token
 def dashboard():
     """
     Sends basic dashboard template.
@@ -62,7 +63,7 @@ def settings():
 
 @bp.route('/login')
 def login():
-    if current_user.is_authenticated:
+    if current_user.is_authenticated():
         return redirect(url_for('main.dashboard'))
 
     if 'device_credentials' not in session or datetime.utcnow() > session['device_credentials']['valid_until']:
