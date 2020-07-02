@@ -34,5 +34,14 @@ async function handleFetchErrors(response) {
 
 fetchCalendarEvents(addAllEvents);
 
+const now = new Date();
+
+const midnight = new Date();
+midnight.setHours(0, 0, 0, 0);
+midnight.setDate(midnight.getDate() + 1);
+
+// set page reload to the time until midnight or 5 minutes -- whichever comes first
+const timeoutDuration = Math.min(midnight - now, 1000 * 60 * 5);
+
 // reload the page every 5 minutes
-setTimeout(() => location.reload(), 1000 * 60 * 5);
+setTimeout(() => location.reload(), timeoutDuration);
