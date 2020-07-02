@@ -13,16 +13,16 @@ Project Backlog
 - [x] Display calendar events
 - [x] Create proper headers
 - [x] Add styling
+- [x] Set page to refresh at midnight
 - [ ] Roll events over to the next card on date change
-- [ ] Use Google color scheme for events
+- [x] Use Google color scheme for events
 - [x] **Bug**: Retrieving events from `/events` after 8:00pm does not populate the current day
     - This is related to timezones. The server calculates the date from UTC. Being in EST on DST, we are -4:00 behind
         UTC effectively one day behind UTC after 8:00PM
     - **Fix**: Send date information during `/events` fetch
-- [ ] **Bug**: Correct time on all-day events
-    - All day event start times are set to 8:00PM in get_event_start_dt (-4:00 EST timezone) so it can be compared when
-        sorted
-    - **Fix**: TBD
+- [x] **Bug**: Correct time on all-day events
+    - **Fix**: The frontend was formatting a UTC date into a time string which caused the date to be offset by -4:00.
+        Added `T00:00:00` to the string to treat it as a timezone relative date
 - [ ] Display weather
 - [ ] Implement SSE/polling
     - [ ] Begin watching selected calendars for event changes
