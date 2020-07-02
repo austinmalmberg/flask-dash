@@ -22,12 +22,7 @@ def sort_events(comparator, list_a, list_b):
             res.append(list_b[j])
             j += 1
 
-    while i < len(list_a):
-        res.append(list_a[i])
-        i += 1
-
-    while j < len(list_b):
-        res.append(list_b[j])
-        j += 1
+    res += list_a[i:]
+    res += list_b[j:]
 
     return res
