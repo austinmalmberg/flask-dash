@@ -11,7 +11,6 @@ def get_userinfo(token=None, credentials=None):
     response = requests.get(
         url=GoogleApis.user_info,
         headers={
-            'Content-Type': 'application/json',
             'Authorization': f'Bearer {token}'
         }
     )
