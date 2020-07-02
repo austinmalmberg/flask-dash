@@ -19,19 +19,21 @@ function generateEventElement(event, start, curr, end) {
 
     const startingOnCurrentDate = sameDate(start, curr);
 
-    const endMinusOneSecond = new Date(end);
-    endMinusOneSecond.setSeconds(end.getSeconds() - 1);
-    const endingOnCurrentDate = sameDate(endMinusOneSecond, curr);
-
     if (startingOnCurrentDate) {
         const startElement = document.createElement('p');
         startElement.classList.add('start');
         startElement.innerHTML = start.toLocaleTimeString(undefined, timeOptions);
         timeDiv.appendChild(startElement);
+    } else {
+        eventElement.classList.add('carryover');
     }
 
-    const allDayEvent = (!sameDate(end, curr));
-    if (endingOnCurrentDate && !allDayEvent) {
+    // All day events end on the next day at 12:00AM so subtract one second to avoid adding the event to the next day.
+    const endMinusOneSecond = new Date(end);
+    endMinusOneSecond.setSeconds(end.getSeconds() - 1);
+    const endingOnCurrentDate = sameDate(endMinusOneSecond, curr);
+
+    if (endingOnCurrentDate) {
         // only add the end time if the event ends on at midnight on the next day
         const endElement = document.createElement('p');
         endElement.classList.add('end');
@@ -39,14 +41,12 @@ function generateEventElement(event, start, curr, end) {
         timeDiv.appendChild(endElement);
     }
 
+    eventElement.appendChild(timeDiv);
+
     const summary = document.createElement('p');
     summary.classList.add('summary');
     summary.innerText = event.summary;
-
-    eventElement.appendChild(timeDiv);
     eventElement.appendChild(summary);
-
-    if (!startingOnCurrentDate && endingOnCurrentDate) eventElement.classList.add('carryover');
 
     return eventElement;
 
@@ -73,12 +73,18 @@ function isoDateString(date) {
     }
 }
 
+
+/* EXPORTS */
+
+
 /*
  * @param {object} event - An event object
  *      {
  *          "background": "#e1e1e1",
  *          "end": {
- *              "dateTime": "2020-06-29T18:00:00-04:00"
+ *              // one or the other, never both
+ *              "dateTime": "2020-06-29T18:00:00-04:00",
+ *              "date": "2020-06-29"
  *          },
  *          "foreground": "#1d1d1d",
  *          "htmlLink": <link to event>,
