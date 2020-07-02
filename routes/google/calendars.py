@@ -69,8 +69,6 @@ def events():
     return jsonify(events)
 
 
-
-
 @bp.route('/settings', methods=('GET',))
 @login_required
 @validate_oauth_token
