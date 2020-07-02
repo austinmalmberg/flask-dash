@@ -61,7 +61,7 @@ def refresh_credentials(credentials):
 
         # test that this is updating the database since we're updating the current_user
         user = User.query.get(current_user.id)
-        print(f'Token refreshed for {current_user}. Database updated? {user.token == current_user.token}')
+        print(f'Token refreshed for {current_user}.')
 
     except RefreshError:
         current_user.token = None
