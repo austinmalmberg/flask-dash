@@ -92,7 +92,7 @@ def poll():
 
         elif user and datetime.utcnow() > user.last_updated + timedelta(days=7):
             # update the existing user's info after 7 days since the last update
-            update_existing_user(user.id, userinfo, token=token, refresh_token=refresh_token)
+            user = update_existing_user(user, userinfo, token=token, refresh_token=refresh_token)
 
         login_user(user)
 

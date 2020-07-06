@@ -123,7 +123,7 @@ def callback():
 
             elif user and datetime.utcnow() > user.last_updated + timedelta(days=7):
                 # update the existing user's info after 7 days since the last update
-                update_existing_user(user.id, userinfo, credentials=credentials)
+                user = update_existing_user(user, userinfo, credentials=credentials)
 
             login_user(user)
 

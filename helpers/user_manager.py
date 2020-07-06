@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import redirect, url_for
 from flask_login import LoginManager
 
@@ -95,26 +97,24 @@ def init_new_user(userinfo, token=None, refresh_token=None, credentials=None):
     return user
 
 
-def update_existing_user(user_id, userinfo, token=None, refresh_token=None, credentials=None):
+def update_existing_user(user, userinfo, token=None, refresh_token=None, credentials=None):
     """
     Updates an existing user's user info and tokens, if provided.  Tokens will not be overridden if they are not
     provided.
 
     Calendars are not modified in this method.
 
-    :param user_id: The user id
+    :param user: The user
     :param userinfo: The userinfo from Google
     :param token: OAuth token
     :param refresh_token: OAuth refresh token
     :param credentials: google.oauth2.credentials.Credentials
     :return: The user that was updated, or None if the user was not found
     """
-
-    # ensure the user doesn't already exist
-    user = User.query.get(user_id)
-
     if not user:
         return None
+
+    user.last_updated = datetime.utcnow()
 
     if credentials:
         token = credentials.token
