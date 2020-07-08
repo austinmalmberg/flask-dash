@@ -60,10 +60,6 @@ class User(UserMixin, db.Model):
 
         return credentials
 
-    def is_authenticated(self):
-        credentials = self.build_credentials()
-        return credentials.valid
-
 
 class Calendar(db.Model):
     id = db.Column(db.Integer, primary_key=True)

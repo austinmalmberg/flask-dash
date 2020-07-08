@@ -56,14 +56,14 @@ def settings():
     credentials = current_user.build_credentials()
     google_calendars = get_calendar_list(credentials)
 
-    sync_calendars(current_user.id, google_calendars, current_user.calendars)
+    sync_calendars(google_calendars, current_user.calendars)
 
     return render_template('settings.html')
 
 
 @bp.route('/login')
 def login():
-    if current_user.is_authenticated:
+    if current_user.is_authenticated and current_user.build_credentials().valid:
         return redirect(url_for('main.dashboard'))
 
     if 'device_credentials' not in session or datetime.utcnow() > session['device_credentials']['valid_until']:
