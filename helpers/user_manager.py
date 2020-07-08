@@ -47,7 +47,7 @@ def init_new_user(userinfo, token=None, refresh_token=None, credentials=None):
     :return: The newly created user, or None if a user already exists
     """
 
-    # fail if this is null since we use the google_id to check if the user exists within the database
+    # fails if userinfo is null since we use the google_id to check if the user exists within the database
     google_id = userinfo['id']
 
     # ensure the user doesn't already exist
@@ -135,31 +135,35 @@ def update_existing_user(user, userinfo, token=None, refresh_token=None, credent
     return user
 
 
-def sync_calendar(user_id, google_calendar, user_calendar):
-    if user_calendar.user_id == user_id:
-        user_calendar.calendar_id = google_calendar['id']
+def sync_calendar(user_calendar, google_calendar):
+    if user_calendar and google_calendar:
         user_calendar.summary = google_calendar.get('summary', user_calendar.summary)
 
         db.session.commit()
 
         return user_calendar
 
-    return None
 
+def sync_calendars(user, google_calendars):
+    existing_calendar_ids = [cal.calendar_id for cal in user.calendars]
 
-def sync_calendars(user_id, google_calendars, user_calendars):
-    existing_calendar_ids = [cal.calendar_id for cal in user_calendars]
-
+    # iterate through Google calendars
     for calendar in google_calendars:
+
+        # update all calendars that exist in the database
         if calendar['id'] in existing_calendar_ids:
-            sync_calendar(user_id, calendar, Calendar.query.filter_by(calendar_id=calendar['id']).first())
+            sync_calendar(calendar, user.calendars.query.filter_by(calendar_id=calendar['id']).first())
 
             # remove the calendar id from the list. Any existing calendars on this list
             # have been deleted and will be removed
             existing_calendar_ids.remove(calendar['id'])
-        else:
-            add_calendar(user_id, calendar)
 
+        # add any calendars that do not exist in the database
+        else:
+            add_calendar(user.id, calendar)
+
+    # remove any previously deleted calendar from the database
     for calendar_id in existing_calendar_ids:
-        Calendar.query.filter_by(calendar_id=calendar_id).delete()
-        db.session.commit()
+        user.calendars.query.filter_by(calendar_id=calendar_id).delete()
+
+    db.session.commit()
