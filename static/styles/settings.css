@@ -32,6 +32,7 @@
 
 .page--nav .nav--item {
   border-bottom: 1px solid darkgray;
+  font-weight: bold;
 }
 
 .page--nav .nav--item a {
