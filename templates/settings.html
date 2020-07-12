@@ -29,7 +29,7 @@
                 <p class="whisper"><b>NOTE:</b> These options have not yet been implemented.</p>
 
                 <fieldset class="no-border">
-                    <label for="date-format">Date format</label>
+                    <label class="bold" for="date-format">Date format</label>
                     <select name="date-format" id="date-format">
                         <option value="mdy">January 1, 2020</option>
                         <option value="dmy">1 January 2020</option>
@@ -38,7 +38,7 @@
                 </fieldset>
 
                 <fieldset class="no-border">
-                    <label for="time-format">Time format</label>
+                    <label class="bold" for="time-format">Time format</label>
                     <select name="time-format" id="time-format">
                         <option value="12-hour">5:00 PM</option>
                         <option value="24-hour">17:00</option>
@@ -47,7 +47,7 @@
                 </fieldset>
 
                 <fieldset class="no-border">
-                    <label for="timezone">Timezone</label>
+                    <label class="bold" for="timezone">Timezone</label>
                     <select name="timezone" id="timezone">
                         <option value="">{{ current_user.timezone }}</option>
                     </select>
@@ -67,8 +67,6 @@
                         </label>
                     {% endfor %}
                 </fieldset>
-
-                <!-- Hide Weekends -->
 
                 <input type="submit" value="Save">
             </fieldset>

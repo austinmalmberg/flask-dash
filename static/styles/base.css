@@ -32,6 +32,10 @@ body {
   color: white;
 }
 
+.bold {
+  font-weight: bold;
+}
+
 .whisper {
   font-style: oblique;
 }
