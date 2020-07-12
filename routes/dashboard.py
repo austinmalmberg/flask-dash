@@ -56,7 +56,7 @@ def settings():
     credentials = current_user.build_credentials()
     google_calendars = get_calendar_list(credentials)
 
-    sync_calendars(google_calendars, current_user.calendars)
+    sync_calendars(current_user, google_calendars)
 
     return render_template('settings.html')
 

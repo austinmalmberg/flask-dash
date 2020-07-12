@@ -31,7 +31,7 @@ def handle_unauthorized_user():
 
 def find_user(google_id):
     if google_id is None:
-        return None
+        raise ValueError('google_id cannot be None')
 
     return User.query.filter_by(google_id=google_id).first()
 
@@ -49,12 +49,6 @@ def init_new_user(userinfo, token=None, refresh_token=None, credentials=None):
 
     # fails if userinfo is null since we use the google_id to check if the user exists within the database
     google_id = userinfo['id']
-
-    # ensure the user doesn't already exist
-    user = find_user(google_id)
-
-    if user:
-        return None
 
     # add user to the database
     user = User(
@@ -112,7 +106,7 @@ def update_existing_user(user, userinfo, token=None, refresh_token=None, credent
     :return: The user that was updated, or None if the user was not found
     """
     if not user:
-        return None
+        return init_new_user(userinfo, token=token, refresh_token=refresh_token, credentials=credentials)
 
     user.last_updated = datetime.utcnow()
 
@@ -135,35 +129,53 @@ def update_existing_user(user, userinfo, token=None, refresh_token=None, credent
     return user
 
 
-def sync_calendar(user_calendar, google_calendar):
-    if user_calendar and google_calendar:
-        user_calendar.summary = google_calendar.get('summary', user_calendar.summary)
+def sync_calendar(user, google_calendar):
+    """
+    Takes a google_calendar.  If a user_calendar is given, changes the user_calendar.summary to match.
 
-        db.session.commit()
+    If user_calendar is None, queries the database for a calendar with a matching calendar_id.  If None exists, the
+    method will add the calendar.
 
-        return user_calendar
+    :param user: A User from the database
+    :param google_calendar: A Google Calendar resource as shown here:
+        https://developers.google.com/calendar/v3/reference/calendarList#resource
+    :return: The synced or newly created calendar
+    """
+    user_calendar = next((cal for cal in user.calendars if cal.calendar_id == google_calendar['id']), None)
+
+    if not user_calendar:
+        return add_calendar(user.id, google_calendar)
+
+    user_calendar.summary = google_calendar.get('summary', user_calendar.summary)
+    db.session.commit()
+
+    return user_calendar
 
 
 def sync_calendars(user, google_calendars):
-    existing_calendar_ids = [cal.calendar_id for cal in user.calendars]
+    """
+    Takes a User and a Google Calendar resource list. And sync the calendars by doing the following:
 
-    # iterate through Google calendars
-    for calendar in google_calendars:
+    - if the calendar exists in the database and in google_calendars, sync it
+    - if the calendar does not exist in the database but does in google_calendars, add it
+    - if the calendar exists in the database but not google calendars, delete it
 
-        # update all calendars that exist in the database
-        if calendar['id'] in existing_calendar_ids:
-            sync_calendar(calendar, user.calendars.query.filter_by(calendar_id=calendar['id']).first())
+    :param user: The User whose Calendars to sync
+    :param google_calendars: A Google Calendar resource list as shown here:
+        https://developers.google.com/calendar/v3/reference/calendarList#resource
+    :return: None
+    """
+    calendars = {cal.calendar_id: cal for cal in user.calendars}
 
-            # remove the calendar id from the list. Any existing calendars on this list
-            # have been deleted and will be removed
-            existing_calendar_ids.remove(calendar['id'])
+    for g_cal in google_calendars:
+        # updates or adds the calendar
+        sync_calendar(user, g_cal)
 
-        # add any calendars that do not exist in the database
-        else:
-            add_calendar(user.id, calendar)
+        # removes the calendar
+        calendars.pop(g_cal['id'], None)
 
-    # remove any previously deleted calendar from the database
-    for calendar_id in existing_calendar_ids:
-        user.calendars.query.filter_by(calendar_id=calendar_id).delete()
+    # delete remaining calendars that weren't removed within the sync loop above
+    for cal in calendars.values():
+        db.session.delete(cal)
 
     db.session.commit()
