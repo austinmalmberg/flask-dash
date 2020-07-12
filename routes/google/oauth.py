@@ -34,6 +34,7 @@ def validate_oauth_token(view):
         credentials = current_user.build_credentials()
 
         if not credentials.valid:
+
             err = refresh_credentials(credentials)
 
             if err:
@@ -58,10 +59,6 @@ def refresh_credentials(credentials):
         current_user.refresh_token = credentials.refresh_token
 
         db.session.commit()
-
-        # test that this is updating the database since we're updating the current_user
-        user = User.query.get(current_user.id)
-        print(f'Token refreshed for {current_user}.')
 
     except RefreshError:
         current_user.token = None
@@ -120,9 +117,7 @@ def callback():
 
             if user is None:
                 user = init_new_user(userinfo, credentials=credentials)
-
-            elif user and datetime.utcnow() > user.last_updated + timedelta(days=7):
-                # update the existing user's info after 7 days since the last update
+            else:
                 user = update_existing_user(user, userinfo, credentials=credentials)
 
             login_user(user)
