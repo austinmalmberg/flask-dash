@@ -29,5 +29,8 @@
 
 
 {% block scripts %}
+    <script>
+        const pollUrl = "{{ url_for('oauth_lid.poll') }}";
+    </script>
     <script src="{{ url_for('static', filename='scripts/login.js') }}"></script>
 {% endblock %}

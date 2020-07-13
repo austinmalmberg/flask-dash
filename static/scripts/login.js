@@ -1,5 +1,5 @@
 async function poll_device_endpoint() {
-    const response = await fetch('/poll');
+    const response = await fetch(pollUrl);
 
     if (response.redirected) {
         window.location.href = response.url;
