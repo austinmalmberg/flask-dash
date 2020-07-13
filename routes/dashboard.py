@@ -64,10 +64,6 @@ def settings():
 
 @bp.route('/login')
 def login():
-    if current_user.is_authenticated and build_credentials(
-            token=session.get('token', None), refresh_token=current_user.refresh_token).valid:
-        return redirect(url_for('main.dashboard'))
-
     if 'device_credentials' not in session or datetime.utcnow() > session['device_credentials']['valid_until']:
         session['device_credentials'] = oauth_limited_input_device.create_device_credentials()
 
