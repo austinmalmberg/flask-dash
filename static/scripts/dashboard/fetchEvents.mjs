@@ -22,11 +22,9 @@ function fetchCalendarEvents(callback) {
 
 
 async function handleFetchErrors(response) {
-    if (!response.ok) {
-        if (response.redirected) {
-            window.location.href = response.url;
-        }
-
+    if (response.redirected) {
+        window.location.href = response.url;
+    } else if (!response.ok) {
         const data = await response.json();
         console.error(data);
 
