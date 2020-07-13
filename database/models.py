@@ -1,10 +1,8 @@
 from datetime import datetime
 
 from flask_login import UserMixin
-from google.oauth2.credentials import Credentials
 
 from database import db
-from helpers.google import GoogleApis, client_secrets, scopes
 
 
 class User(UserMixin, db.Model):
@@ -13,9 +11,7 @@ class User(UserMixin, db.Model):
     last_updated = db.Column(db.DateTime, default=datetime.utcnow())
 
     # Google OAuth
-    token = db.Column(db.String())
     refresh_token = db.Column(db.String())
-    token_type = db.Column(db.String(), default='Bearer')
 
     # Google userinfo
     google_id = db.Column(db.String(), nullable=False)
@@ -43,23 +39,6 @@ class User(UserMixin, db.Model):
             self.token = token
             self.refresh_token = refresh_token
 
-    def build_credentials(self):
-        """
-        Builds google.oauth2.credentials.Credentials from the database model
-
-        :return: google.oauth2.credentials.Credentials or None if both token and refresh token are not present
-        """
-        credentials = Credentials(
-            token=self.token,
-            refresh_token=self.refresh_token,
-            token_uri=GoogleApis.auth['token_uri'],
-            client_id=client_secrets['client_id'],
-            client_secret=client_secrets['client_secret'],
-            scopes=scopes
-        )
-
-        return credentials
-
 
 class Calendar(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -67,4 +46,3 @@ class Calendar(db.Model):
     calendar_id = db.Column(db.String(), nullable=False)
     summary = db.Column(db.String())
     watching = db.Column(db.Boolean, default=False)
-    # sync_token = db.Column(db.String())

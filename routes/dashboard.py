@@ -5,6 +5,7 @@ from flask import Blueprint, render_template, session, redirect, url_for, reques
 from flask_login import login_required, current_user
 
 from database import db
+from helpers.google import build_credentials
 
 from helpers.user_manager import sync_calendars
 from routes.google import oauth_limited_input_device
@@ -53,7 +54,7 @@ def settings():
         return redirect(url_for('main.dashboard'))
 
     # get an updated calendar list from Google
-    credentials = current_user.build_credentials()
+    credentials = build_credentials(token=session.get('token', None), refresh_token=current_user.refresh_token)
     google_calendars = get_calendar_list(credentials)
 
     sync_calendars(current_user, google_calendars)
@@ -63,7 +64,8 @@ def settings():
 
 @bp.route('/login')
 def login():
-    if current_user.is_authenticated and current_user.build_credentials().valid:
+    if current_user.is_authenticated and build_credentials(
+            token=session.get('token', None), refresh_token=current_user.refresh_token).valid:
         return redirect(url_for('main.dashboard'))
 
     if 'device_credentials' not in session or datetime.utcnow() > session['device_credentials']['valid_until']:

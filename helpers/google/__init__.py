@@ -1,5 +1,6 @@
 import os
 
+from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 
 
@@ -51,3 +52,18 @@ scopes = [
 flow = Flow.from_client_config({
     'web': client_secrets
 }, scopes)
+
+
+def build_credentials(credentials=None, token=None, refresh_token=None):
+    if credentials:
+        token = credentials.token
+        refresh_token = credentials.refresh_token
+
+    return Credentials(
+        token=token,
+        refresh_token=refresh_token,
+        token_uri=GoogleApis.auth['token_uri'],
+        client_id=client_secrets['client_id'],
+        client_secret=client_secrets['client_secret'],
+        scopes=scopes
+    )

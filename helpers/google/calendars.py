@@ -21,6 +21,12 @@ def get_calendar(credentials, calendar_id):
 
 
 def get_calendar_list(credentials):
+    """
+
+    :param credentials: Google.oauth.credentials.Credentials
+    :return: An array of CalendarList resources as shown here:
+        https://developers.google.com/calendar/v3/reference/calendarList#resource
+    """
     service = _getservice(credentials)
     calendars = []
 

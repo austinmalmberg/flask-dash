@@ -1,7 +1,6 @@
 import functools
 import os
 import hashlib
-from datetime import timedelta, datetime
 
 from flask import Blueprint, session, url_for, redirect, request, flash
 from flask_login import logout_user, current_user, login_required, login_user
@@ -13,7 +12,7 @@ from google.auth.transport.requests import Request
 from database.models import User
 from helpers.google.userinfo import get_userinfo
 from helpers.user_manager import find_user, init_new_user, update_existing_user
-from helpers.google import flow, GoogleApis
+from helpers.google import flow, GoogleApis, build_credentials
 from database import db
 
 bp = Blueprint('oauth', __name__, url_prefix='/oauth')
@@ -31,7 +30,7 @@ def validate_oauth_token(view):
 
     @functools.wraps(view)
     def wrapped_view(*args, **kwargs):
-        credentials = current_user.build_credentials()
+        credentials = build_credentials(token=session.get('token', None), refresh_token=current_user.refresh_token)
 
         if not credentials.valid:
 
@@ -39,7 +38,7 @@ def validate_oauth_token(view):
 
             if err:
                 flash(f'{err}. Please login again.', 'error')
-                return redirect(url_for('main.login'))
+                return redirect(url_for('main.login'), code=303)
 
         return view(*args, **kwargs)
 
@@ -55,13 +54,13 @@ def refresh_credentials(credentials):
         credentials.refresh(Request())
 
         # update the credentials in the database
-        current_user.token = credentials.token
+        session['token'] = credentials.token
         current_user.refresh_token = credentials.refresh_token
 
         db.session.commit()
 
     except RefreshError:
-        current_user.token = None
+        session.pop('token', None)
         current_user.refresh_token = None
         db.session.commit()
 
@@ -132,14 +131,14 @@ def callback():
 @login_required
 @validate_oauth_token
 def revoke():
-    if current_user.token:
+    if session.get('token', None):
         response = requests.post(
             GoogleApis.auth['oauth_token_revoke'],
             headers={'content-type': 'application/x-www-form-urlencoded'},
-            params={'token': current_user.token}
+            params={'token': session.get('token', None)}
         )
 
-        current_user.token = None
+        session.pop('token', None)
         current_user.refresh_token = None
         db.session.commit()
 

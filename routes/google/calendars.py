@@ -1,8 +1,9 @@
 from datetime import datetime
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from flask_login import login_required, current_user
 
+from helpers.google import build_credentials
 from helpers.google.calendars import get_calendar_list, get_calendar_settings, get_events_from_multiple_calendars,\
     get_colors
 from routes.google.oauth import validate_oauth_token
@@ -18,7 +19,7 @@ def calendar_list():
     Returns a list of all calendars for the user.
     :return:
     """
-    credentials = current_user.build_credentials()
+    credentials = build_credentials(token=session.get('token', None), refresh_token=current_user.refresh_token)
     calendars = get_calendar_list(credentials)
 
     return jsonify(calendars)
@@ -57,7 +58,7 @@ def events():
             'message': error_msg
         }), 400
 
-    credentials = current_user.build_credentials()
+    credentials = build_credentials(token=session.get('token', None), refresh_token=current_user.refresh_token)
     watched_calendar_ids = [cal.calendar_id for cal in current_user.calendars if cal.watching]
 
     events = get_events_from_multiple_calendars(
@@ -73,7 +74,7 @@ def events():
 @login_required
 @validate_oauth_token
 def settings():
-    credentials = current_user.build_credentials()
+    credentials = build_credentials(token=session.get('token', None), refresh_token=current_user.refresh_token)
     settings = get_calendar_settings(credentials)
 
     return jsonify(settings)
@@ -83,7 +84,7 @@ def settings():
 @login_required
 @validate_oauth_token
 def colors():
-    credentials = current_user.build_credentials()
+    credentials = build_credentials(token=session.get('token', None), refresh_token=current_user.refresh_token)
     colors = get_colors(credentials)
 
     return jsonify(colors)

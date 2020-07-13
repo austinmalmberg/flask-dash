@@ -1,11 +1,12 @@
 from datetime import datetime
 
-from flask import redirect, url_for
+from flask import redirect, url_for, session
 from flask_login import LoginManager
 
 from database import db
 from database.models import User, Calendar
 from database.queries import add_calendar
+from helpers.google import build_credentials
 from helpers.google.calendars import get_calendar_list, get_calendar_settings
 
 login = LoginManager()
@@ -64,7 +65,7 @@ def init_new_user(userinfo, token=None, refresh_token=None, credentials=None):
     db.session.flush()
 
     if not credentials:
-        credentials = user.build_credentials()
+        credentials = build_credentials(token=token, refresh_token=refresh_token)
 
     # add calendars to the database
     calendar_list = get_calendar_list(credentials)
