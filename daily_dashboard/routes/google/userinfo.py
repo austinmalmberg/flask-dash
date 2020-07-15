@@ -1,8 +1,8 @@
 from flask import Blueprint, jsonify
 from flask_login import login_required, current_user
 
-from helpers.google.userinfo import get_userinfo
-from routes.google.oauth import validate_oauth_token
+from daily_dashboard.helpers.google.userinfo import get_userinfo
+from daily_dashboard.routes.google.oauth import validate_oauth_token
 
 bp = Blueprint('user', __name__)
 

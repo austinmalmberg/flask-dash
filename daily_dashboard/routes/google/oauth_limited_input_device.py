@@ -6,19 +6,20 @@ from flask_login import login_user
 
 import requests
 
-from helpers.google.userinfo import get_userinfo
-from helpers.user_manager import find_user, init_new_user, update_existing_user
-from helpers.google import scopes, GoogleApis
+from daily_dashboard.database.queries import find_user, init_new_user, update_existing_user
+from daily_dashboard.helpers.google import SCOPES, GoogleApiEndpoints, build_credentials
+from daily_dashboard.helpers.google.calendars import get_calendar_list, get_calendar_settings
+from daily_dashboard.helpers.google.userinfo import get_userinfo
 
 bp = Blueprint('oauth_lid', __name__)
 
 
 def create_device_credentials():
     response = requests.post(
-        GoogleApis.auth['limited_input_device_code'],
+        GoogleApiEndpoints.AUTH['limited_input_device_code'],
         params={
             'client_id': os.environ['GOOGLE_OAUTH2_CLIENT_ID_LIMITED'],
-            'scope': ' '.join(scopes)
+            'scope': ' '.join(SCOPES)
         },
         headers={'content-type': 'application/x-www-form-urlencoded'}
     )
@@ -46,7 +47,7 @@ def poll():
         )
 
     response = requests.post(
-        GoogleApis.auth['oauth_token'],
+        GoogleApiEndpoints.AUTH['oauth_token'],
         params={
             'client_id': os.environ['GOOGLE_OAUTH2_CLIENT_ID_LIMITED'],
             'client_secret': os.environ['GOOGLE_OAUTH2_CLIENT_SECRET_LIMITED'],
@@ -88,9 +89,14 @@ def poll():
         user = find_user(userinfo.get('id'))
 
         if user is None:
-            user = init_new_user(userinfo, token=token, refresh_token=refresh_token)
+            credentials = build_credentials(token=token, refresh_token=refresh_token)
+
+            calendar_list = get_calendar_list(credentials)
+            settings = get_calendar_settings(credentials)
+
+            user = init_new_user(userinfo, calendar_list, settings, refresh_token=refresh_token)
         else:
-            user = update_existing_user(user, userinfo, token=token, refresh_token=refresh_token)
+            user = update_existing_user(user, userinfo, refresh_token=refresh_token)
 
         login_user(user)
 

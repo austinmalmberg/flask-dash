@@ -1,33 +1,35 @@
 from datetime import datetime
 
-from flask import redirect, url_for, session
-from flask_login import LoginManager
-
-from database import db
-from database.models import User, Calendar
-from database.queries import add_calendar
-from helpers.google import build_credentials
-from helpers.google.calendars import get_calendar_list, get_calendar_settings
-
-login = LoginManager()
+from daily_dashboard.database import db
+from daily_dashboard.database.models import User, Calendar
+from daily_dashboard.helpers.google import build_credentials
+from daily_dashboard.helpers.google.calendars import get_calendar_list, get_calendar_settings
 
 
-def init_app(app):
-    # implement flask_login
-    login.init_app(app)
+def add_calendar(user_id, calendar, watching=False, check_if_exists=False):
+    new_calendar = None
+
+    if check_if_exists:
+        new_calendar = Calendar.query.filter_by(user_id=user_id, calendar_id=calendar['id']).first()
+
+    if new_calendar is None:
+        new_calendar = Calendar(
+            user_id=user_id,
+            calendar_id=calendar['id'],
+            summary=calendar.get('summary'),
+            watching=watching
+        )
+
+        db.session.add(new_calendar)
+        db.session.commit()
+
+    return new_calendar
 
 
-@login.user_loader
-def load_user(user_id):
-    if user_id is None:
-        return None
-
-    return User.query.get(user_id)
-
-
-@login.unauthorized_handler
-def handle_unauthorized_user():
-    return redirect(url_for('main.login'))
+def remove_calendar(id):
+    calendar_to_remove = Calendar.query.get(id)
+    db.session.delete(calendar_to_remove)
+    db.commit()
 
 
 def find_user(google_id):
@@ -37,38 +39,28 @@ def find_user(google_id):
     return User.query.filter_by(google_id=google_id).first()
 
 
-def init_new_user(userinfo, token=None, refresh_token=None, credentials=None):
+def init_new_user(userinfo, calendar_list, settings, refresh_token=None):
     """
     Creates a new user in the database.
 
     :param userinfo: userinfo from Google
-    :param token: OAuth token
+    :param calendar_list: list of Google calendars for the user
+    :param settings: list of Google calendar settings for the user
     :param refresh_token: OAuth refresh token
     :param credentials: google.oauth2.credentials.Credentials
     :return: The newly created user, or None if a user already exists
     """
 
-    # fails if userinfo is null since we use the google_id to check if the user exists within the database
-    google_id = userinfo['id']
-
     # add user to the database
     user = User(
-        google_id=google_id,
-        email=userinfo.get('email'),
-        name=userinfo.get('name'),
-        credentials=credentials,
-        token=token,
+        google_id=userinfo['id'],
+        email=userinfo['email'],
+        name=userinfo['name'],
         refresh_token=refresh_token
     )
 
     db.session.add(user)
     db.session.flush()
-
-    if not credentials:
-        credentials = build_credentials(token=token, refresh_token=refresh_token)
-
-    # add calendars to the database
-    calendar_list = get_calendar_list(credentials)
 
     for cal in calendar_list:
         calendar = Calendar(
@@ -77,9 +69,6 @@ def init_new_user(userinfo, token=None, refresh_token=None, credentials=None):
             watching=cal.get('primary', False)
         )
         db.session.add(calendar)
-
-    # populate calendar settings
-    settings = get_calendar_settings(credentials)
 
     user.locale = settings.get('locale', user.locale)
     user.timezone = settings.get('timezone', user.timezone)
@@ -92,7 +81,7 @@ def init_new_user(userinfo, token=None, refresh_token=None, credentials=None):
     return user
 
 
-def update_existing_user(user, userinfo, token=None, refresh_token=None, credentials=None):
+def update_existing_user(user, userinfo=None, refresh_token=None):
     """
     Updates an existing user's user info and tokens, if provided.  Tokens will not be overridden if they are not
     provided.
@@ -101,26 +90,16 @@ def update_existing_user(user, userinfo, token=None, refresh_token=None, credent
 
     :param user: The user
     :param userinfo: The userinfo from Google
-    :param token: OAuth token
     :param refresh_token: OAuth refresh token
-    :param credentials: google.oauth2.credentials.Credentials
     :return: The user that was updated, or None if the user was not found
     """
-    if not user:
-        return init_new_user(userinfo, token=token, refresh_token=refresh_token, credentials=credentials)
 
     user.last_updated = datetime.utcnow()
 
-    if credentials:
-        token = credentials.token
-        refresh_token = credentials.refresh_token
-
-    user.google_id=userinfo.get('id', user.google_id)
-    user.name = userinfo.get('name', user.name)
-    user.email = userinfo.get('email', user.email)
-
-    if token:
-        user.token = token
+    if userinfo:
+        user.google_id=userinfo.get('id', user.google_id)
+        user.name = userinfo.get('name', user.name)
+        user.email = userinfo.get('email', user.email)
 
     if refresh_token:
         user.refresh_token = refresh_token

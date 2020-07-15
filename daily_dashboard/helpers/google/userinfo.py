@@ -1,6 +1,6 @@
 import requests
 
-from helpers.google import GoogleApis
+from daily_dashboard.helpers.google import GoogleApiEndpoints
 
 
 def get_userinfo(token=None, credentials=None):
@@ -9,7 +9,7 @@ def get_userinfo(token=None, credentials=None):
 
     # make a request for userinfo with the newly received token
     response = requests.get(
-        url=GoogleApis.user_info,
+        url=GoogleApiEndpoints.USER_INFO,
         headers={
             'Authorization': f'Bearer {token}'
         }

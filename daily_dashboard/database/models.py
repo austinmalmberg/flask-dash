@@ -2,7 +2,7 @@ from datetime import datetime
 
 from flask_login import UserMixin
 
-from database import db
+from daily_dashboard.database import db
 
 
 class User(UserMixin, db.Model):
@@ -32,12 +32,7 @@ class User(UserMixin, db.Model):
         self.email = email
         self.name = name
 
-        if credentials:
-            self.token = credentials.token
-            self.refresh_token = credentials.refresh_token
-        else:
-            self.token = token
-            self.refresh_token = refresh_token
+        self.refresh_token = credentials.refresh_token if credentials else refresh_token
 
 
 class Calendar(db.Model):

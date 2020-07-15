@@ -9,11 +9,11 @@ import requests
 from google.auth.exceptions import RefreshError
 from google.auth.transport.requests import Request
 
-from database.models import User
-from helpers.google.userinfo import get_userinfo
-from helpers.user_manager import find_user, init_new_user, update_existing_user
-from helpers.google import flow, GoogleApis, build_credentials
-from database import db
+from daily_dashboard.database import db
+from daily_dashboard.database.queries import find_user, init_new_user, update_existing_user
+from daily_dashboard.helpers.google import FLOW, GoogleApiEndpoints, build_credentials
+from daily_dashboard.helpers.google.calendars import get_calendar_list, get_calendar_settings
+from daily_dashboard.helpers.google.userinfo import get_userinfo
 
 bp = Blueprint('oauth', __name__, url_prefix='/oauth')
 
@@ -75,10 +75,10 @@ def authorize():
     session['state'] = hashlib.sha256(os.urandom(1024)).hexdigest()
 
     # set the redirect url for the oauth
-    flow.redirect_uri = url_for('oauth.callback', _external=True)
+    FLOW.redirect_uri = url_for('oauth.callback', _external=True)
 
     # get the authorization url
-    authorization_url, _ = flow.authorization_url(
+    authorization_url, _ = FLOW.authorization_url(
         state=session['state'],
         access_type='offline',
         prompt='consent'
@@ -103,21 +103,24 @@ def callback():
     else:
         # use the request url (or more specifically, the params passed in the url)
         # to exchange the authentication code for an access token
-        flow.fetch_token(authorization_response=request.url)
+        FLOW.fetch_token(authorization_response=request.url)
 
-        credentials = flow.credentials
+        credentials = FLOW.credentials
 
         userinfo = get_userinfo(credentials=credentials)
 
         error = userinfo.get('error')
 
         if not error:
-            user = find_user(userinfo.get('id'))
+            user = find_user(userinfo['id'])
 
             if user is None:
-                user = init_new_user(userinfo, credentials=credentials)
+                calendar_list = get_calendar_list(credentials)
+                settings = get_calendar_settings(credentials)
+
+                user = init_new_user(userinfo, calendar_list, settings, refresh_token=credentials.refresh_token)
             else:
-                user = update_existing_user(user, userinfo, credentials=credentials)
+                user = update_existing_user(user, userinfo=userinfo, refresh_token=credentials.refresh_token)
 
             login_user(user)
 
@@ -133,7 +136,7 @@ def callback():
 def revoke():
     if session.get('token', None):
         response = requests.post(
-            GoogleApis.auth['oauth_token_revoke'],
+            GoogleApiEndpoints.AUTH['oauth_token_revoke'],
             headers={'content-type': 'application/x-www-form-urlencoded'},
             params={'token': session.get('token', None)}
         )

@@ -2,7 +2,7 @@ from datetime import datetime, date, timedelta
 
 from googleapiclient.discovery import build
 
-from helpers.event_sort import sort_events
+from daily_dashboard.helpers.event_sort import sort_events
 
 
 # TODO: Add option to fail silently if credentials are invalid or _getservice fails

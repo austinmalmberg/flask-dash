@@ -3,10 +3,10 @@ from datetime import datetime
 from flask import Blueprint, jsonify, request, session
 from flask_login import login_required, current_user
 
-from helpers.google import build_credentials
-from helpers.google.calendars import get_calendar_list, get_calendar_settings, get_events_from_multiple_calendars,\
+from daily_dashboard.helpers.google import build_credentials
+from daily_dashboard.helpers.google.calendars import get_calendar_list, get_calendar_settings, get_events_from_multiple_calendars,\
     get_colors
-from routes.google.oauth import validate_oauth_token
+from daily_dashboard.routes.google.oauth import validate_oauth_token
 
 bp = Blueprint('calendars', __name__, url_prefix='/calendars')
 

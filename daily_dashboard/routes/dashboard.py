@@ -4,13 +4,12 @@ import pytz
 from flask import Blueprint, render_template, session, redirect, url_for, request
 from flask_login import login_required, current_user
 
-from database import db
-from helpers.google import build_credentials
-
-from helpers.user_manager import sync_calendars
-from routes.google import oauth_limited_input_device
-from routes.google.calendars import get_calendar_list
-from routes.google.oauth import validate_oauth_token
+from daily_dashboard.database import db
+from daily_dashboard.database.queries import sync_calendars
+from daily_dashboard.helpers.google import build_credentials
+from daily_dashboard.routes.google import oauth_limited_input_device
+from daily_dashboard.routes.google.calendars import get_calendar_list
+from daily_dashboard.routes.google.oauth import validate_oauth_token
 
 bp = Blueprint('main', __name__)
 
