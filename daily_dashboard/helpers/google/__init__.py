@@ -49,7 +49,7 @@ SCOPES = [
 ]
 
 # used to control the flow of the OAuth2.0 authentication process
-FLOW = Flow.from_client_config({
+flow = Flow.from_client_config({
     'web': CLIENT_SECRETS
 }, SCOPES)
 

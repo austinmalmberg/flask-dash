@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timedelta
 
-from flask import Blueprint, session, Response, redirect, url_for
+from flask import Blueprint, session, Response, redirect, url_for, flash
 from flask_login import login_user
 
 import requests
@@ -39,69 +39,75 @@ def poll():
     :return:
     """
 
-    # redirect to '/' if no credentials, or credentials expired
-    if 'device_credentials' not in session or datetime.utcnow() > session['device_credentials']['valid_until']:
-        return redirect(
-            location=url_for('index'),
-            code=303
+    error = None
+
+    if 'device_credentials' in session and datetime.utcnow() < session['device_credentials']['valid_until']:
+        # make a request to google for tokens
+        response = requests.post(
+            GoogleApiEndpoints.AUTH['oauth_token'],
+            params={
+                'client_id': os.environ['GOOGLE_OAUTH2_CLIENT_ID_LIMITED'],
+                'client_secret': os.environ['GOOGLE_OAUTH2_CLIENT_SECRET_LIMITED'],
+                'code': session['device_credentials']['device_code'],
+                'grant_type': 'http://oauth.net/grant_type/device/1.0'
+            },
+            headers={'content-type': 'application/x-www-form-urlencoded'}
         )
 
-    response = requests.post(
-        GoogleApiEndpoints.AUTH['oauth_token'],
-        params={
-            'client_id': os.environ['GOOGLE_OAUTH2_CLIENT_ID_LIMITED'],
-            'client_secret': os.environ['GOOGLE_OAUTH2_CLIENT_SECRET_LIMITED'],
-            'code': session['device_credentials']['device_code'],
-            'grant_type': 'http://oauth.net/grant_type/device/1.0'
-        },
-        headers={'content-type': 'application/x-www-form-urlencoded'}
-    )
+        data = response.json()
 
-    data = response.json()
+        error = data.get('error', None)
 
-    error = data.get('error')
+        if response.status_code == 428:
+            # error == 'authorization_pending'
+            # user has not completed the authorization flow
+            return Response(status=202)
+        if response.status_code == 403:
+            # error == 'slow_down'
+            # polling too quickly
+            return Response(status=202)
 
-    if error == 'authorization_pending':
-        # status 428, user has not completed the authorization flow
-        return Response(status=202)
-    if error == 'slow_down':
-        # status 403, polling too quickly
-        return Response(status=202)
-    elif error == 'access_denied' or response.status_code > 400:
-        # Occurs on notable status codes
-        # 400, invalid code or grant_type parameters
-        # 401, invalid client_id
-        # 403, user denied access
+        # remove device_credentials from session when the code is consumed
         session.pop('device_credentials')
-        return redirect(
-            location=url_for('index'),
-            code=303
-        )
 
-    token = data.get('access_token')
-    refresh_token = data.get('refresh_token')
+        if response.status_code > 400 or error == 'access_denied':
+            # Occurs on notable status codes, such as:
+            # 400, invalid code or grant_type parameters
+            # 401, invalid client_id
+            # 403, user denied access
+            return redirect(url_for('main.login'))
 
-    userinfo = get_userinfo(token=token)
+        session['token'] = data.get('access_token')
 
-    error = userinfo.get('error')
+        refresh_token = data.get('refresh_token')
 
-    if not error:
-        user = find_user(userinfo.get('id'))
+        userinfo = get_userinfo(token=session['token'])
 
-        if user is None:
-            credentials = build_credentials(token=token, refresh_token=refresh_token)
+        error = userinfo.get('error')
 
-            calendar_list = get_calendar_list(credentials)
-            settings = get_calendar_settings(credentials)
+        if not error:
+            user = find_user(userinfo.get('id'))
 
-            user = init_new_user(userinfo, calendar_list, settings, refresh_token=refresh_token)
-        else:
-            user = update_existing_user(user, userinfo, refresh_token=refresh_token)
+            if user:
+                user = update_existing_user(user, userinfo, refresh_token=refresh_token)
+            else:
+                credentials = build_credentials(token=session['token'], refresh_token=refresh_token)
 
-        login_user(user)
+                calendar_list = get_calendar_list(credentials)
+                settings = get_calendar_settings(credentials)
 
-    # redirect to dashboard on creation
-    return redirect(
-        location=url_for('main.dashboard'),
-        code=303
-    )
+                user = init_new_user(userinfo, calendar_list, settings, refresh_token=refresh_token)
+
+            login_user(user)
+
+            # redirect to dashboard on creation
+            return redirect(
+                location=url_for('main.dashboard'),
+                code=303
+            )
+
+    else:
+        error = 'Credentials expired'
+
+    flash(error, 'error')
+    return redirect(url_for('main.login'))

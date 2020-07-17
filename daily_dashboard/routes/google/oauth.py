@@ -11,7 +11,7 @@ from google.auth.transport.requests import Request
 
 from daily_dashboard.database import db
 from daily_dashboard.database.queries import find_user, init_new_user, update_existing_user
-from daily_dashboard.helpers.google import FLOW, GoogleApiEndpoints, build_credentials
+from daily_dashboard.helpers.google import flow, GoogleApiEndpoints, build_credentials
 from daily_dashboard.helpers.google.calendars import get_calendar_list, get_calendar_settings
 from daily_dashboard.helpers.google.userinfo import get_userinfo
 
@@ -38,7 +38,7 @@ def validate_oauth_token(view):
 
             if err:
                 flash(f'{err}. Please login again.', 'error')
-                return redirect(url_for('main.login'), code=303)
+                return redirect(url_for('main.login'), code=307)
 
         return view(*args, **kwargs)
 
@@ -75,10 +75,10 @@ def authorize():
     session['state'] = hashlib.sha256(os.urandom(1024)).hexdigest()
 
     # set the redirect url for the oauth
-    FLOW.redirect_uri = url_for('oauth.callback', _external=True)
+    flow.redirect_uri = url_for('oauth.callback', _external=True)
 
     # get the authorization url
-    authorization_url, _ = FLOW.authorization_url(
+    authorization_url, _ = flow.authorization_url(
         state=session['state'],
         access_type='offline',
         prompt='consent'
@@ -103,9 +103,11 @@ def callback():
     else:
         # use the request url (or more specifically, the params passed in the url)
         # to exchange the authentication code for an access token
-        FLOW.fetch_token(authorization_response=request.url)
+        flow.fetch_token(authorization_response=request.url)
 
-        credentials = FLOW.credentials
+        credentials = flow.credentials
+
+        session['token'] = credentials.token
 
         userinfo = get_userinfo(credentials=credentials)
 
@@ -152,4 +154,4 @@ def revoke():
         if response.status_code != 200:
             print('An unhandled error occurred on revoke attempt', response.json())
 
-    return redirect(url_for('index'))
+    return redirect(url_for('main.login'))
