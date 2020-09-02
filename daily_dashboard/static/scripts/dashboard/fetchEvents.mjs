@@ -26,9 +26,10 @@ async function handleFetchErrors(response) {
         window.location.href = response.url;
     } else if (!response.ok) {
         const data = await response.json();
-        console.error(data);
 
         console.error(response);
+        console.error(data);
+
         throw `${response.status} ${response.statusText}`;
     }
     return response;
