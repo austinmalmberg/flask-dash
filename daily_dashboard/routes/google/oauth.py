@@ -18,6 +18,24 @@ from daily_dashboard.helpers.google.userinfo import get_userinfo
 bp = Blueprint('oauth', __name__, url_prefix='/oauth')
 
 
+def handle_refresh_error(view):
+    """
+    Redirects the user to the login page if the function returns a RefreshError while attempting to refresh an OAuth
+    token.
+
+    :param view: A view that uses Google OAuth
+    :return: The the function or a redirect to the login page if a RefreshError is thrown
+    """
+    @functools.wraps(view)
+    def wrapped_view(*args, **kwargs):
+        try:
+            return view(*args, **kwargs)
+        except RefreshError:
+            return redirect(url_for('main.login'), code=307)
+
+    return wrapped_view
+
+
 def validate_oauth_token(view):
     """
     Decorator function for maintaining the user's OAuth tokens. Should be present on all methods that use OAuth.
@@ -33,6 +51,7 @@ def validate_oauth_token(view):
         credentials = build_credentials(token=session.get('token', None), refresh_token=current_user.refresh_token)
 
         if not credentials.valid:
+            print(f'Invalid credentials for {current_user}')
 
             err = refresh_credentials(credentials)
 
@@ -135,6 +154,7 @@ def callback():
 @bp.route('/revoke')
 @login_required
 @validate_oauth_token
+@handle_refresh_error
 def revoke():
     if session.get('token', None):
         response = requests.post(

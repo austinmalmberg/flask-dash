@@ -9,7 +9,7 @@ from daily_dashboard.database.queries import sync_calendars
 from daily_dashboard.helpers.google import build_credentials
 from daily_dashboard.routes.google import oauth_limited_input_device
 from daily_dashboard.routes.google.calendars import get_calendar_list
-from daily_dashboard.routes.google.oauth import validate_oauth_token
+from daily_dashboard.routes.google.oauth import validate_oauth_token, handle_refresh_error
 
 bp = Blueprint('main', __name__)
 
@@ -17,6 +17,7 @@ bp = Blueprint('main', __name__)
 @bp.route('/')
 @login_required
 @validate_oauth_token
+@handle_refresh_error
 def dashboard():
     """
     Sends basic dashboard template.
@@ -32,6 +33,7 @@ def dashboard():
 @bp.route('/settings', methods=('GET', 'POST'))
 @login_required
 @validate_oauth_token
+@handle_refresh_error
 def settings():
     """
     View and update user settings

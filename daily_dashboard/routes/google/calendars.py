@@ -6,7 +6,7 @@ from flask_login import login_required, current_user
 from daily_dashboard.helpers.google import build_credentials
 from daily_dashboard.helpers.google.calendars import get_calendar_list, get_calendar_settings, get_events_from_multiple_calendars,\
     get_colors
-from daily_dashboard.routes.google.oauth import validate_oauth_token
+from daily_dashboard.routes.google.oauth import validate_oauth_token, handle_refresh_error
 
 bp = Blueprint('calendars', __name__, url_prefix='/calendars')
 
@@ -14,6 +14,7 @@ bp = Blueprint('calendars', __name__, url_prefix='/calendars')
 @bp.route('/', methods=('GET',))
 @login_required
 @validate_oauth_token
+@handle_refresh_error
 def calendar_list():
     """
     Returns a list of all calendars for the user.
@@ -28,6 +29,7 @@ def calendar_list():
 @bp.route('/events', methods=('GET',))
 @login_required
 @validate_oauth_token
+@handle_refresh_error
 def events():
     time_min = request.args.get('timeMin')
     max_days = request.args.get('maxDays')
@@ -73,6 +75,7 @@ def events():
 @bp.route('/settings', methods=('GET',))
 @login_required
 @validate_oauth_token
+@handle_refresh_error
 def settings():
     credentials = build_credentials(token=session.get('token', None), refresh_token=current_user.refresh_token)
     settings = get_calendar_settings(credentials)
@@ -83,6 +86,7 @@ def settings():
 @bp.route('/colors', methods=('GET',))
 @login_required
 @validate_oauth_token
+@handle_refresh_error
 def colors():
     credentials = build_credentials(token=session.get('token', None), refresh_token=current_user.refresh_token)
     colors = get_colors(credentials)
