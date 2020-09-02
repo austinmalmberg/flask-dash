@@ -10,7 +10,7 @@ class User(UserMixin, db.Model):
     created_on = db.Column(db.DateTime, default=datetime.utcnow())
     last_updated = db.Column(db.DateTime, default=datetime.utcnow())
 
-    # Google OAuth
+    # Google OAuth 2.0 token
     refresh_token = db.Column(db.String())
 
     # Google userinfo
@@ -27,7 +27,7 @@ class User(UserMixin, db.Model):
 
     calendars = db.relationship('Calendar', backref='user', lazy=True)
 
-    def __init__(self, google_id=None, email=None, name=None, token=None, refresh_token=None, credentials=None):
+    def __init__(self, google_id=None, email=None, name=None, refresh_token=None, credentials=None):
         self.google_id = google_id
         self.email = email
         self.name = name
