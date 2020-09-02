@@ -10,7 +10,6 @@ def register_blueprints(app):
     # Endpoints for index and dashboard
     from daily_dashboard.routes import dashboard
     app.register_blueprint(dashboard.bp)
-    app.add_url_rule('/', endpoint='index')
 
     # Endpoints for authentication and retreiveing calendar data
     from daily_dashboard.routes import google
