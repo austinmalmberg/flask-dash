@@ -27,7 +27,7 @@ def dashboard():
     locale_date = datetime.now(pytz.timezone(current_user.timezone)).date()
     dates = [locale_date + timedelta(days=i) for i in range(7)]
 
-    return render_template('dashboard.html', dates=dates)
+    return render_template('dashboard.html', dates=dates, grid_data=session.get('grid_data'))
 
 
 @bp.route('/settings', methods=('GET', 'POST'))

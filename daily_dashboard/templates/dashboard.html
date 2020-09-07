@@ -48,13 +48,19 @@
     </script>
     <script src="{{ url_for('static', filename='scripts/dashboard/clock.js') }}"></script>
 
-
-    {# CALENDAR MANAGER - USED BY events.js #}
-    <script type="module" src="{{ url_for('static', filename='scripts/dashboard/calendarManager.mjs') }}"></script>
-
     {# EVENT SCRIPTS #}
     <script>
         const eventsUrl = "{{ url_for('calendars.events') }}";
     </script>
     <script type="module" src="{{ url_for('static', filename='scripts/dashboard/fetchEvents.mjs') }}"></script>
+
+    {# WEATHER SCRIPTS #}
+    <script>
+        {% if grid_data %}
+            const forecastGridDataUrl = "https://api.weather.gov/gridpoints/{{ grid_data['gridId'] }}/{{ grid_data['gridX'] }}, {{ grid_data['gridY'] }}";
+        {% endif %}
+        const postForecastPropertiesUrl = "{{ url_for('weather.set_data') }}";
+        const clearForecastPropertiesUrl = "{{ url_for('weather.clear_data') }}";
+    </script>
+    <script type="module" src="{{ url_for('static', filename='scripts/dashboard/weather.mjs') }}"></script>
 {% endblock %}
