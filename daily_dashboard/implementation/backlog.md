@@ -14,7 +14,6 @@ Project Backlog
 - [x] Create proper headers
 - [x] Add styling
 - [x] Set page to refresh at midnight
-- [ ] Roll events over to the next card on date change
 - [x] Use Google color scheme for events
 - [x] **Bug**: Retrieving events from `/events` after 8:00pm does not populate the current day
     - This is related to timezones. The server calculates the date from UTC. Being in EST on DST, we are -4:00 behind
