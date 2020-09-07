@@ -98,7 +98,7 @@ function isoDateString(date) {
  *      }
  * @return null
 */
-export function addEvent(event) {
+export function addEventToDOM(event) {
     let eventStart = new Date(event.start.dateTime || `${event.start.date}T00:00:00`);
     let eventEnd = new Date(event.end.dateTime || `${event.end.date}T00:00:00`);
 
@@ -117,6 +117,6 @@ export function addEvent(event) {
 }
 
 
-export function addAllEvents(events) {
-    events.forEach(addEvent);
+export function addAllEventsToDOM(events) {
+    events.forEach(addEventToDOM);
 }

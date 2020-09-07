@@ -1,4 +1,4 @@
-import { addAllEvents } from './calendarManager.mjs';
+import { addAllEventsToDOM } from './calendarManager.js';
 
 // eventsUrl set from dashboard.html template
 
@@ -35,7 +35,7 @@ async function handleFetchErrors(response) {
     return response;
 }
 
-fetchCalendarEvents(addAllEvents);
+fetchCalendarEvents(addAllEventsToDOM);
 
 const now = new Date();
 
