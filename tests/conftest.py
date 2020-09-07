@@ -25,6 +25,21 @@ def client(app):
     return app.test_client()
 
 
+@pytest.fixture
+def session(client):
+    with client.session_transaction() as session:
+        yield session
+
+
+@pytest.fixture
+def logged_in_user(client):
+    response = client.get('/oauth/authorize', follow_redirects=True)
+
+    # TODO: login user
+
+    return None
+
+
 def seed_db(db):
     test_user = User(
         google_id='Google id',
