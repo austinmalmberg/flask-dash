@@ -147,7 +147,7 @@ main.content {
 }
 
 #secondary .date--card {
-  grid-template-columns: minmax(min-content, 40%) 1fr;
+  grid-template-columns: minmax(365px, 40%) 1fr;
 }
 
 #secondary .date--card .header {
