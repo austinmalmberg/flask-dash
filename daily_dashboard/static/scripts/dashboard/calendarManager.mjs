@@ -1,3 +1,4 @@
+import { isoDateString } from './general.mjs';
 /*
  * creates a new HTML element representing the event.
  *
@@ -61,19 +62,6 @@ function generateEventElement(event, start, curr, end) {
 }
 
 
-/*
- * Returns a date in the format: '2020-06-30'
- * @param {date} date - The date object
-*/
-function isoDateString(date) {
-    return `${ date.getFullYear() }-${ padNum(date.getMonth() + 1) }-${ padNum(date.getDate()) }`;
-
-    function padNum(n) {
-        return n.toString().padStart(2, '0');
-    }
-}
-
-
 /* EXPORTS */
 
 
@@ -107,7 +95,8 @@ export function addEventToDOM(event) {
 
     while (curr < eventEnd) {
         // continue to add events to the next eventContainer until curr >= eventEnd or eventContainer comes back null
-        let eventContainer = document.getElementById(isoDateString(curr));
+        let eventCard = document.getElementById(isoDateString(curr));
+        let eventContainer = eventCard.querySelector('.event--container');
         let eventElement = generateEventElement(event, eventStart, curr, eventEnd);
 
         if (eventContainer) eventContainer.appendChild(eventElement);

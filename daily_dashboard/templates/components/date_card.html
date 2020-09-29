@@ -1,11 +1,24 @@
-{% macro date_card(date) %}
-<div class="date--card">
+{% macro date_card(date, primary=false) %}
+<div id="{{ date|string }}" class="date--card">
     <div class="header">
-        <h2>{{ date.strftime('%A') }}</h2>
+        <div class="date--info">
+            <h2>{{ date.strftime('%A') }}</h2>
 
-        {# The hash (#) is platform specific to Windows. On Unix systems, use a hyphen (-) #}
-        <p>{{ date.strftime('%B %#d') }}</p>
+            {# The hash (#) is platform specific to Windows. On Unix systems, use a hyphen (-) #}
+            <p>{{ date.strftime('%B %#d') }}</p>
+        </div>
+        <div class="weather">
+            <div class="temperatures">
+                <span class="temp hi"></span>
+                <span class="temp lo"></span>
+            </div>
+            {% if primary %}
+            <img class="forecast--image" src="//:0">
+            {% else %}
+            <img class="forecast--image" src="//:0">
+            {% endif %}
+        </div>
     </div>
-    <div id="{{ date|string }}" class="event--container"></div>
+    <div class="event--container"></div>
 </div>
 {% endmacro %}

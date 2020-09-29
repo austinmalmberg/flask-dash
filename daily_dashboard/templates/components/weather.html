@@ -1,0 +1,9 @@
+{% macro date_card(date, primary=false) %}
+<div class="weather--info">
+    <span class="temp hi">69&deg;</span>
+    {% if primary %}
+        <span class="temp curr">62&deg;</span>
+    {% endif %}
+    <span class="temp lo">45&deg;</span>
+</div>
+{% endmacro %}

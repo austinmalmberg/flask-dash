@@ -1,4 +1,5 @@
-import { addAllEventsToDOM } from './calendarManager.js';
+import { clearContainer } from './general.mjs';
+import { addAllEventsToDOM } from './calendarManager.mjs';
 
 // eventsUrl set from dashboard.html template
 

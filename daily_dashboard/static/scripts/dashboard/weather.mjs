@@ -1,12 +1,11 @@
 /*
 
-A cookie is used to save the signed-in user's location
+A cookie is used to save the signed-in user's grid position
 
 If the client does not have this cookie, the script will attempt to fetch weather data from the weather API using
-the device's current position.  On a successful fetch, the grid location url is sent server-side to be cached and
-resent as a cookie on the next request.
+the device's current position.  On a successful fetch, the grid location saved as a cookie.
 
-If the current position cannot be retrieved, flash a error.
+If the current position cannot be retrieved, flash an error.
 
 This can occur for one of the following reasons--
 
@@ -17,36 +16,23 @@ settings"
 
 */
 
-import { requestPosition } from './geolocation.js';
+import { flashInfo, flashError, clearContainer, appendToElement } from './general.mjs';
+import { requestPosition } from './geolocation.mjs';
+import { getCookie, setCookie } from '../cookieManager.mjs';
 
-/*
-
-    check for grid url
-    if no url,
-        request location,
-        onSuccess,
-            send grid properties to server
-            set grid URL
-        onError,
-            ask user to set their location manually in settings
-            RETURN
-    fetch weather data from grid URL
-    then add weather to DOM
-    catch error -> "There was a problem requesting weather for your location"
-
-*/
-
+const createForecastEndpoint = (weatherData) => `https://api.weather.gov/gridpoints/${weatherData}/forecast`;
 
 async function handleWeather() {
-    console.log(forecastGridDataUrl)
-    if (typeof forecastGridDataUrl == 'undefined') {
+    if (!getCookie('weatherData')) {
+        // if the browser does not have the grid data stored as a cookie, set it
         try {
-            const position = await requestPosition({ timeout: 20000 });
+            // request user's location for 20 seconds
+            const positionTimeout = 20000;
+            const position = await requestPosition({ timeout: positionTimeout }, positionTimeout);
             const properties = await getForecastProperties(position.coords);
+            const { cwa, gridX, gridY } = properties;
 
-            var forecastGridDataUrl = properties.forecastGridData;
-
-            postForecastProperties(properties);
+            setCookie('weatherData', `${cwa}/${gridX},${gridY}`, 30);
         } catch (err) {
             /*
                 Flashes an error that the location was not set and reminds the user to update this in Settings.
@@ -56,19 +42,30 @@ async function handleWeather() {
                     2 - POSITION_UNAVAILABLE
                     3 - TIMEOUT
             */
-            flashInfo("Could not retrieve weather because your location is not set. Update your location manually in Settings.")
-            return;
+            for (const weatherNode of document.querySelectorAll('.weather')) {
+                weatherError(weatherNode);
+            }
+
+            flashInfo("Could not retrieve weather because your location is not set. Allow this website to use your " +
+                "location or update it manually in Settings.")
+
+            console.log(err);
+
+            return null;
         }
     }
 
-    const weatherResponse = await fetch(`${forecastGridDataUrl}/forecast`);
+    const weatherData = getCookie('weatherData');
+    const forecastEndpoint = createForecastEndpoint(weatherData);
+    const weatherResponse = await fetch(forecastEndpoint);
 
     if (weatherResponse.ok) {
         const weatherData = await weatherResponse.json();
-        console.log(weatherData.properties);
+
+        // populate each header with weather data
+        addWeatherToDOM(weatherData.properties.periods);
     } else {
-        flashError("There was a problem retrieving the weather for your current location");
-        clearForecastProperties();
+        flashError("There was a problem retrieving the weather for your current location.");
     }
 }
 
@@ -83,23 +80,40 @@ async function getForecastProperties({ latitude, longitude }) {
     }
 }
 
+function addWeatherToDOM(periods) {
+    const withinDate = (dateStr, period) => period.startTime.startsWith(dateStr) || period.endTime.startsWith(dateStr);
 
-/*
-    Sends the following weather properties to the server to be stored as a cookie and sent with the next request.
-        - forecastGridData
-        - forecastZone (NOT IMPLEMENTED)
-*/
-function postForecastProperties({ gridId, gridX, gridY }) {
-    const params = new URLSearchParams({ gridId, gridX, gridY });
+    const dateCards = document.querySelectorAll('.date--card');
 
-    fetch(`${postForecastPropertiesUrl}?${params}`, { method: 'POST' })
-    .then(() => console.log('properties set'))
-    .catch(console.err);
+    for(const dateCard of dateCards) {
+        const date = dateCard.id;
+        const relevantPeriods = periods.filter(period => withinDate(date, period));
+
+        updateWeatherNode(dateCard.querySelector('.weather'), relevantPeriods);
+    }
 }
 
+function updateWeatherNode(weatherNode, periods) {
+    if (!periods || periods.length === 0) {
+        weatherError(weatherNode);
 
-function clearForecastProperties() {
-    fetch(clearForecastPropertiesUrl, { method: 'POST' });
+    } else {
+        const mainPeriod = weatherNode.closest('section').id !== 'primary' ?
+            periods.filter(period => period.isDaytime)[0] : periods[0];
+
+        weatherNode.querySelector('.forecast--image').src = mainPeriod.icon.replace('size=medium', 'size=large');
+
+        const temps = periods.map(period => period.temperature);
+
+        weatherNode.querySelector('.temp.hi').innerHTML = Math.max(...temps);
+        weatherNode.querySelector('.temp.lo').innerHTML = Math.min(...temps);
+
+    }
+}
+
+function weatherError(weatherNode) {
+    clearContainer(weatherNode);
+    appendToElement(weatherNode, 'p', null, null, 'No weather data');
 }
 
 handleWeather();

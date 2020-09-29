@@ -18,7 +18,7 @@
         <h1 id="clock--time"></h1>
     </section>
     <section id="primary">
-        {{ date_card(dates[0]) }}
+        {{ date_card(dates[0], true) }}
     </section>
 
     <section id="secondary">
@@ -30,7 +30,7 @@
 
 {% block scripts %}
     {# GENERAL SCRIPTS #}
-    <script>
+    <script type="text/javascript">
         const flashContainer = document.getElementById('flash--container');
 
         const timeOptions = {
@@ -39,7 +39,7 @@
             hour12: true,
         };
     </script>
-    <script src="{{ url_for('static', filename='scripts/dashboard/general.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='scripts/dashboard/general.mjs') }}"></script>
 
 
     {# CLOCK SCRIPTS #}
@@ -55,12 +55,5 @@
     <script type="module" src="{{ url_for('static', filename='scripts/dashboard/fetchEvents.mjs') }}"></script>
 
     {# WEATHER SCRIPTS #}
-    <script>
-        {% if grid_data %}
-            const forecastGridDataUrl = "https://api.weather.gov/gridpoints/{{ grid_data['gridId'] }}/{{ grid_data['gridX'] }}, {{ grid_data['gridY'] }}";
-        {% endif %}
-        const postForecastPropertiesUrl = "{{ url_for('weather.set_data') }}";
-        const clearForecastPropertiesUrl = "{{ url_for('weather.clear_data') }}";
-    </script>
     <script type="module" src="{{ url_for('static', filename='scripts/dashboard/weather.mjs') }}"></script>
 {% endblock %}
