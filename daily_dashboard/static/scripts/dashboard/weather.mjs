@@ -46,12 +46,18 @@ async function handleWeather() {
                 weatherError(weatherNode);
             }
 
+            // TODO: find out why Chromium geolocation doesn't work
+            // for now, set grid position manually
+            setCookie('weatherData', 'GSP/112,77', 30);
+
+            /*
             flashInfo("Could not retrieve weather because your location is not set. Allow this website to use your " +
                 "location or update it manually in Settings.")
 
             console.log(err);
 
             return null;
+            */
         }
     }
 
