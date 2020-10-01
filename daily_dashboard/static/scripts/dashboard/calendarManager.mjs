@@ -1,4 +1,5 @@
-import { isoDateString } from './general.mjs';
+import { isoDateString, generateElement } from './general.mjs';
+
 /*
  * creates a new HTML element representing the event.
  *
@@ -10,49 +11,54 @@ import { isoDateString } from './general.mjs';
  * @return An HTML element for the event
 */
 function generateEventElement(event, start, curr, end) {
-    const eventElement = document.createElement('div');
-    eventElement.id = event.id;
-    eventElement.classList.add('event');
-    eventElement.style = `background: ${event.background}; color: ${event.foreground}`;
+    const eventElement = generateElement({
+        tag: 'div',
+        id: event.id,
+        classes: ['event'],
+        style: `background: ${event.background}; color: ${event.foreground}`
+    });
 
-    const timeDiv = document.createElement('div');
-    timeDiv.classList.add('time');
+    const timeDiv = generateElement({
+        tag: 'div',
+        classes: ['time'],
+    }, eventElement);
 
-    const startingOnCurrentDate = sameDate(start, curr);
+    const startingOnCurrentDate = isSameDate(start, curr);
 
     if (startingOnCurrentDate) {
-        const startElement = document.createElement('p');
-        startElement.classList.add('start');
-        startElement.innerHTML = start.toLocaleTimeString(undefined, timeOptions);
-        timeDiv.appendChild(startElement);
+        generateElement({
+            tag: 'p',
+            classes: ['start'],
+            innerHTML: start.toLocaleTimeString(undefined, timeOptions)
+        }, timeDiv);
     } else {
         eventElement.classList.add('carryover');
     }
 
-    // All day events end on the next day at 12:00AM so subtract one second to avoid adding the event to the next day.
+    // All day events end on the next day at 12:00AM so subtract one second to avoid adding the event to the next day
     const endMinusOneSecond = new Date(end);
     endMinusOneSecond.setSeconds(end.getSeconds() - 1);
-    const endingOnCurrentDate = sameDate(endMinusOneSecond, curr);
+    const endingOnCurrentDate = isSameDate(endMinusOneSecond, curr);
 
     if (endingOnCurrentDate) {
-        // only add the end time if the event ends on at midnight on the next day
-        const endElement = document.createElement('p');
-        endElement.classList.add('end');
-        endElement.innerHTML = `- ${ end.toLocaleTimeString(undefined, timeOptions) }`;
-        timeDiv.appendChild(endElement);
+        // only add the end time if the event ends at midnight on the next day
+        generateElement({
+            tag: 'p',
+            classes: ['end'],
+            innerHTML: `- ${ end.toLocaleTimeString(undefined, timeOptions) }`
+        }, timeDiv);
     }
 
-    eventElement.appendChild(timeDiv);
-
-    const summary = document.createElement('p');
-    summary.classList.add('summary');
-    summary.innerText = event.summary;
-    eventElement.appendChild(summary);
+    generateElement({
+        tag: 'p',
+        classes: ['summary'],
+        innerHTML: event.summary
+    }, eventElement);
 
     return eventElement;
 
 
-    function sameDate(d1, d2) {
+    function isSameDate(d1, d2) {
         return (
             d1.getFullYear() === d2.getFullYear() &&
             d1.getMonth() === d2.getMonth() &&
@@ -96,10 +102,12 @@ export function addEventToDOM(event) {
     while (curr < eventEnd) {
         // continue to add events to the next eventContainer until curr >= eventEnd or eventContainer comes back null
         let eventCard = document.getElementById(isoDateString(curr));
-        let eventContainer = eventCard.querySelector('.event--container');
-        let eventElement = generateEventElement(event, eventStart, curr, eventEnd);
 
-        if (eventContainer) eventContainer.appendChild(eventElement);
+        if (eventCard) {
+            let eventContainer = eventCard.querySelector('.event--container');
+            let eventElement = generateEventElement(event, eventStart, curr, eventEnd);
+            eventContainer.appendChild(eventElement);
+        }
 
         curr.setDate(curr.getDate() + 1);
     }
