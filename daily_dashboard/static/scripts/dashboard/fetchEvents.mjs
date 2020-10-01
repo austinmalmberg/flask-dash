@@ -1,4 +1,4 @@
-import { clearContainer } from './general.mjs';
+import { clearContainer, flashError } from './general.mjs';
 import { addAllEventsToDOM } from './calendarManager.mjs';
 
 // eventsUrl set from dashboard.html template
@@ -17,6 +17,7 @@ function fetchCalendarEvents(callback) {
         .then(data => callback(data))
         .catch(err => {
             clearContainer(flashContainer);
+            console.error(err);
             flashError(`Error fetching events: ${err}`);
         });
 }

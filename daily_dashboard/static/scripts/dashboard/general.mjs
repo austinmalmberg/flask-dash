@@ -12,19 +12,22 @@ export function isoDateString(date) {
 
 
 /*
- * Creates a new element and append it to the given parentElement.
- * param {HTMLObject} parentElement
+ * Creates a new element and append it to the given parent element.
  * param {string} tag
  * param {string array} classes
- * param {string or HTMLObject} html
+ * param {string or HTMLObject} innerHtml
+ * param {HTMLObject} parent
  * return The newly created element
 */
-export function appendToElement(parentElement = document.body, tag = 'div', id = null, classes = null, html = null) {
+export function generateElement({ tag, id, classes, style, innerHTML }, parent) {
+    if (!tag) return null;
+
     const e = document.createElement(tag);
     if (id) e.id = id;
     if (classes) e.classList.add(...classes);
-    if (html) e.innerHTML = html;
-    parentElement.appendChild(e);
+    if (style) e.style = style;
+    if (innerHTML) e.innerHTML = innerHTML;
+    if (parent) parent.appendChild(e);
 
     return e;
 }

@@ -16,7 +16,7 @@ settings"
 
 */
 
-import { flashInfo, flashError, clearContainer, appendToElement } from './general.mjs';
+import { flashInfo, flashError, clearContainer, generateElement } from './general.mjs';
 import { requestPosition } from './geolocation.mjs';
 import { getCookie, setCookie } from '../cookieManager.mjs';
 
@@ -120,7 +120,10 @@ function updateWeatherNode(weatherNode, periods) {
 
 function weatherError(weatherNode) {
     clearContainer(weatherNode);
-    appendToElement(weatherNode, 'p', null, null, 'No weather data');
+    generateElement({
+        tag: 'p',
+        innerHTML: 'No weather data'
+    }, weatherNode);
 }
 
 handleWeather();
