@@ -1,19 +1,30 @@
-body {
-  justify-content: center;
+
+.encircle {
+  margin: 1em;
+  padding: 1em 2em;
+
+  color: var(--primary-color);
+  background-color: var(--bg-color);
+  border-radius: 50%;
+  box-shadow: 0px 2px 2px rgba(0,0,0,0.5);
+
+  font-size: 0.6em;
+  font-weight: bold;
+  white-space: nowrap;
 }
 
 .content {
   position: relative;
 
-  flex: auto;
-  width: 100%;
-
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
 
+  max-width: 1220px;
+  width: 100%;
+
   font-size: 2em;
+  text-align:center;
 }
 
 p#device--code {
@@ -28,4 +39,17 @@ p#device--code {
   width: 75%;
 
   font-size: 1rem;
+}
+
+
+div.action--items {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  width: 100%;
+}
+
+img#google-qr-url {
+    width: 300px;
+    margin-left: 3em;
 }

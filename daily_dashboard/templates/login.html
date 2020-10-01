@@ -15,8 +15,14 @@
 
 {% block content %}
     <h1 class="page--header">Authentication</h1>
-    <p>Visit <a href="{{ device_credentials.verification_url }}">{{ device_credentials.verification_url }}</a> from another device and enter the code below.</p>
-    <p id="device--code">{{ device_credentials.user_code }}</p>
+    <p>Visit <a href="{{ device_credentials.verification_url }}">{{ device_credentials.verification_url }}</a>
+        from another device and enter the code below.</p>
+    <div class="action--items">
+<!--        <span class="encircle">Visit</span>-->
+        <img id="google-qr-url" src="{{ url_for('static', filename='images/google-device-authentication.png') }}" />
+<!--        <span class="encircle">then enter</span>-->
+        <p id="device--code">{{ device_credentials.user_code }}</p>
+    </div>
 
     <p class="whisper">Want to login directly from this device? <a href="{{ url_for('oauth.authorize') }}">Click here</a></p>
 
