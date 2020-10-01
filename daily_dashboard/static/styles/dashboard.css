@@ -257,7 +257,7 @@ main.content {
 #primary .temp.hi, #primary .temp.lo {
 }
 
-.temp::after{
+.temp:not(:empty)::after{
   content: "\00b0";
 }
 
