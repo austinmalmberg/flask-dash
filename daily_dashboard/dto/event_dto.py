@@ -24,16 +24,18 @@ def event_dto(event, colors=None):
     event_out = obj_mapper(event, key_info)
 
     # add the styling
-    color_id = event.get('colorId', None)
-    background = '#1d1d1d'
-    foreground = '#fff'
-
-    if colors and 'colorId' in event:
-        background = colors['event'][color_id].get('background')
-        foreground = colors['event'][color_id].get('foreground')
-    elif colors and not color_id and '#holiday' not in event['organizer'].get('email', ''):
-        background = '#4285f4'
+    if not colors:
+        background = '#1d1d1d'
         foreground = '#fff'
+    else:
+        color_id = event.get('colorId', None)
+
+        if 'colorId' in event:
+            background = colors['event'][color_id].get('background')
+            foreground = colors['event'][color_id].get('foreground')
+        elif not color_id and '#holiday' not in event['organizer'].get('email', ''):
+            background = '#4285f4'
+            foreground = '#fff'
 
     event_out['style'] = f"background: {background}; color: {foreground}"
 
