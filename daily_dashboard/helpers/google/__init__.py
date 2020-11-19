@@ -1,5 +1,6 @@
 import os
 
+from flask import url_for
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 
@@ -48,10 +49,11 @@ SCOPES = [
     'https://www.googleapis.com/auth/calendar.readonly'
 ]
 
-# used to control the flow of the OAuth2.0 authentication process
-flow = Flow.from_client_config({
-    'web': CLIENT_SECRETS
-}, SCOPES)
+
+def get_flow(redirect_uri):
+    return Flow.from_client_config({
+        'web': CLIENT_SECRETS
+    }, SCOPES, redirect_uri=redirect_uri)
 
 
 def build_credentials(token=None, refresh_token=None):

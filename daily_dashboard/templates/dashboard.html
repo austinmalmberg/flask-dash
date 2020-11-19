@@ -18,19 +18,19 @@
         <h1 id="clock--time"></h1>
     </section>
     <section id="primary">
-        {{ date_card(dates[0], true) }}
+        {{ date_card(dates[0], platform, true) }}
     </section>
 
     <section id="secondary">
         {% for date in dates[1:] %}
-            {{ date_card(date) }}
+            {{ date_card(date, platform) }}
         {% endfor %}
     </section>
 {% endblock %}
 
 {% block scripts %}
-    {# GENERAL SCRIPTS #}
     <script type="text/javascript">
+        {# ----- GENERAL ----- #}
         const flashContainer = document.getElementById('flash--container');
 
         const timeOptions = {
@@ -38,22 +38,18 @@
             minute: '2-digit',
             hour12: true,
         };
+
+        {# ----- CLOCK ----- #}
+        const clockElement = document.getElementById('clock--time');
+
+        {# ----- EVENTS ----- #}
+        const eventsUrl = "{{ url_for('calendars.events') }}";
+
+        {# ----- WEATHER ----- #}
+        {# const weatherUrl = "{{ url_for('weather.index') }}"; #}
     </script>
     <script type="module" src="{{ url_for('static', filename='scripts/dashboard/general.mjs') }}"></script>
-
-
-    {# CLOCK SCRIPTS #}
-    <script>
-        const clockElement = document.getElementById('clock--time');
-    </script>
     <script src="{{ url_for('static', filename='scripts/dashboard/clock.js') }}"></script>
-
-    {# EVENT SCRIPTS #}
-    <script>
-        const eventsUrl = "{{ url_for('calendars.events') }}";
-    </script>
     <script type="module" src="{{ url_for('static', filename='scripts/dashboard/fetchEvents.mjs') }}"></script>
-
-    {# WEATHER SCRIPTS #}
     <script type="module" src="{{ url_for('static', filename='scripts/dashboard/weather.mjs') }}"></script>
 {% endblock %}

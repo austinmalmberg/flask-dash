@@ -1,5 +1,5 @@
 
-def sort_events(comparator, list_a, list_b):
+def merge_sorted_lists(comparator, list_a, list_b):
     """
     Combines two sorted arrays so that they remain sorted.
     
@@ -22,7 +22,6 @@ def sort_events(comparator, list_a, list_b):
             res.append(list_b[j])
             j += 1
 
-    res += list_a[i:]
-    res += list_b[j:]
+    res += list_a[i:] + list_b[j:]
 
     return res

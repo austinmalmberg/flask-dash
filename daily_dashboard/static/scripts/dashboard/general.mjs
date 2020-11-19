@@ -37,9 +37,17 @@ export function clearContainer(element) {
 }
 
 export function flashError(message) {
-    appendToElement(flashContainer, 'p', null, ['flash', 'error'], message);
+    generateElement({
+        tag: 'p',
+        classes: ['flash', 'error'],
+        innerHTML: message
+    }, flashContainer);
 }
 
 export function flashInfo(message) {
-    appendToElement(flashContainer, 'p', null, ['flash', 'info'], message);
+    generateElement({
+        tag: 'p',
+        classes: ['flash', 'info'],
+        innerHTML: message
+    }, flashContainer);
 }

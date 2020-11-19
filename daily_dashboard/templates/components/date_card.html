@@ -1,11 +1,10 @@
-{% macro date_card(date, primary=false) %}
+{% macro date_card(date, platform, primary=false) %}
 <div id="{{ date|string }}" class="date--card">
     <div class="header">
         <div class="date--info">
             <h2>{{ date.strftime('%A') }}</h2>
 
-            {# The hash (#) is platform specific to Windows. On Unix systems, use a hyphen (-) #}
-            <p>{{ date.strftime('%B %#d') }}</p>
+            <p>{{ format_date(date, platform) }}</p>
         </div>
         <div class="weather">
             <div class="temperatures">

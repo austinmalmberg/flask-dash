@@ -14,11 +14,11 @@ function fetchCalendarEvents(callback) {
     fetch(`${eventsUrl}?${params}`)
         .then(handleFetchErrors)
         .then(response => response.json())
-        .then(data => callback(data))
+        .then(data => callback(data.events))
         .catch(err => {
             clearContainer(flashContainer);
-            console.error(err);
             flashError(`Error fetching events: ${err}`);
+            console.error(err);
         });
 }
 

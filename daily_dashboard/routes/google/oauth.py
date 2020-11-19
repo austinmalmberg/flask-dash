@@ -3,7 +3,7 @@ import os
 import hashlib
 
 from flask import Blueprint, session, url_for, redirect, request, flash
-from flask_login import logout_user, current_user, login_required, login_user
+from flask_login import current_user, login_required, login_user, logout_user
 
 import requests
 from google.auth.exceptions import RefreshError
@@ -11,7 +11,7 @@ from google.auth.transport.requests import Request
 
 from daily_dashboard.database import db
 from daily_dashboard.database.queries import find_user, init_new_user, update_existing_user
-from daily_dashboard.helpers.google import flow, GoogleApiEndpoints, build_credentials
+from daily_dashboard.helpers.google import GoogleApiEndpoints, build_credentials, get_flow
 from daily_dashboard.helpers.google.calendars import get_calendar_list, get_calendar_settings
 from daily_dashboard.helpers.google.userinfo import get_userinfo
 
@@ -48,16 +48,20 @@ def validate_oauth_token(view):
 
     @functools.wraps(view)
     def wrapped_view(*args, **kwargs):
-        credentials = build_credentials(token=session.get('token', None), refresh_token=current_user.refresh_token)
+        credentials = build_credentials(session.get('token', None), current_user.refresh_token)
 
         if not credentials.valid:
-            print(f'Invalid credentials for {current_user}')
-
             err = refresh_credentials(credentials)
 
             if err:
+                session.pop('token', None)
+                logout_user()
+
+                current_user.refresh_token = None
+                db.session.commit()
+
                 flash(f'{err}. Please login again.', 'error')
-                return redirect(url_for('main.login'), code=307)
+                redirect('main.login', code=307)
 
         return view(*args, **kwargs)
 
@@ -76,14 +80,16 @@ def refresh_credentials(credentials):
         session['token'] = credentials.token
         current_user.refresh_token = credentials.refresh_token
 
-        db.session.commit()
-
     except RefreshError:
         session.pop('token', None)
         current_user.refresh_token = None
-        db.session.commit()
 
         return 'Token refresh error'
+
+    finally:
+        db.session.commit()
+
+    return None
 
 
 # ROUTES
@@ -93,8 +99,7 @@ def authorize():
     # create a random state variable
     session['state'] = hashlib.sha256(os.urandom(1024)).hexdigest()
 
-    # set the redirect url for the oauth
-    flow.redirect_uri = url_for('oauth.callback', _external=True)
+    flow = get_flow(url_for('oauth.callback', _external=True))
 
     # get the authorization url
     authorization_url, _ = flow.authorization_url(
@@ -120,6 +125,8 @@ def callback():
         error = 'Invalid state'
 
     else:
+        flow = get_flow(url_for('oauth.callback', _external=True))
+
         # use the request url (or more specifically, the params passed in the url)
         # to exchange the authentication code for an access token
         flow.fetch_token(authorization_response=request.url)
@@ -128,7 +135,7 @@ def callback():
 
         session['token'] = credentials.token
 
-        userinfo = get_userinfo(credentials=credentials)
+        userinfo = get_userinfo(session['token'])
 
         error = userinfo.get('error')
 
@@ -156,18 +163,20 @@ def callback():
 @validate_oauth_token
 @handle_refresh_error
 def revoke():
-    if session.get('token', None):
+    token = session.get('token', None)
+
+    if token:
         response = requests.post(
             GoogleApiEndpoints.AUTH['oauth_token_revoke'],
             headers={'content-type': 'application/x-www-form-urlencoded'},
-            params={'token': session.get('token', None)}
+            params={'token': token}
         )
 
         session.pop('token', None)
+        logout_user()
+
         current_user.refresh_token = None
         db.session.commit()
-
-        logout_user()
 
         flash('Credentials revoked', 'info')
 

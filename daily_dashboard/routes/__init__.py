@@ -1,4 +1,3 @@
-
 def register_blueprints(app):
     """
     The method that registers all route blueprints
@@ -7,14 +6,23 @@ def register_blueprints(app):
     :return: None
     """
 
-    # Endpoints for index and dashboard
+    # Main Dashboard
     from daily_dashboard.routes import dashboard
     app.register_blueprint(dashboard.bp)
 
-    # Endpoints for managing weather cookies
+    # Weather #
     from daily_dashboard.routes import weather
     app.register_blueprint(weather.bp)
 
-    # Endpoints for authentication and retrieving calendar data
-    from daily_dashboard.routes import google
-    google.register_blueprints(app)
+    # Authorization #
+    from daily_dashboard.routes.google import oauth, oauth_limited_input_device
+    app.register_blueprint(oauth.bp)
+    app.register_blueprint(oauth_limited_input_device.bp)
+
+    # User Info #
+    from daily_dashboard.routes.google import userinfo
+    app.register_blueprint(userinfo.bp)
+
+    # Calendar #
+    from daily_dashboard.routes.google import calendars
+    app.register_blueprint(calendars.bp)

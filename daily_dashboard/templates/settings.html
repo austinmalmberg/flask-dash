@@ -60,7 +60,7 @@
 
                 <fieldset class="no-border">
                     <h3>Displayed Calendars</h3>
-                    {% for calendar in current_user.calendars %}
+                    {% for calendar in user_calendars %}
                         <label class="checkbox--label" for="{{ calendar.calendar_id }}">
                             <input class="checkbox" id="{{ calendar.calendar_id }}" name="calendar" type="checkbox" value="{{ calendar.id }}"{{ ' checked' if calendar.watching }}>
                             {{ calendar.summary }}

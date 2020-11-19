@@ -1,0 +1,11 @@
+<div class="wrapper">
+    {% for event in events %}
+        <div id="{{ event['id'] }}" class="event" style="{{ event['style'] }}">
+            <div class="time">
+                <span class="datetime start" data-dt="{{ event['start']['dateTime'] }}"></span>
+                <span class="datetime end" data-dt="{{ event['end']['dateTime'] }}"></span>
+            </div>
+            <p class="summary">{{ event['summary'] }}</p>
+        </div>
+    {% endfor %}
+</div>

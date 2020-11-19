@@ -27,7 +27,7 @@ def dashboard():
     locale_date = datetime.now(pytz.timezone(current_user.timezone)).date()
     dates = [locale_date + timedelta(days=i) for i in range(7)]
 
-    return render_template('dashboard.html', dates=dates)
+    return render_template('dashboard.html', dates=dates, platform=request.user_agent.platform)
 
 
 @bp.route('/settings', methods=('GET', 'POST'))
@@ -60,7 +60,7 @@ def settings():
 
     sync_calendars(current_user, google_calendars)
 
-    return render_template('settings.html')
+    return render_template('settings.html', user_calendars=current_user.calendars)
 
 
 @bp.route('/login')

@@ -1,5 +1,5 @@
-from flask import redirect, url_for
-from flask_login import LoginManager
+from flask import redirect, url_for, session
+from flask_login import LoginManager, logout_user
 
 from daily_dashboard.database.models import User
 
@@ -22,5 +22,3 @@ def load_user(user_id):
 @login.unauthorized_handler
 def handle_unauthorized_user():
     return redirect(url_for('main.login'))
-
-

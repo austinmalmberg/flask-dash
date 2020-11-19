@@ -254,9 +254,6 @@ main.content {
   text-align: right;
 }
 
-#primary .temp.hi, #primary .temp.lo {
-}
-
 .temp:not(:empty)::after{
   content: "\00b0";
 }

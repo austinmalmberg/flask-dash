@@ -15,7 +15,7 @@ function generateEventElement(event, start, curr, end) {
         tag: 'div',
         id: event.id,
         classes: ['event'],
-        style: `background: ${event.background}; color: ${event.foreground}`
+        style: event.style
     });
 
     const timeDiv = generateElement({
@@ -93,8 +93,10 @@ function generateEventElement(event, start, curr, end) {
  * @return null
 */
 export function addEventToDOM(event) {
-    let eventStart = new Date(event.start.dateTime || `${event.start.date}T00:00:00`);
-    let eventEnd = new Date(event.end.dateTime || `${event.end.date}T00:00:00`);
+    let eventStart = new Date(event.start.dateTime || `${event.start.date}T00:00`);
+    let eventEnd = new Date(event.end.dateTime || `${event.end.date}T00:00`);
+
+    console.log({event, 'times': { eventStart, eventEnd }});
 
     let curr = new Date(eventStart);
     curr.setHours(0, 0, 0, 0);

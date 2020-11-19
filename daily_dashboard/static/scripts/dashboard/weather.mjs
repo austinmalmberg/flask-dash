@@ -35,7 +35,7 @@ async function handleWeather() {
             setCookie('weatherData', `${cwa}/${gridX},${gridY}`, 30);
         } catch (err) {
             /*
-                Flashes an error that the location was not set and reminds the user to update this in Settings.
+                Flash info that the location was not set and reminds the user to update this in Settings.
 
                 @param {GeolocationPositionError} error - Object with { code, message } values as outlined below
                     1 - PERMISSION_DENIED
@@ -44,6 +44,7 @@ async function handleWeather() {
             */
 
             // TODO: find out why Chromium geolocation doesn't work
+
             // for now, set grid position manually
             setCookie('weatherData', 'GSP/112,77', 30);
 
@@ -81,15 +82,14 @@ async function getForecastProperties({ latitude, longitude }) {
     const response = await fetch(`https://api.weather.gov/points/${latitude},${longitude}`);
 
     if (response.ok) {
-        const { properties } = await response.json();
+        const data = await response.json();
 
-        return properties;
+        return data.properties;
     }
 }
 
 function addWeatherToDOM(periods) {
     const withinDate = (dateStr, period) => period.startTime.startsWith(dateStr) || period.endTime.startsWith(dateStr);
-
     const dateCards = document.querySelectorAll('.date--card');
 
     for(const dateCard of dateCards) {

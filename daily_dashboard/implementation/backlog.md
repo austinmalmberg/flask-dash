@@ -22,7 +22,12 @@ Project Backlog
 - [x] **Bug**: Correct time on all-day events
     - **Fix**: The frontend was formatting a UTC date into a time string which caused the date to be offset by -4:00.
         Added `T00:00:00` to the string to treat it as a timezone relative date
-- [ ] Display weather
+- [x] Display weather
+- [ ] Add method typing
+- [ ] Allow users to set their timezone
+    - Used for event times
+    - [ ] Script to send date to backend *(Event fetch already does this)*
+    - [ ] Set offset as cookie
 - [ ] Implement SSE/polling
     - [ ] Begin watching selected calendars for event changes
         - [ ] If the event falls within the calendar duration, send event details in next poll (or SSE)
