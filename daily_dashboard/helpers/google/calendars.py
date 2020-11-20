@@ -117,7 +117,7 @@ def get_events_from_multiple_calendars(credentials, calendar_ids, dt_min=None, m
         event2_start = _string_to_dt(event2['start'].get('dateTime', event2['start'].get('date')))
 
         # a negative value if event1 starts first
-        start_diff = event2_start.timestamp() - event1_start.timestamp()
+        start_diff = event1_start.timestamp() - event2_start.timestamp()
 
         # if they start at the same time, compare ending times
         # order by the event ending first
@@ -125,7 +125,7 @@ def get_events_from_multiple_calendars(credentials, calendar_ids, dt_min=None, m
             event1_end = _string_to_dt(event1['end'].get('dateTime', event1['end'].get('date')))
             event2_end = _string_to_dt(event2['end'].get('dateTime', event2['end'].get('date')))
 
-            return event2_end.timestamp() - event1_end.timestamp()
+            return event1_end.timestamp() - event2_end.timestamp()
 
         return start_diff
 
