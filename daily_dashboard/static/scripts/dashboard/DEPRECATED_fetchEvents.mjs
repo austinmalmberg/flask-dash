@@ -1,3 +1,8 @@
+/*
+        This module has been deprecated.
+        Events are now retrieved and added to the dashboard on the backend and sent with the template
+*/
+
 import { clearContainer, flashError } from './general.mjs';
 import { addAllEventsToDOM } from './calendarManager.mjs';
 
@@ -36,6 +41,7 @@ async function handleFetchErrors(response) {
     }
     return response;
 }
+
 
 fetchCalendarEvents(addAllEventsToDOM);
 

@@ -83,9 +83,25 @@ def events():
 @validate_oauth_token
 @handle_refresh_error
 def events_from_date(dt_min):
-    max_days = request.args.get('maxDays')
+    """
+    Returns a list of events wrapped in a div.
 
+    Optional query params:
+        maxDays: An integer value. Default 7. Max 31.
+        tz: A pytz timezone string. The timezone for the current_user is collected after authorization and stored in
+            the database. It is also stored as a session variable when settings are changed. Passing a timezone as a
+            query param will set this session variable; however, it will not be overridden if already set.
+            Here is the priority in which it is used:
+                1. query param (sets session variable, but does not override)
+                2. session variable (set after authorization. can be changed in settings)
+                3. database (set from user's calendar settings after authorization)
+
+    :param dt_min: a datetime object set by util.converters.DateConverter. Looks for the pattern YYYY-mm-dd
+    :return:
+    """
     error = None
+
+    max_days = request.args.get('maxDays')
 
     # attempt to convert the maxDays query param to an integer
     if max_days:
@@ -95,6 +111,12 @@ def events_from_date(dt_min):
                 error = 'maxDays must be greater than 0'
         except ValueError:
             error = "'maxDays' must be a number"
+
+    timezone = request.args.get('tz')
+    if not timezone:
+        timezone = session.get('timezone', current_user.timezone)
+    elif 'timezone' not in session:
+        session['timezone'] = timezone
 
     if error:
         return jsonify({
@@ -108,7 +130,8 @@ def events_from_date(dt_min):
     event_list = get_events_from_multiple_calendars(
         credentials, watched_calendar_ids,
         dt_min=dt_min,
-        max_days=max_days
+        max_days=max_days,
+        timezone=timezone
     )
 
     calendar_colors = get_colors(credentials)

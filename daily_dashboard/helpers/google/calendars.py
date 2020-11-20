@@ -1,5 +1,6 @@
 from datetime import datetime, date, timedelta
 from dateutil import parser
+from pytz import all_timezones
 
 from googleapiclient.discovery import build
 
@@ -66,7 +67,7 @@ def get_colors(credentials):
     return colors
 
 
-def get_events(credentials, calendar_id, dt_min=date.today(), max_days=7):
+def get_events(credentials, calendar_id, dt_min=date.today(), max_days=7, timezone=None):
     """
     Get events of the given calendar. Events are ordered by start time.  If no time range is specified, the time range
     will be set as UTC midnight through 6 days later at 11:59.59 PM.
@@ -76,18 +77,24 @@ def get_events(credentials, calendar_id, dt_min=date.today(), max_days=7):
     :param dt_min: The min date range to get events
     :param max_days: The date range to query the Google Calendar API for events. range=1 will get events from midnight to
         11:59:59 of the same day
+    :param timezone: The timezone used in the event list response
     :return: A list of events, ordered by start time
     """
-    # add 6 days to it
+    # chop the time from dt_min
     date_min = datetime.combine(dt_min, datetime.min.time())
-    time_max = date_min + timedelta(days=max_days, seconds=-1)
+    # get the upper bound
+    time_max = date_min + timedelta(days=min(max_days, 31), seconds=-1)
 
     options = {
         'timeMin': date_min.isoformat() + 'Z',
         'timeMax': time_max.isoformat() + 'Z',
         'orderBy': 'startTime',
-        'singleEvents': True
+        'singleEvents': True,
+        'maxResults': min(250, max_days * 10)
     }
+
+    if timezone and timezone in all_timezones:
+        options['timeZone'] = timezone
 
     service = _getservice(credentials)
 
@@ -104,7 +111,7 @@ def get_events(credentials, calendar_id, dt_min=date.today(), max_days=7):
     return event_list
 
 
-def get_events_from_multiple_calendars(credentials, calendar_ids, dt_min=None, max_days=None):
+def get_events_from_multiple_calendars(credentials, calendar_ids, dt_min=None, max_days=None, timezone=None):
     def event_comparator(event1, event2):
         event1_start = _string_to_dt(event1['start'].get('dateTime', event1['start'].get('date')))
         event2_start = _string_to_dt(event2['start'].get('dateTime', event2['start'].get('date')))
@@ -122,15 +129,16 @@ def get_events_from_multiple_calendars(credentials, calendar_ids, dt_min=None, m
 
         return start_diff
 
-    kwargs = dict(
-        credentials=credentials
-    )
+    kwargs = dict(credentials=credentials)
 
     if dt_min:
         kwargs['dt_min'] = dt_min
 
     if max_days:
         kwargs['max_days'] = max_days
+
+    if timezone:
+        kwargs['timezone'] = timezone
 
     res = []
     for calendar_id in calendar_ids:

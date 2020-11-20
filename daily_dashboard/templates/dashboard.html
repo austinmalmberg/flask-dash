@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+
+{# 'with context' required to use context_processors #}
 {% from 'components/date_card.html' import date_card with context %}
 
 {% block title %}Home{% endblock %}
@@ -42,14 +44,10 @@
         {# ----- CLOCK ----- #}
         const clockElement = document.getElementById('clock--time');
 
-        {# ----- EVENTS ----- #}
-        const eventsUrl = "{{ url_for('calendars.events') }}";
-
         {# ----- WEATHER ----- #}
         {# const weatherUrl = "{{ url_for('weather.index') }}"; #}
     </script>
     <script type="module" src="{{ url_for('static', filename='scripts/dashboard/general.mjs') }}"></script>
     <script src="{{ url_for('static', filename='scripts/dashboard/clock.js') }}"></script>
-    <script type="module" src="{{ url_for('static', filename='scripts/dashboard/fetchEvents.mjs') }}"></script>
     <script type="module" src="{{ url_for('static', filename='scripts/dashboard/weather.mjs') }}"></script>
 {% endblock %}

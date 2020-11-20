@@ -1,0 +1,26 @@
+{% macro event_wrapper(event, for_date, platform) %}
+
+{%+ set start_date = event['start'].get('dateTime', event['start'].get('date')) %}
+{%+ set start_date_comp = date_comparator(start_date, for_date) %}
+
+{%+ set end_date = event['end'].get('dateTime', event['end'].get('date')) %}
+{%+ set end_date_comp = date_comparator(end_date, for_date) %}
+
+<div id="{{ event['id'] }}" class="event" style="{{ event['style'] }}">
+    <div class="time">
+        <p class="datetime start" data-dt="{{ start_date }}">
+            {% if start_date_comp == 0 -%}
+                {{ format_time(event['start'].get('dateTime'), platform) if 'dateTime' in event['start'] else '12:00 AM' }}
+            {%- endif %}
+        </p>
+        <p class="datetime end" data-dt="{{ end_date }}">
+            {% if end_date_comp == 0 and 'dateTime' in event['end'] -%}
+                - {{ format_time(event['end'].get('dateTime'), platform) }}
+            {%- elif end_date_comp == -1 and 'date' in event['end'] -%}
+                - 11:59 PM
+            {%- endif %}
+        </p>
+    </div>
+    <p class="summary">{{ event['summary'] }}</p>
+</div>
+{% endmacro %}

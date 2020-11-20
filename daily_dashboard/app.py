@@ -1,7 +1,8 @@
 import os
+from datetime import date, datetime
+from dateutil import parser
 
 from flask import Flask, request, redirect
-from jinja2 import environment
 
 from daily_dashboard import database
 from daily_dashboard.helpers import user_manager, brand
@@ -32,15 +33,42 @@ def create_app(config_str=None):
             return redirect(url, code=301)
 
     @app.context_processor
-    def date_formatters():
+    def datetime_formatters():
+        def _convert_to_dt(non_dt_variable):
+            try:
+                if not isinstance(non_dt_variable, (date, datetime)):
+                    return parser.isoparse(non_dt_variable)
+            except ValueError:
+                raise ValueError
+            return non_dt_variable
+
         def _format_time(dt, platform='windows'):
-            return dt.strftime('%#I:%M %p' if platform == 'windows' else '%-I:%M %p')
+            return _convert_to_dt(dt).strftime('%#I:%M %p' if platform == 'windows' else '%-I:%M %p')
 
         def _format_date(dt, platform='windows'):
-            return dt.strftime('%B %#d' if platform == 'windows' else '%B %-d')
+            return _convert_to_dt(dt).strftime('%B %#d' if platform == 'windows' else '%B %-d')
 
-        return dict(format_time=_format_time, format_date=_format_date)
+        def _format_iso_date(dt):
+            return _convert_to_dt(dt).strftime('%Y-%m-%d')
 
+        def _date_comparator(d1, d2):
+            """
+            Compares two dates and returns the number of days between them.
+
+            :param d1: A date, datetime, or iso formatted string.
+            :param d2: A date, datetime, or iso formatted string.
+            :return: the number of days between d1 and d2
+                If d2 is greater than d1, the result will be positive.
+                If d1 is greater than d2, the result will be negative.
+
+            """
+            diff = datetime.combine(_convert_to_dt(d2), datetime.min.time()) - \
+                datetime.combine(_convert_to_dt(d1), datetime.min.time())
+
+            return diff.days
+
+        return dict(format_time=_format_time, format_date=_format_date, format_iso_date=_format_iso_date,
+                    date_comparator=_date_comparator)
 
     @app.context_processor
     def inject_brand():
@@ -54,5 +82,3 @@ def create_app(config_str=None):
     routes.register_blueprints(app)
 
     return app
-
-

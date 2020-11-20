@@ -147,6 +147,7 @@ def callback():
                 settings = get_calendar_settings(credentials)
 
                 user = init_new_user(userinfo, calendar_list, settings, refresh_token=credentials.refresh_token)
+                session['timezone'] = user.timezone
             else:
                 user = update_existing_user(user, userinfo=userinfo, refresh_token=credentials.refresh_token)
 

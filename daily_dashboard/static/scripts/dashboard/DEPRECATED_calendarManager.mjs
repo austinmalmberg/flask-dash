@@ -1,3 +1,8 @@
+/*
+        This module has been deprecated.
+        Events are now retrieved and added to the dashboard on the backend and sent with the template
+*/
+
 import { isoDateString, generateElement } from './general.mjs';
 
 /*

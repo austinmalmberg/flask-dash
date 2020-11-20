@@ -6,7 +6,9 @@ from flask_login import login_required, current_user
 
 from daily_dashboard.database import db
 from daily_dashboard.database.queries import sync_calendars
+from daily_dashboard.dto.event_dto import event_dto
 from daily_dashboard.helpers.google import build_credentials
+from daily_dashboard.helpers.google.calendars import get_events_from_multiple_calendars, get_colors
 from daily_dashboard.routes.google import oauth_limited_input_device
 from daily_dashboard.routes.google.calendars import get_calendar_list
 from daily_dashboard.routes.google.oauth import validate_oauth_token, handle_refresh_error
@@ -24,10 +26,33 @@ def dashboard():
 
     :return: The template
     """
-    locale_date = datetime.now(pytz.timezone(current_user.timezone)).date()
-    dates = [locale_date + timedelta(days=i) for i in range(7)]
+    # session variable for max_days not implemented yet
+    max_days = session.get('max_days', 7)
 
-    return render_template('dashboard.html', dates=dates, platform=request.user_agent.platform)
+    timezone = request.args.get('tz')
+    if not timezone:
+        timezone = session.get('timezone', current_user.timezone)
+
+    locale_date = datetime.now(pytz.timezone(timezone)).date()
+    dates = [locale_date + timedelta(days=i) for i in range(max_days)]
+
+    credentials = build_credentials(session.get('token', None), current_user.refresh_token)
+    watched_calendar_ids = [cal.calendar_id for cal in current_user.calendars if cal.watching]
+
+    event_list = get_events_from_multiple_calendars(
+        credentials, watched_calendar_ids,
+        dt_min=locale_date,
+        max_days=max_days,
+        timezone=timezone
+    )
+
+    calendar_colors = get_colors(credentials)
+
+    event_dtos = []
+    for event in event_list:
+        event_dtos.append(event_dto(event, calendar_colors))
+
+    return render_template('dashboard.html', dates=dates, events=event_dtos, platform=request.user_agent.platform)
 
 
 @bp.route('/settings', methods=('GET', 'POST'))
