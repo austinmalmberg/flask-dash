@@ -2,8 +2,6 @@ from datetime import datetime
 
 from daily_dashboard.database import db
 from daily_dashboard.database.models import User, Calendar
-from daily_dashboard.helpers.google import build_credentials
-from daily_dashboard.helpers.google.calendars import get_calendar_list, get_calendar_settings
 
 
 def add_calendar(user_id, calendar, watching=False, check_if_exists=False):
