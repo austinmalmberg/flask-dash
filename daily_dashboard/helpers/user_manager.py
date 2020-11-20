@@ -1,5 +1,5 @@
-from flask import redirect, url_for, session
-from flask_login import LoginManager, logout_user
+from flask import redirect, url_for
+from flask_login import LoginManager
 
 from daily_dashboard.database.models import User
 
