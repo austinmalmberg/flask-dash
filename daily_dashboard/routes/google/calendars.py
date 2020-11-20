@@ -2,7 +2,7 @@ from dateutil import parser
 from flask import Blueprint, jsonify, request, session, render_template
 from flask_login import login_required, current_user
 
-from daily_dashboard.dto.event_dto import event_dto
+from daily_dashboard.dto.event_dto import EventDto
 from daily_dashboard.helpers.google import build_credentials
 from daily_dashboard.helpers.google.calendars import get_calendar_list, get_calendar_settings, \
     get_events_from_multiple_calendars, get_colors
@@ -73,7 +73,7 @@ def events():
 
     event_dtos = []
     for event in event_list:
-        event_dtos.append(event_dto(event, calendar_colors))
+        event_dtos.append(EventDto(event, colors=calendar_colors))
 
     return jsonify(events=event_dtos)
 

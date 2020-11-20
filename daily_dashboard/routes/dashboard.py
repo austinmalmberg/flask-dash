@@ -1,12 +1,12 @@
 from datetime import datetime, timedelta
-import pytz
 
+import pytz
 from flask import Blueprint, render_template, session, redirect, url_for, request
 from flask_login import login_required, current_user
 
 from daily_dashboard.database import db
 from daily_dashboard.database.queries import sync_calendars
-from daily_dashboard.dto.event_dto import event_dto
+from daily_dashboard.dto.event_dto import EventDto
 from daily_dashboard.helpers.google import build_credentials
 from daily_dashboard.helpers.google.calendars import get_events_from_multiple_calendars, get_colors
 from daily_dashboard.routes.google import oauth_limited_input_device
@@ -50,7 +50,7 @@ def dashboard():
 
     event_dtos = []
     for event in event_list:
-        event_dtos.append(event_dto(event, calendar_colors))
+        event_dtos.append(EventDto(event, colors=calendar_colors))
 
     return render_template('dashboard.html', dates=dates, events=event_dtos, platform=request.user_agent.platform)
 
