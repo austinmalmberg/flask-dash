@@ -4,6 +4,7 @@ from werkzeug.routing import BaseConverter, ValidationError
 
 
 class DatetimeConverter(BaseConverter):
+    regex = r'\d{4}\-\d{2}\-\d{2}'
     date_format = '%Y-%m-%d'
 
     def to_python(self, value):
