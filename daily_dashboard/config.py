@@ -9,7 +9,7 @@ class BaseConfig(object):
 class DevelopmentConfig(BaseConfig):
     DEBUG = True
     TESTING = False
-    SERVER_NAME = 'localhost:5000'
+    SERVER_NAME = '127.0.0.1:5000'
 
 
 class ProductionConfig(BaseConfig):
