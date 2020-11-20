@@ -4,8 +4,8 @@ from dateutil import parser
 
 from flask import Flask, request, redirect
 
-from daily_dashboard import database
-from daily_dashboard.helpers import user_manager, brand
+from daily_dashboard import brand, database
+from daily_dashboard.helpers import user_manager
 from daily_dashboard.util.converters import DatetimeConverter
 
 
