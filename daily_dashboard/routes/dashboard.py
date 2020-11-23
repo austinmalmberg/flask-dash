@@ -4,14 +4,14 @@ import pytz
 from flask import Blueprint, render_template, session, redirect, url_for, request
 from flask_login import login_required, current_user
 
-from daily_dashboard.database import db
-from daily_dashboard.database.queries import sync_calendars
 from daily_dashboard.dto.event_dto import EventDto
+from daily_dashboard.forms.settings import SettingsForm
 from daily_dashboard.helpers.google import build_credentials
 from daily_dashboard.helpers.google.calendars import get_events_from_multiple_calendars, get_colors
 from daily_dashboard.routes.google import oauth_limited_input_device
 from daily_dashboard.routes.google.calendars import get_calendar_list
 from daily_dashboard.routes.google.oauth import validate_oauth_token, handle_refresh_error
+from daily_dashboard.util.dt_formatter import strftime_date_format, strftime_time_format
 
 bp = Blueprint('main', __name__)
 
@@ -36,11 +36,9 @@ def dashboard():
     locale_date = datetime.now(pytz.timezone(timezone)).date()
     dates = [locale_date + timedelta(days=i) for i in range(max_days)]
 
-    credentials = build_credentials(session.get('token', None), current_user.refresh_token)
-    watched_calendar_ids = [cal.calendar_id for cal in current_user.calendars if cal.watching]
-
+    credentials = build_credentials(token=session.get('token', None), refresh_token=current_user.refresh_token)
     event_list = get_events_from_multiple_calendars(
-        credentials, watched_calendar_ids,
+        credentials, session['watched_calendars'],
         dt_min=locale_date,
         max_days=max_days,
         timezone=timezone
@@ -52,7 +50,17 @@ def dashboard():
     for event in event_list:
         event_dtos.append(EventDto(event, colors=calendar_colors))
 
-    return render_template('dashboard.html', dates=dates, events=event_dtos, platform=request.user_agent.platform)
+    platform = request.user_agent.platform
+    date_format = strftime_date_format(session.get('dt_format', current_user.date_field_order), platform)
+    time_format = strftime_time_format(session.get('clock_24hr', current_user.time_24hour), platform)
+
+    return render_template(
+        'dashboard.html',
+        dates=dates,
+        events=event_dtos,
+        date_format=date_format,
+        time_format=time_format
+    )
 
 
 @bp.route('/settings', methods=('GET', 'POST'))
@@ -68,24 +76,32 @@ def settings():
 
     :return:
     """
-    if request.method == 'POST':
-        checked_ids = set(request.form.getlist('calendar'))
+    form = SettingsForm(request.form)
 
-        for calendar in current_user.calendars:
-            # begin watching checked calendars and stop watching unchecked calendars
-            calendar.watching = str(calendar.id) in checked_ids
+    calendar_list = get_calendar_list(
+        build_credentials(token=session.get('token', None), refresh_token=current_user.refresh_token)
+    )
 
-        db.session.commit()
+    form.calendars.choices = [
+        (calendar['id'], calendar['summary'], calendar['id'] in session.get('watched_calendars', []))
+        for calendar in calendar_list
+    ]
+
+    if request.method == 'POST' and form.validate():
+        session['watched_calendars'] = form.calendars.data
+        session['dt_format'] = form.date_format.data
+        session['clock_24hr'] = (form.time_format.data == '24hr')
 
         return redirect(url_for('main.dashboard'))
 
-    # get an updated calendar list from Google
-    credentials = build_credentials(token=session.get('token', None), refresh_token=current_user.refresh_token)
-    google_calendars = get_calendar_list(credentials)
+    # set the selected date_format value
+    form.date_format.data = session.get('dt_format', current_user.date_field_order)
 
-    sync_calendars(current_user, google_calendars)
+    # set the selected time_format value
+    clock_24hr = session.get('clock_24hr', current_user.time_24hour)
+    form.time_format.data = '24hr' if clock_24hr else '12hr'
 
-    return render_template('settings.html', user_calendars=current_user.calendars)
+    return render_template('settings.html', form=form)
 
 
 @bp.route('/login')

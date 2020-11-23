@@ -20,12 +20,12 @@
         <h1 id="clock--time"></h1>
     </section>
     <section id="primary">
-        {{ date_card(dates[0], platform, true) }}
+        {{ date_card(dates[0], true) }}
     </section>
 
     <section id="secondary">
         {% for d in dates[1:] %}
-            {{ date_card(d, platform) }}
+            {{ date_card(d) }}
         {% endfor %}
     </section>
 {% endblock %}

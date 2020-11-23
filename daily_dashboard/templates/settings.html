@@ -1,79 +1,57 @@
 {% extends 'base.html' %}
 
 {% block head %}
-    {# navbar styling #}
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles/navbar.css') }}">
-
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/settings.css') }}">
+{# navbar styling #}
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/navbar.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/settings.css') }}">
 {% endblock %}
 
 {% block navigation %}
-    {% include 'navbar.html' %}
+{% include 'navbar.html' %}
 {% endblock %}
 
 {% block title %}Settings{% endblock %}
 
 {% block content %}
-    <div id="sidebar">
-        <ul class="page--nav">
-            <li class="nav--item"><a href="#general">General</a></li>
-            <li class="nav--item"><a href="#calendar">Calendar</a></li>
-            <li class="nav--item"><a href="#logout">Logout</a></li>
-        </ul>
-    </div>
+<div id="sidebar">
+    <ul class="page--nav">
+        <li class="nav--item"><a href="#general">General</a></li>
+        <li class="nav--item"><a href="#calendar">Calendar</a></li>
+        <li class="nav--item"><a href="#logout">Logout</a></li>
+    </ul>
+</div>
 
-    <div id="settings--container">
-        <form id="settings--form" method="post">
-            <fieldset id="general">
-                <legend>General</legend>
-                <p class="whisper"><b>NOTE:</b> These options have not yet been implemented.</p>
+<div id="settings--container">
+    <form id="settings--form" method="post">
+        {{ form.csrf }}
+        <fieldset id="general">
+            <legend>General</legend>
 
-                <fieldset class="no-border">
-                    <label class="bold" for="date-format">Date format</label>
-                    <select name="date-format" id="date-format">
-                        <option value="mdy">January 1, 2020</option>
-                        <option value="dmy">1 January 2020</option>
-                        <option value="ymd">2020 January 1</option>
-                    </select>
-                </fieldset>
-
-                <fieldset class="no-border">
-                    <label class="bold" for="time-format">Time format</label>
-                    <select name="time-format" id="time-format">
-                        <option value="12-hour">5:00 PM</option>
-                        <option value="24-hour">17:00</option>
-                        <option value="no-tod">5:00</option>
-                    </select>
-                </fieldset>
-
-                <fieldset class="no-border">
-                    <label class="bold" for="timezone">Timezone</label>
-                    <select name="timezone" id="timezone">
-                        <option value="">{{ current_user.timezone }}</option>
-                    </select>
-                </fieldset>
-
-                <input type="submit" value="Save">
+            <fieldset class="no-border">
+                {{ form.date_format.label }}
+                {{ form.date_format(class='form--list') }}
             </fieldset>
-            <fieldset id="calendar">
-                <legend>Calendar</legend>
 
-                <fieldset class="no-border">
-                    <h3>Displayed Calendars</h3>
-                    {% for calendar in user_calendars %}
-                        <label class="checkbox--label" for="{{ calendar.calendar_id }}">
-                            <input class="checkbox" id="{{ calendar.calendar_id }}" name="calendar" type="checkbox" value="{{ calendar.id }}"{{ ' checked' if calendar.watching }}>
-                            {{ calendar.summary }}
-                        </label>
-                    {% endfor %}
-                </fieldset>
-
-                <input type="submit" value="Save">
+            <fieldset class="no-border">
+                {{ form.time_format.label }}
+                {{ form.time_format(class='form--list') }}
             </fieldset>
-        </form>
+            <input type="submit" value="Save">
+        </fieldset>
 
-        <a id="logout" href="{{ url_for('oauth.revoke') }}">
-            <button class="large error">Logout</button>
-        </a>
-    </div>
+        <fieldset id="calendar">
+            <legend>Calendar</legend>
+
+            <fieldset class="no-border">
+                {{ form.calendars.label }}
+                {{ form.calendars(class='form--list') }}
+            </fieldset>
+            <input type="submit" value="Save">
+        </fieldset>
+    </form>
+
+    <a id="logout" href="{{ url_for('oauth.revoke') }}">
+        <button class="large error">Logout</button>
+    </a>
+</div>
 {% endblock %}

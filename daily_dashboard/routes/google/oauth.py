@@ -143,11 +143,13 @@ def callback():
             user = find_user(userinfo['id'])
 
             if user is None:
-                calendar_list = get_calendar_list(credentials)
                 settings = get_calendar_settings(credentials)
 
-                user = init_new_user(userinfo, calendar_list, settings, refresh_token=credentials.refresh_token)
+                user = init_new_user(userinfo, settings, refresh_token=credentials.refresh_token)
+
                 session['timezone'] = user.timezone
+                session['watched_calendars'] = [userinfo['email']]
+
             else:
                 user = update_existing_user(user, userinfo=userinfo, refresh_token=credentials.refresh_token)
 

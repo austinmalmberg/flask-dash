@@ -88,15 +88,18 @@ def poll():
         if not error:
             user = find_user(userinfo.get('id'))
 
-            if user:
-                user = update_existing_user(user, userinfo, refresh_token=refresh_token)
-            else:
+            if not user:
                 credentials = build_credentials(token=session['token'], refresh_token=refresh_token)
 
-                calendar_list = get_calendar_list(credentials)
                 settings = get_calendar_settings(credentials)
 
-                user = init_new_user(userinfo, calendar_list, settings, refresh_token=refresh_token)
+                user = init_new_user(userinfo, settings, refresh_token=refresh_token)
+
+                session['timezone'] = user.timezone
+                session['watched_calendars'] = [userinfo['email']]
+
+            else:
+                user = update_existing_user(user, userinfo, refresh_token=refresh_token)
 
             login_user(user)
 

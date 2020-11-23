@@ -6,6 +6,7 @@ Project Backlog
     - [x] Add primary calendar to database
     - [x] Add user's calendars to database
     - [x] Set user calendar settings
+- [ ] Add database migration environment
 - [ ] Implement tests
 
 #### Dashboard
@@ -23,10 +24,9 @@ Project Backlog
     - **Fix**: The frontend was formatting a UTC date into a time string which caused the date to be offset by -4:00.
         Added `T00:00:00` to the string to treat it as a timezone relative date
 - [x] Display weather
-- [ ] Refactor templates; add escaping
+- [x] Refactor templates; add escaping
 - [ ] Add method typing
-- [ ] Allow users to change their timezone in `/settings`
-    - A session variable for the timezone is set when a user authorizes the application.
+- [ ] Add weather themes
 - [ ] Implement SSE/polling
     - [ ] Begin watching selected calendars for event changes
         - [ ] If the event falls within the calendar duration, send event details in next poll (or SSE)
@@ -42,8 +42,6 @@ Project Backlog
 - [x] Make calendar list reflect currently selected calendars
 - [x] Begin watching checked calendars through POST request
 - [x] Add styling
-- [ ] Implement general settings
-- [ ] Center select options
-
-#### `/userinfo`
-- [ ] **Bug**: Fix 401 UNAUTHENTICATED error when attempting to get user info
+- [x] Implement WTForms
+- [x] Implement general settings
+- [ ] Add ability to change time zone

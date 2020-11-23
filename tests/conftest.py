@@ -1,7 +1,7 @@
 import pytest
 
 from daily_dashboard.app import create_app
-from daily_dashboard.database.models import User, Calendar
+from daily_dashboard.database.models import User
 
 
 @pytest.fixture
@@ -50,14 +50,3 @@ def seed_db(db):
 
     db.session.add(test_user)
     db.session.flush()
-
-    test_calendar = Calendar(
-        user_id=test_user.id,
-        calendar_id='austin.malmberg@gmail.com',
-        summary='Test calendar',
-        watching=True
-    )
-
-    db.session.add(test_calendar)
-
-    db.session.commit()

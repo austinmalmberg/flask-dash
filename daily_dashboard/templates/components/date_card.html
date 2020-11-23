@@ -1,12 +1,15 @@
 {# 'with context' required to use context_processors #}
 {% from 'components/event.html' import event_container with context %}
 
-{% macro date_card(d, platform, primary=false) %}
+{% macro date_card(d, primary=false) %}
 <div id="{{ d|string }}" class="date--card">
     <div class="header">
         <div class="date--info">
+            {#- day of the week -#}
             <h2>{{ d.strftime('%A') }}</h2>
-            <p>{{ format_date(d, platform) }}</p>
+
+            {#- date -#}
+            <p>{{ d.strftime(date_format) }}</p>
         </div>
         <div class="weather">
             <div class="temperatures">
@@ -23,7 +26,7 @@
     <div class="event--container">
         {% for event in events %}
             {% if d|string in event.dates %}
-            {{ event_container(event, d, platform) }}
+            {{ event_container(event, d) }}
             {% endif %}
         {% endfor %}
     </div>

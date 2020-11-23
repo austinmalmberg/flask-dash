@@ -1,4 +1,4 @@
-{% macro event_container(event, d, platform) %}
+{% macro event_container(event, d) %}
 
 {% set starts_today = (event.dates.index(d|string) == 0) %}
 {% set ends_today = (event.dates.index(d|string) == event.dates|length - 1) %}
@@ -7,18 +7,14 @@
      class="event{{ ' carryover--yesterday' if not starts_today else '' }}{{ ' carryover--tomorrow' if not ends_today else '' }}"
      style="{{ event.style }}">
     <div class="time">
-        <p class="datetime start" data-dt="{{ event.start_dt|string }}">
+        <p class="start">
             {%- if starts_today -%}
-                {{ format_time(event.start_dt, platform) }}
+                {{ event.start_dt.strftime(time_format) }}
             {%- endif -%}
         </p>
-        <p class="datetime end" data-dt="{{ event.end_dt|string }}">
+        <p class="end">
             {%- if ends_today -%}
-                {%- if event.start_dt.time()|string == '00:00:00' -%}
-                    - 11:59 PM
-                {%- else -%}
-                    - {{ format_time(event.end_dt, platform) }}
-                {%- endif -%}
+                - {{ event.end_dt.strftime(time_format) }}
             {%- endif -%}
         </p>
     </div>

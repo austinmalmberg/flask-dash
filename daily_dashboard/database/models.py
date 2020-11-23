@@ -25,19 +25,9 @@ class User(UserMixin, db.Model):
     time_24hour = db.Column(db.Boolean, default=False)
     hide_weekends = db.Column(db.Boolean, default=False)
 
-    calendars = db.relationship('Calendar', backref='user', lazy=True)
-
     def __init__(self, google_id=None, email=None, name=None, refresh_token=None, credentials=None):
         self.google_id = google_id
         self.email = email
         self.name = name
 
         self.refresh_token = credentials.refresh_token if credentials else refresh_token
-
-
-class Calendar(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    calendar_id = db.Column(db.String(), nullable=False)
-    summary = db.Column(db.String())
-    watching = db.Column(db.Boolean, default=False)
