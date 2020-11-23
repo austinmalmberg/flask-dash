@@ -51,24 +51,7 @@ def create_app(config_str=None):
         def _format_iso_date(dt):
             return _convert_to_dt(dt).strftime('%Y-%m-%d')
 
-        def _date_comparator(d1, d2):
-            """
-            Compares two dates and returns the number of days between them.
-
-            :param d1: A date, datetime, or iso formatted string.
-            :param d2: A date, datetime, or iso formatted string.
-            :return: the number of days between d1 and d2
-                If d2 is greater than d1, the result will be positive.
-                If d1 is greater than d2, the result will be negative.
-
-            """
-            diff = datetime.combine(_convert_to_dt(d2), datetime.min.time()) - \
-                datetime.combine(_convert_to_dt(d1), datetime.min.time())
-
-            return diff.days
-
-        return dict(format_time=_format_time, format_date=_format_date, format_iso_date=_format_iso_date,
-                    date_comparator=_date_comparator)
+        return dict(format_time=_format_time, format_date=_format_date, format_iso_date=_format_iso_date)
 
     @app.context_processor
     def inject_brand():
