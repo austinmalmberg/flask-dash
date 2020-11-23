@@ -12,7 +12,7 @@ from google.auth.transport.requests import Request
 from daily_dashboard.database import db
 from daily_dashboard.database.queries import find_user, init_new_user, update_existing_user
 from daily_dashboard.helpers.google import GoogleApiEndpoints, build_credentials, get_flow
-from daily_dashboard.helpers.google.calendars import get_calendar_list, get_calendar_settings
+from daily_dashboard.helpers.google.calendars import get_calendar_settings
 from daily_dashboard.helpers.google.userinfo import get_userinfo
 
 bp = Blueprint('oauth', __name__, url_prefix='/oauth')

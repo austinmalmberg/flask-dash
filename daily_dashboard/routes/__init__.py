@@ -10,15 +10,7 @@ def register_blueprints(app):
     from daily_dashboard.routes import dashboard
     app.register_blueprint(dashboard.bp)
 
-    # Weather #
-    from daily_dashboard.routes import weather
-    app.register_blueprint(weather.bp)
-
     # Authorization #
     from daily_dashboard.routes.google import oauth, oauth_limited_input_device
     app.register_blueprint(oauth.bp)
     app.register_blueprint(oauth_limited_input_device.bp)
-
-    # Calendar #
-    from daily_dashboard.routes.google import calendars
-    app.register_blueprint(calendars.bp)
