@@ -19,10 +19,6 @@ def register_blueprints(app):
     app.register_blueprint(oauth.bp)
     app.register_blueprint(oauth_limited_input_device.bp)
 
-    # User Info #
-    from daily_dashboard.routes.google import userinfo
-    app.register_blueprint(userinfo.bp)
-
     # Calendar #
     from daily_dashboard.routes.google import calendars
     app.register_blueprint(calendars.bp)
