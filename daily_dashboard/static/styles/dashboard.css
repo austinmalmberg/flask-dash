@@ -215,6 +215,18 @@ main.content {
   font-weight: bold;
 }
 
+/* styling for multi-day events
+.event.carryover--yesterday {
+    border-bottom-left-radius: 1em;
+    border-top-left-radius: 1em;
+}
+
+.event.carryover--tomorrow {
+    border-bottom-right-radius: 1em;
+    border-top-right-radius: 1em;
+}
+*/
+
 /* WEATHER */
 
 .weather {
