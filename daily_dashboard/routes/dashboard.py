@@ -46,9 +46,7 @@ def dashboard():
 
     calendar_colors = get_colors(credentials)
 
-    event_dtos = []
-    for event in event_list:
-        event_dtos.append(EventDto(event, colors=calendar_colors))
+    event_dtos = [EventDto(event, colors=calendar_colors) for event in event_list]
 
     platform = request.user_agent.platform
     date_format = strftime_date_format(session.get('dt_format', current_user.date_field_order), platform)
@@ -59,7 +57,8 @@ def dashboard():
         dates=dates,
         events=event_dtos,
         date_format=date_format,
-        time_format=time_format
+        time_format=time_format,
+        clock_24hr=session.get('clock_24hr', current_user.time_24hour)
     )
 
 
