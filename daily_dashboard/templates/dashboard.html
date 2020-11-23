@@ -24,8 +24,8 @@
     </section>
 
     <section id="secondary">
-        {% for date in dates[1:] %}
-            {{ date_card(date, platform) }}
+        {% for d in dates[1:] %}
+            {{ date_card(d, platform) }}
         {% endfor %}
     </section>
 {% endblock %}

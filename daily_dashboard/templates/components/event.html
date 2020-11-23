@@ -1,23 +1,27 @@
-{% macro event_wrapper(event, for_date, platform) %}
+{% macro event_container(event, d, platform) %}
 
-{%+ set start_date_comp = date_comparator(event.start_date, for_date) %}
-{%+ set end_date_comp = date_comparator(event.end_date, for_date) %}
+{% set starts_today = (event.dates.index(d|string) == 0) %}
+{% set ends_today = (event.dates.index(d|string) == event.dates|length - 1) %}
 
-<div id="{{ event.id }}" class="event" style="{{ event.style }}">
+<div id="{{ event.id }}"
+     class="event{{ ' carryover--yesterday' if not starts_today else '' }}{{ ' carryover--tomorrow' if not ends_today else '' }}"
+     style="{{ event.style }}">
     <div class="time">
-        <p class="datetime start" data-dt="{{ event.start_date|string }}">
-            {% if start_date_comp == 0 -%}
-                {{ format_time(event.start_date, platform) }}
-            {%- endif %}
+        <p class="datetime start" data-dt="{{ event.start_dt|string }}">
+            {%- if starts_today -%}
+                {{ format_time(event.start_dt, platform) }}
+            {%- endif -%}
         </p>
-        <p class="datetime end" data-dt="{{ event.end_date|string }}">
-            {% if end_date_comp == 0 -%}
-                - {{ format_time(event.end_date, platform) }}
-            {%- elif end_date_comp == -1 -%}
-                - 11:59 PM
-            {%- endif %}
+        <p class="datetime end" data-dt="{{ event.end_dt|string }}">
+            {%- if ends_today -%}
+                {%- if event.start_dt.time()|string == '00:00:00' -%}
+                    - 11:59 PM
+                {%- else -%}
+                    - {{ format_time(event.end_dt, platform) }}
+                {%- endif -%}
+            {%- endif -%}
         </p>
     </div>
-    <p class="summary">{{ event.summary }}</p>
+    <p class="summary">{{ event.summary|e }}</p>
 </div>
 {% endmacro %}

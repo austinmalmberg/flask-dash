@@ -3,18 +3,18 @@ from datetime import timedelta
 from dateutil import parser
 
 
-def _get_dates_between(start_date, end_date):
+def _get_dates_between(start_dt, end_dt):
     """
     Returns a list of dates that the event runs through.
 
-    :param start_date:
-    :param end_date:
+    :param start_dt:
+    :param end_dt:
     :return:
     """
     res = []
 
-    date = start_date
-    while date < end_date:
+    date = start_dt
+    while date < end_dt:
         res.append(date.strftime('%Y-%m-%d'))
         date += timedelta(days=1)
 
@@ -43,12 +43,12 @@ class EventDto:
         temp_start = event['start'].get('dateTime')
         if temp_start is None:
             temp_start = event['start'].get('date')
-        self.start_date = parser.isoparse(temp_start)
+        self.start_dt = parser.isoparse(temp_start)
 
         temp_end = event['end'].get('dateTime')
         if temp_end is None:
             temp_end = event['end'].get('date')
-        self.end_date = parser.isoparse(temp_end)
+        self.end_dt = parser.isoparse(temp_end)
 
         self.summary = event.get('summary', '(No title)')
         self.htmlLink = event['htmlLink']
@@ -63,4 +63,4 @@ class EventDto:
 
         self.style = f'background: {self.background}; color: {self.foreground}'
 
-        self.dates = _get_dates_between(self.start_date, self.end_date)
+        self.dates = _get_dates_between(self.start_dt, self.end_dt)

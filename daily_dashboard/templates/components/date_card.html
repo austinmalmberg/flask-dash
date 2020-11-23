@@ -1,12 +1,12 @@
 {# 'with context' required to use context_processors #}
-{% from 'components/event.html' import event_wrapper with context %}
+{% from 'components/event.html' import event_container with context %}
 
-{% macro date_card(date, platform, primary=false) %}
-<div id="{{ date|string }}" class="date--card">
+{% macro date_card(d, platform, primary=false) %}
+<div id="{{ d|string }}" class="date--card">
     <div class="header">
         <div class="date--info">
-            <h2>{{ date.strftime('%A') }}</h2>
-            <p>{{ format_date(date, platform) }}</p>
+            <h2>{{ d.strftime('%A') }}</h2>
+            <p>{{ format_date(d, platform) }}</p>
         </div>
         <div class="weather">
             <div class="temperatures">
@@ -22,8 +22,8 @@
     </div>
     <div class="event--container">
         {% for event in events %}
-            {% if format_iso_date(date) in event['dates'] %}
-            {{ event_wrapper(event, date, platform) }}
+            {% if d|string in event.dates %}
+            {{ event_container(event, d, platform) }}
             {% endif %}
         {% endfor %}
     </div>

@@ -7,10 +7,6 @@ from googleapiclient.discovery import build
 from daily_dashboard.util.merge_lists import merge_sorted_lists
 
 
-def _string_to_dt(s):
-    return parser.isoparse(s)
-
-
 # TODO: Add option to fail silently if credentials are invalid or _getservice fails
 # TODO: Right now, any problem getting the service or executing the action will throw an error or pass along an error
 def _getservice(credentials):
@@ -113,19 +109,25 @@ def get_events(credentials, calendar_id, dt_min=date.today(), max_days=7, timezo
 
 def get_events_from_multiple_calendars(credentials, calendar_ids, dt_min=None, max_days=None, timezone=None):
     def event_comparator(event1, event2):
-        event1_start = _string_to_dt(event1['start'].get('dateTime', event1['start'].get('date')))
-        event2_start = _string_to_dt(event2['start'].get('dateTime', event2['start'].get('date')))
+        e1_start_str = event1['start'].get('dateTime', event1['start'].get('date'))
+        e1_start_dt = parser.isoparse(e1_start_str)
+
+        e2_start_str = event2['start'].get('dateTime', event2['start'].get('date'))
+        e2_start = parser.isoparse(e2_start_str)
 
         # a negative value if event1 starts first
-        start_diff = event1_start.timestamp() - event2_start.timestamp()
+        start_diff = e1_start_dt.timestamp() - e2_start.timestamp()
 
         # if they start at the same time, compare ending times
-        # order by the event ending first
+        # order by the event ending last
         if start_diff == 0:
-            event1_end = _string_to_dt(event1['end'].get('dateTime', event1['end'].get('date')))
-            event2_end = _string_to_dt(event2['end'].get('dateTime', event2['end'].get('date')))
+            e1_end_str = event1['end'].get('dateTime', event1['end'].get('date'))
+            e1_end_dt = parser.isoparse(e1_end_str)
 
-            return event1_end.timestamp() - event2_end.timestamp()
+            e2_end_str = event2['end'].get('dateTime', event2['end'].get('date'))
+            e2_end_dt = parser.isoparse(e2_end_str)
+
+            return e2_end_dt.timestamp() - e1_end_dt.timestamp()
 
         return start_diff
 
