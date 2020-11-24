@@ -14,3 +14,7 @@ def register_blueprints(app):
     from daily_dashboard.routes.google import oauth, oauth_limited_input_device
     app.register_blueprint(oauth.bp)
     app.register_blueprint(oauth_limited_input_device.bp)
+
+    if app.env == 'development':
+        from daily_dashboard.routes import development
+        development.register_blueprints(app)

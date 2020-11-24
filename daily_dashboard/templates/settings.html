@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 
 {% block head %}
-{# navbar styling #}
-<link rel="stylesheet" href="{{ url_for('static', filename='styles/navbar.css') }}">
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/settings.css') }}">
+    {# navbar styling #}
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/navbar.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/settings.css') }}">
 {% endblock %}
 
 {% block navigation %}
@@ -13,45 +13,45 @@
 {% block title %}Settings{% endblock %}
 
 {% block content %}
-<div id="sidebar">
-    <ul class="page--nav">
-        <li class="nav--item"><a href="#general">General</a></li>
-        <li class="nav--item"><a href="#calendar">Calendar</a></li>
-        <li class="nav--item"><a href="#logout">Logout</a></li>
-    </ul>
-</div>
+    <div id="sidebar">
+        <ul class="page--nav">
+            <li class="nav--item"><a href="#general">General</a></li>
+            <li class="nav--item"><a href="#calendar">Calendar</a></li>
+            <li class="nav--item"><a href="#logout">Logout</a></li>
+        </ul>
+    </div>
 
-<div id="settings--container">
-    <form id="settings--form" method="post">
-        {{ form.csrf }}
-        <fieldset id="general">
-            <legend>General</legend>
+    <div id="settings--container">
+        <form id="settings--form" method="post">
+            {{ form.csrf }}
+            <fieldset id="general">
+                <legend>General</legend>
 
-            <fieldset class="no-border">
-                {{ form.date_format.label }}
-                {{ form.date_format(class='form--list') }}
+                <fieldset class="no-border">
+                    {{ form.date_format.label }}
+                    {{ form.date_format(class='form--list') }}
+                </fieldset>
+
+                <fieldset class="no-border">
+                    {{ form.time_format.label }}
+                    {{ form.time_format(class='form--list') }}
+                </fieldset>
+                <input type="submit" value="Save">
             </fieldset>
 
-            <fieldset class="no-border">
-                {{ form.time_format.label }}
-                {{ form.time_format(class='form--list') }}
+            <fieldset id="calendar">
+                <legend>Calendar</legend>
+
+                <fieldset class="no-border">
+                    {{ form.calendars.label }}
+                    {{ form.calendars(class='form--list') }}
+                </fieldset>
+                <input type="submit" value="Save">
             </fieldset>
-            <input type="submit" value="Save">
-        </fieldset>
+        </form>
 
-        <fieldset id="calendar">
-            <legend>Calendar</legend>
-
-            <fieldset class="no-border">
-                {{ form.calendars.label }}
-                {{ form.calendars(class='form--list') }}
-            </fieldset>
-            <input type="submit" value="Save">
-        </fieldset>
-    </form>
-
-    <a id="logout" href="{{ url_for('oauth.revoke') }}">
-        <button class="large error">Logout</button>
-    </a>
-</div>
+        <a id="logout" href="{{ url_for('oauth.revoke') }}">
+            <button class="large error">Logout</button>
+        </a>
+    </div>
 {% endblock %}
