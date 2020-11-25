@@ -3,6 +3,9 @@
 
 # environmental files
 *.env**
+client_secret*
+
+# self-signed certificate for testing
 *.pem
 *.key
 
