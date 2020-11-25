@@ -137,15 +137,23 @@ function updateWeatherNode(weatherNode, periods) {
         const periodHi = Math.max(...temps);
         const periodLo = Math.min(...temps);
 
-        weatherNode.querySelector('.temp.lo').innerHTML = periodLo;
+        let addHi = true;
+        let addLo = true;
 
         // only add the high if there is no current temp for that date, or if the high is greater than the current temperature
         const currTempText = weatherNode.querySelector('.temp.curr').innerText;
         if (currTempText) {
             const currTemp = Number(currTempText);
-            if (isNaN(currTemp) || currTemp > periodHi) return;
+
+            // currTemp is a number
+            if (!isNaN(currTemp)) {
+                addHi = currTemp <= periodHi;
+                addLo = currTemp >= periodLo;
+            }
         }
-        weatherNode.querySelector('.temp.hi').innerHTML = periodHi;
+
+        if (addHi) weatherNode.querySelector('.temp.hi').innerHTML = periodHi;
+        if (addLo) weatherNode.querySelector('.temp.lo').innerHTML = periodLo;
     }
 }
 
