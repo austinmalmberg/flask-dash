@@ -21,6 +21,18 @@ import { requestPosition } from './geolocation.mjs';
 import { getCookie, setCookie } from '../cookieManager.mjs';
 
 const createForecastEndpoint = (weatherData) => `https://api.weather.gov/gridpoints/${weatherData}/forecast`;
+const createHourlyForecastEndpoint = (weatherData) => createForecastEndpoint(weatherData) + '/hourly';
+
+async function fetchForecast(endpoint, callback, onErrorFlashMessage) {
+    const weatherResponse = await fetch(endpoint);
+
+    if (weatherResponse.ok) {
+        const weatherData = await weatherResponse.json();
+        callback(weatherData);
+    } else {
+        flashError(onErrorFlashMessage);
+    }
+}
 
 async function handleWeather() {
     if (!getCookie('weatherData')) {
@@ -64,17 +76,9 @@ async function handleWeather() {
     }
 
     const weatherData = getCookie('weatherData');
-    const forecastEndpoint = createForecastEndpoint(weatherData);
-    const weatherResponse = await fetch(forecastEndpoint);
 
-    if (weatherResponse.ok) {
-        const weatherData = await weatherResponse.json();
-
-        // populate each header with weather data
-        addWeatherToDOM(weatherData.properties.periods);
-    } else {
-        flashError("There was a problem retrieving the weather for your current location.");
-    }
+    addHourlyForecastToPrimaryNode(weatherData);
+    addWeeklyForecastToNodes(weatherData);
 }
 
 
@@ -88,13 +92,32 @@ async function getForecastProperties({ latitude, longitude }) {
     }
 }
 
-function addWeatherToDOM(periods) {
-    const withinDate = (dateStr, period) => period.startTime.startsWith(dateStr) || period.endTime.startsWith(dateStr);
+function addHourlyForecastToPrimaryNode(weatherData) {
+    const hourlyForecastEndpoint = createHourlyForecastEndpoint(weatherData);
+
+    fetchForecast(hourlyForecastEndpoint, weatherData => {
+        // populate primary date card with current temperature
+        const temperature = weatherData.properties.periods[0].temperature;
+        document.querySelector('.temp.curr').innerHTML = temperature;
+    }, "There was a problem retrieving current weather conditions for your area.");
+}
+
+function addWeeklyForecastToNodes(weatherData) {
+    const forecastEndpoint = createForecastEndpoint(weatherData);
+
+    fetchForecast(forecastEndpoint, weatherData => {
+        // populate each header with weather data
+        addForecastToDOM(weatherData.properties.periods);
+    }, "There was a problem retrieving the forecast for your current location.");
+}
+
+function addForecastToDOM(forecastPeriods) {
+    const withinDate = (dateStr, forecastPeriod) => forecastPeriod.startTime.startsWith(dateStr);
     const dateCards = document.querySelectorAll('.date--card');
 
     for(const dateCard of dateCards) {
         const date = dateCard.id;
-        const relevantPeriods = periods.filter(period => withinDate(date, period));
+        const relevantPeriods = forecastPeriods.filter(forecastPeriod => withinDate(date, forecastPeriod));
 
         updateWeatherNode(dateCard.querySelector('.weather'), relevantPeriods);
     }
@@ -111,10 +134,18 @@ function updateWeatherNode(weatherNode, periods) {
         weatherNode.querySelector('.forecast--image').src = mainPeriod.icon.replace('size=medium', 'size=large');
 
         const temps = periods.map(period => period.temperature);
+        const periodHi = Math.max(...temps);
+        const periodLo = Math.min(...temps);
 
-        weatherNode.querySelector('.temp.hi').innerHTML = Math.max(...temps);
-        weatherNode.querySelector('.temp.lo').innerHTML = Math.min(...temps);
+        weatherNode.querySelector('.temp.lo').innerHTML = periodLo;
 
+        // only add the high if there is no current temp for that date, or if the high is greater than the current temperature
+        const currTempText = weatherNode.querySelector('.temp.curr').innerText;
+        if (currTempText) {
+            const currTemp = Number(currTempText);
+            if (isNaN(currTemp) || currTemp > periodHi) return;
+        }
+        weatherNode.querySelector('.temp.hi').innerHTML = periodHi;
     }
 }
 

@@ -282,7 +282,7 @@ main.content {
 }
 
 .temp.curr {
-  color: #f9ca24;
+  font-size: 1.3em;
 }
 
 .temp.lo {
