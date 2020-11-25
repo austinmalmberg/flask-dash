@@ -6,7 +6,6 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/theme.css') }}">
     <script type="text/javascript" src="{{ url_for('static', filename='scripts/dashboard/skycons.js') }}"></script>
     <script type="text/javascript">
-        const skyconInstances = [];
         let skyconInstance, themeContainer, skyconCanvases;
     </script>
 {% endblock %}
@@ -14,24 +13,25 @@
 
 {% block content %}
     {% for theme in themes %}
-        <div id="theme__{{ theme.name }}" class="theme__container" style="background-color: {{ theme.background_color }};
-            border: 1px solid black;">
+        <div id="theme__{{ theme.skycon_description }}"
+             class="theme__container"
+             style="background-color: {{ theme.background_color }}; color: {{ theme.color }}">
 
-            <span class="time" style="color: {{ theme.time_color }}">12:00 PM</span>
+            <span class="time" style="">12:00 PM</span>
 
             <div class="card__container" style="opacity: {{ theme.card_opacity }};">
-                <div class="header__container" style="background-color: {{ theme.header_background_color }}; color: {{ theme.header_color }};">
+                <div class="header__container" style="background-color: {{ theme.header_background_color }}; color: {{ theme.header_color or 'inherit' }};">
 
                     <div class="text">
-                        <h2>{{ theme.name }}</h2>
+                        <h2>{{ theme.skycon_description }}</h2>
                         <span class="lo" style="color: {{ theme.temp_lo_color }}">45</span>
-                        <span class="curr" style="color: {{ theme.temp_curr_color }}">69</span>
+                        <span class="curr" style="{{ theme.temp_curr_color or 'inherit' }}">69</span>
                         <span class="hi" style="color: {{ theme.temp_hi_color }}">82</span>
                     </div>
 
                     <div class="skycon__container">
                         {% for descriptor in skycon_descriptors %}
-                        <canvas width="80" height="80" id="{{ theme.name }}__{{ descriptor }}" class="skycon" data-skycon="{{ descriptor }}"></canvas>
+                        <canvas width="80" height="80" id="{{ theme.skycon_description }}__{{ descriptor }}" class="skycon" data-skycon="{{ descriptor }}"></canvas>
                         {% endfor %}
                     </div>
                 </div>
@@ -47,7 +47,7 @@
                         monochrome: false
                 });
 
-                themeContainer = document.getElementById("theme__{{ theme.name }}");
+                themeContainer = document.getElementById("theme__{{ theme.skycon_description }}");
 
                 skyconCanvases = themeContainer.querySelectorAll("canvas[data-skycon]");
                 for (let skyconCanvas of skyconCanvases) {
@@ -55,8 +55,6 @@
                 }
 
                 skyconInstance.play();
-
-                skyconInstances.push(skyconInstance);
         </script>
     {% endfor %}
 {% endblock %}

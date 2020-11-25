@@ -22,25 +22,21 @@ descriptions = {
     'hail'
 }
 
-components = [
-    'main', 'moon', 'fog', 'fogbank', 'light_cloud',
-    'cloud', 'dark_cloud', 'thunder', 'snow', 'hail',
-    'sleet', 'wind', 'leaf', 'rain', 'sun'
-]
+default_colors = {
+    'main': "#111",
+    'moon': "#353545",
+    'fog': "#CCC",
+    'fogbank': "#AAA",
+    'light_cloud': "#888",
+    'cloud': "#666",
+    'dark_cloud': "#444",
+    'thunder': "#FF0",
+    'snow': "#C2EEFF",
+    'hail': "#CCF",
+    'sleet': "#C2EEFF",
+    'wind': "#777",
+    'leaf': "#2C5228",
+    'rain': "#7FDBFF",
+    'sun': "#FFDC00"
 
-default_colors = [
-    "#111", "#353545", "#CCC", "#AAA", "#888",
-    "#666", "#444", "#FF0", "#C2EEFF", "#CCF",
-    "#C2EEFF", "#777", "#2C5228", "#7FDBFF", "#FFDC00"
-]
-
-
-def get_color_dict(colors=None):
-    if not colors:
-        colors = default_colors
-    elif len(colors) != len(components):
-        raise ValueError('len(colors) did not match len(components)')
-
-    return {item: default_colors[i] for i, item in enumerate(components)}
-
-
+}

@@ -1,15 +1,16 @@
 Project Backlog
 ===============
 
-#### General
+## General
 - [x] On account creation,
-    - [x] Add primary calendar to database
-    - [x] Add user's calendars to database
+    - [x] Add primary calendar to database - DEPRECATED
+    - [x] Add user's calendars to database - DEPRECATED
     - [x] Set user calendar settings
+- [ ] Update README
 - [ ] Add database migration environment
 - [ ] Implement tests
 
-#### Dashboard
+## Dashboard
 - [x] Display date
 - [x] Display calendar events
 - [x] Create proper headers
@@ -27,21 +28,25 @@ Project Backlog
 - [x] Refactor templates; add escaping
 - [ ] Add method typing
 - [ ] Add weather themes
+    - [x] Create theme classes
+    - [ ] Implement themes into `/`
 - [ ] Implement SSE/polling
     - [ ] Begin watching selected calendars for event changes
         - [ ] If the event falls within the calendar duration, send event details in next poll (or SSE)
         - [ ] Update watch notifications when `/settings` are changed
     - [ ] Send event changes to client
         - [ ] Handle updating events
-- [ ] Change day header to holiday theme
+- [ ] Change day header on holidays
 
-#### `/login`
+## `/login`
 - [x] Add styling
 
-#### `/settings`
+## `/settings`
 - [x] Make calendar list reflect currently selected calendars
-- [x] Begin watching checked calendars through POST request
 - [x] Add styling
-- [x] Implement WTForms
+- [x] Begin watching checked calendars through POST request
+    - [x] Implement WTForms
 - [x] Implement general settings
 - [ ] Add ability to change time zone
+- [ ] Set default theme (one of the weather themes or rotating)
+- [ ] Set icon theme (Skycons, weather.gov icons, Accuweather, etc.)
