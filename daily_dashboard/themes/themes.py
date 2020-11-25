@@ -5,6 +5,7 @@ white = '#fff'
 black = '#000'
 
 # reds
+red = '#f66'
 
 # oranges
 orange = '#ff8e69'
@@ -35,8 +36,11 @@ class ThemeBase:
     header_background_color = blue
     header_color = white
 
+    # event
+    event_background_color = white;
+
     # weather
-    temp_hi_color = orange
+    temp_hi_color = red
     temp_curr_color = white
     temp_lo_color = light_blue
 
@@ -44,6 +48,7 @@ class ThemeBase:
     # 'cloud', 'dark_cloud', 'thunder', 'snow', 'hail',
     # 'sleet', 'wind', 'leaf', 'rain', 'sun' ]
     skycon_colors = skycons.get_color_dict()
+    skycon_colors['moon'] = '#ddd'
 
 
 class ThemeSun(ThemeBase):
@@ -56,7 +61,8 @@ class ThemeSun(ThemeBase):
     header_background_color = '#ED4C67'     # pink/red
     header_color = black
 
-    temp_hi_color = '#F79F1F'   # orange/yellow
+    temp_hi_color = '#F99F2F'   # orange/yellow
+    temp_curr_color = black
     temp_lo_color = '#9980FA'   # lilac purple
 
 
