@@ -4,7 +4,7 @@ from flask import Flask, request, redirect
 
 from daily_dashboard import brand, database
 from daily_dashboard.helpers import user_manager
-from daily_dashboard.util.converters import DatetimeConverter
+from daily_dashboard.util.converters import DatetimeConverter, CustomFloatConverter
 
 
 def create_app(config_str=None):
@@ -23,6 +23,7 @@ def create_app(config_str=None):
     # Add a datetime converter
     # this is used in route validation
     app.url_map.converters['datetime'] = DatetimeConverter
+    app.url_map.converters['float_neg'] = CustomFloatConverter
 
     @app.before_request
     def redirect_to_https():

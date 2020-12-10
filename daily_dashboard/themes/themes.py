@@ -10,9 +10,11 @@ class BaseTheme:
     card_opacity = 0.9
     color = white
     background_color = '#03509c'
+    background_image = None
 
     # header
     header_background_color = '#0973d6'
+    header_color = black
 
     # event
     event_background_color = white
@@ -28,15 +30,32 @@ class BaseTheme:
     # 'sleet', 'wind', 'leaf', 'rain', 'sun' ]
     skycon_colors = skycons.default_colors
 
-    def __init__(self):
+    def __init__(self, name='Base'):
+        self.name = name
         self.skycon_colors['moon'] = self.skycon_colors['sun']
 
+    def general_style(self):
+        return f'color: {self.color}; background-color: {self.background_color}; opacity: {self.card_opacity};' + \
+            f' background-image: url({self.background_image});' if self.background_image else ''
 
-''' UNUSED '''
+    def header_style(self):
+        return f'color: {self.header_color}; background-color: {self.header_background_color};'
+
+    def event_container_style(self):
+        return f'background-color: {self.event_background_color};'
+
+    def temp_hi_style(self):
+        return f'color: {self.temp_hi_color};'
+
+    def temp_lo_style(self):
+        return f'color: {self.temp_lo_color};'
+
+
 class DarkCloudTheme(BaseTheme):
+    ''' UNUSED '''
 
     def __init__(self):
-        super().__init__()
+        super().__init__('DarkCloud')
 
         self.skycon_colors['moon'] = '#ddd'
         self.skycon_colors['light_cloud'] = self.skycon_colors['dark_cloud']
@@ -44,11 +63,11 @@ class DarkCloudTheme(BaseTheme):
         self.skycon_colors['wind'] = self.skycon_colors['dark_cloud']
 
 
-''' UNUSED '''
 class WhiteCloudTheme(BaseTheme):
+    ''' UNUSED '''
 
     def __init__(self):
-        super().__init__()
+        super().__init__('WhiteCloud')
 
         self.skycon_colors['moon'] = '#ddd'
         self.skycon_colors['dark_cloud'] = '#ddd'
@@ -60,7 +79,7 @@ class WhiteCloudTheme(BaseTheme):
 class ClearDayTheme(BaseTheme):
 
     def __init__(self):
-        super().__init__()
+        super().__init__('ClearDay')
 
         self.skycon_description = 'clear_day'
         self.color = black
@@ -72,7 +91,7 @@ class ClearDayTheme(BaseTheme):
 class ClearNightTheme(BaseTheme):
 
     def __init__(self):
-        super().__init__()
+        super().__init__('ClearNight')
 
         self.skycon_description = 'clear_night'
         self.background_color = '#081426'
@@ -87,7 +106,7 @@ class ClearNightTheme(BaseTheme):
 class PartlyCloudyDayTheme(BaseTheme):
 
     def __init__(self):
-        super().__init__()
+        super().__init__('PartlyCloudyDay')
 
         self.skycon_description = 'partly_cloudy_day'
         self.background_color = '#03509c'
@@ -97,7 +116,7 @@ class PartlyCloudyDayTheme(BaseTheme):
 class PartlyCloudyNightTheme(BaseTheme):
 
     def __init__(self):
-        super().__init__()
+        super().__init__('PartlyCloudyNight')
 
         self.skycon_description = 'partly_cloudy_night'
         self.color = '#ffdfb6'
@@ -109,7 +128,7 @@ class PartlyCloudyNightTheme(BaseTheme):
 class CloudyTheme(BaseTheme):
 
     def __init__(self):
-        super().__init__()
+        super().__init__('Cloudy')
 
         self.skycon_description = 'cloudy'
         self.background_color = '#97a3b9'
@@ -120,7 +139,7 @@ class CloudyTheme(BaseTheme):
 class RainTheme(BaseTheme):
 
     def __init__(self):
-        super().__init__()
+        super().__init__('Rain')
 
         self.skycon_description = 'rain'
         self.background_color = '#c5dae5'
@@ -133,7 +152,7 @@ class RainTheme(BaseTheme):
 class SleetTheme(BaseTheme):
 
     def __init__(self):
-        super().__init__()
+        super().__init__('Sleet')
 
         self.skycon_description = 'sleet'
         self.background_color = '#3f3f3f'
@@ -144,7 +163,7 @@ class SleetTheme(BaseTheme):
 class SnowTheme(BaseTheme):
 
     def __init__(self):
-        super().__init__()
+        super().__init__('Snow')
 
         self.skycon_description = 'snow'
         self.background_color = '#84b8de'
@@ -155,7 +174,7 @@ class SnowTheme(BaseTheme):
 class WindTheme(BaseTheme):
 
     def __init__(self):
-        super().__init__()
+        super().__init__('Wind')
 
         self.skycon_description = 'wind'
         self.background_color = '#f9f7f1'
@@ -169,7 +188,7 @@ class WindTheme(BaseTheme):
 class FogTheme(BaseTheme):
 
     def __init__(self):
-        super().__init__()
+        super().__init__('Fog')
 
         self.skycon_description = 'fog'
         self.background_color = '#8895a6'
@@ -178,7 +197,7 @@ class FogTheme(BaseTheme):
         self.event_background_color = self.color
 
 
-''' UNUSED '''
+''' NOT IMPLEMENTED '''
 
 
 class ShowersDayTheme(BaseTheme):
@@ -223,6 +242,31 @@ class ThunderShowersNightTheme(BaseTheme):
 
 class HailTheme(BaseTheme):
     pass
+
+
+def get_theme(condition_id, is_day=True):
+    """
+    Weather conditions found here: https://openweathermap.org/weather-conditions
+
+    :param condition_id: the condition id
+    :param is_day: usually calculated by finding whether the current time is between sunrise and sunset
+    :return: the weather theme
+    """
+    return RainTheme()
+
+    if condition_id < 200 or condition_id == 800:
+        return ClearDayTheme() if is_day else ClearNightTheme()
+
+    if condition_id < 600:
+        return RainTheme()
+
+    if condition_id < 700:
+        return SnowTheme()
+
+    if condition_id < 800:
+        return FogTheme()
+
+    return PartlyCloudyDayTheme() if is_day else PartlyCloudyNightTheme()
 
 
 def get_all():

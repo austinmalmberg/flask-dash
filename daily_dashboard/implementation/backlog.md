@@ -7,6 +7,9 @@ Project Backlog
     - [x] Add user's calendars to database - DEPRECATED
     - [x] Set user calendar settings
 - [ ] Update README
+- [ ] Add login flow for limited input devices
+    - If a user logins from their mobile device, redirect to settings
+    - Figure out a way to add these presets to the device (SSE?)
 - [ ] Add database migration environment
 - [ ] Implement tests
 
@@ -47,6 +50,7 @@ Project Backlog
 - [x] Begin watching checked calendars through POST request
     - [x] Implement WTForms
 - [x] Implement general settings
+- [ ] Implement CSRF
 - [ ] Add ability to change time zone
 - [ ] Set default theme (one of the weather themes or rotating)
 - [ ] Set icon theme (Skycons, weather.gov icons, Accuweather, etc.)

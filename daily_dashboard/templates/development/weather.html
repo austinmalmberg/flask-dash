@@ -1,0 +1,14 @@
+{% macro weather(forecast, theme) %}
+<div id="{{ forecast.date }}__weather" class="weather--info" style="{{ theme.header_style() }}" data-for-date="{{ forecast.date }}">
+    <h3>{{ forecast.date }}</h3>
+    <p>{{ forecast.weather_condition }}</p>
+    <span class="temp hi" stype="{{ theme.temp_hi_style() }}">{{ forecast.hi }}</span>
+
+    {%- if forecast.current -%}
+    <span class="temp curr">{{ forecast.current.temp }}</span>
+    {%- endif -%}
+
+    <span class="temp lo" stype="{{ theme.temp_lo_style() }}">{{ forecast.lo }}</span>
+
+</div>
+{% endmacro %}

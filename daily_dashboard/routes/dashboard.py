@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import pytz
 from flask import Blueprint, render_template, session, redirect, url_for, request
 from flask_login import login_required, current_user
+from pytz import UnknownTimeZoneError
 
 from daily_dashboard.dto.event_dto import EventDto
 from daily_dashboard.forms.settings import SettingsForm
@@ -12,6 +13,7 @@ from daily_dashboard.helpers.google.calendars import get_events_from_multiple_ca
 from daily_dashboard.routes.google import oauth_limited_input_device
 from daily_dashboard.routes.google.oauth import validate_oauth_token, handle_refresh_error
 from daily_dashboard.util.dt_formatter import strftime_date_format, strftime_time_format
+from daily_dashboard.util.errors import BaseError
 
 bp = Blueprint('main', __name__)
 
@@ -31,7 +33,9 @@ def dashboard():
 
     timezone = request.args.get('tz')
     if not timezone:
-        timezone = session.get('timezone', current_user.timezone)
+        if 'timezone' not in session:
+            session['timezone'] = current_user.timezone
+        timezone = session['timezone']
 
     locale_date = datetime.now(pytz.timezone(timezone)).date()
     dates = [locale_date + timedelta(days=i) for i in range(max_days)]
