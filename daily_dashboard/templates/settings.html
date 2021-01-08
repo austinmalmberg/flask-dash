@@ -3,6 +3,7 @@
 {% block head %}
     {# navbar styling #}
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/navbar.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/flash.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/settings.css') }}">
 {% endblock %}
 
@@ -13,6 +14,12 @@
 {% block title %}Settings{% endblock %}
 
 {% block content %}
+    <div class="flash--container bottom">
+        {% for category, message in get_flashed_messages(with_categories=true) %}
+        <p class="flash {{ category }}">{{ message }}</p>
+        {% endfor %}
+    </div>
+
     <div id="sidebar">
         <ul class="page--nav">
             <li class="nav--item"><a href="#general">General</a></li>
