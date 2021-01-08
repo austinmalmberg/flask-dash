@@ -1,0 +1,14 @@
+
+.flash--container {
+  position: absolute;
+  width: 75%;
+}
+
+.flash--container.top {
+  top: 0;
+}
+
+.flash--container.bottom {
+  bottom: 0;
+}
+

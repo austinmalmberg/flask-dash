@@ -65,12 +65,6 @@ main.content {
   font-size: 2em;
 }
 
-#flash--container {
-  position: absolute;
-  top: 0;
-  width: 75%;
-}
-
 #clock--time {
   font-size: 6em;
   white-space: nowrap;

@@ -6,12 +6,13 @@
 {% block title %}Home{% endblock %}
 
 {% block head %}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/flash.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/dashboard.css') }}">
 {% endblock %}
 
 {% block content %}
     <section id="info">
-        <div id="flash--container">
+        <div class="flash--container top">
             {% for category, message in get_flashed_messages(with_categories=true) %}
                 <p class="flash {{ category }}">{{ message }}</p>
             {% endfor %}
