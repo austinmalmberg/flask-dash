@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 import pytz
-from flask import Blueprint, render_template, session, redirect, url_for, request
+from flask import Blueprint, render_template, session, redirect, url_for, request, flash
 from flask_login import login_required, current_user
 from pytz import UnknownTimeZoneError
 
@@ -28,6 +28,10 @@ def dashboard():
 
     :return: The template
     """
+    if 'watched_calendars' not in session:
+        flash('Please update your settings', 'info')
+        return redirect(url_for('main.settings'))
+
     # session variable for max_days not implemented yet
     max_days = session.get('max_days', 7)
 
