@@ -234,30 +234,7 @@ main.content {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-left: 0.8em;
-}
-
-.weather .forecast--image {
-  width: 100%;
-  margin-left: 0.8em;
-  border-radius: 5%;
-}
-
-.weather p {
-  font-size: 0.7em;
-  margin: 0;
-}
-
-.forecast--image[src="//:0"] {
-    display: none;
-}
-
-#primary .forecast--image {
-  width: 164px;
-}
-
-#secondary .forecast--image {
-  width: 84px;
+  margin: 0.7em;
 }
 
 .temperatures {
@@ -265,6 +242,11 @@ main.content {
   flex-direction: column;
   font-weight: bold;
   text-align: right;
+  margin-right: 0.4em;
+}
+
+#secondary .temperatures {
+  font-size: 1.2em;
 }
 
 .temp:not(:empty)::after{

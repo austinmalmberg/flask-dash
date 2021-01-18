@@ -1,0 +1,8 @@
+{% from 'components/forecast_daily.html' import forecast_template %}
+
+{% block content %}
+    {% for forecast in weather_dtos %}
+        {{ forecast_template(forecast) }}
+    {% endfor %}
+{% endblock %}
+

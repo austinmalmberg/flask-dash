@@ -1,4 +1,4 @@
-from daily_dashboard.themes import skycons
+from daily_dashboard.theme import skycons
 
 # grayscale
 white = '#fff'

@@ -1,0 +1,20 @@
+{% macro forecast_template(forecast) %}
+<div id="{{ forecast.date }}__weather" class="weather" data-for-date="{{ forecast.date }}">
+    <div class="temperatures">
+        <span class="temp hi">{{ forecast.hi }}</span>
+
+        {%- if forecast.curr_temp -%}
+        <span class="temp curr">{{ forecast.curr_temp }}</span>
+        {%- endif -%}
+
+        <span class="temp lo">{{ forecast.lo }}</span>
+    </div>
+
+    <canvas
+            class="skycon--canvas"
+            width="{{ 150 if forecast.is_current else 100 }}"
+            height="{{ 150 if forecast.is_current else 100 }}"
+            data-skycon-description="{{ forecast.get_skycon_description() }}">
+    </canvas>
+</div>
+{% endmacro %}

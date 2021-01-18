@@ -11,16 +11,6 @@
             {#- date -#}
             <p>{{ d.strftime(date_format) }}</p>
         </div>
-        <div class="weather">
-            <div class="temperatures">
-                <span class="temp hi"></span>
-                <span class="temp curr"></span>
-                <span class="temp lo"></span>
-            </div>
-            <div class="forecast-img-container" data-weather-icon="">
-                <img class="forecast--image" src="//:0">
-            </div>
-        </div>
     </div>
     <div class="event--container">
         {% for event in events %}

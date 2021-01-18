@@ -19,14 +19,14 @@ import requests
 from flask import Blueprint, request, session, jsonify, render_template
 from flask_login import login_required, current_user
 
-from daily_dashboard.dto.weather_dto import WeatherDto
+from daily_dashboard.dto.weather_dto import WeatherDto, CurrentWeatherDto
 from daily_dashboard.util.errors import BaseError
 
 bp = Blueprint('weather', __name__, url_prefix='/weather')
 
 BASE_ENDPOINT = 'https://api.openweathermap.org/data/2.5/onecall'
 EXCLUDE = ['minutely', 'hourly']
-ACCEPTABLE_UNITS = {'standard', 'imperial', 'metric'}
+# ACCEPTABLE_UNITS = {'standard', 'imperial', 'metric'}
 
 
 @bp.route('/<float_neg:lat>,<float_neg:lon>', methods=('GET',))
@@ -62,20 +62,12 @@ def fetch(lat, lon):
     if as_json_response:
         return jsonify(data)
 
-    forecasts = data['daily']
+    # only need 7 day forecast. This API returns 8
+    forecasts = data['daily'][:7]
     weather_dtos = []
 
     for i, forecast in enumerate(forecasts):
-        current = data['current'] if i == 0 else None
-        dto = WeatherDto(forecast, current=current)
+        dto = CurrentWeatherDto(forecast, data['current']) if i == 0 else WeatherDto(forecast)
         weather_dtos.append(dto)
 
-    return render_template('development/weather_all.html', weather_dtos=weather_dtos)
-
-
-@bp.route('/test')
-def test(error, message):
-    # error = g.get('error', 'Unknown Error')
-    # message = g.get('message', '')
-    return render_template('error.html', error=error, message=message)
-
+    return render_template('components/forecast.html', weather_dtos=weather_dtos)

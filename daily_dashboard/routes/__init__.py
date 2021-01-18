@@ -18,7 +18,3 @@ def register_blueprints(app):
     # Weather
     from daily_dashboard.routes import weather
     app.register_blueprint(weather.bp)
-
-    if app.env == 'development':
-        from daily_dashboard.routes import development
-        development.register_blueprints(app)
