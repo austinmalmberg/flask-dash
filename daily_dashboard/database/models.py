@@ -19,8 +19,8 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String())
 
     # calendar settings
-    locale=db.Column(db.String(10), default='en')
-    timezone=db.Column(db.String(), default='Etc/GMT')
+    locale = db.Column(db.String(10), default='en')
+    timezone = db.Column(db.String(), default='Etc/GMT')
     date_field_order = db.Column(db.String(3), default='MDY')
     time_24hour = db.Column(db.Boolean, default=False)
     hide_weekends = db.Column(db.Boolean, default=False)
