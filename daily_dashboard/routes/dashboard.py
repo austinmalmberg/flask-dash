@@ -28,10 +28,6 @@ def dashboard():
 
     :return: The template
     """
-    if 'watched_calendars' not in session:
-        flash('Please update your settings', 'info')
-        return redirect(url_for('main.settings'))
-
     # session variable for max_days not implemented yet
     max_days = session.get('max_days', 7)
 
@@ -40,6 +36,9 @@ def dashboard():
         if 'timezone' not in session:
             session['timezone'] = current_user.timezone
         timezone = session['timezone']
+
+    if 'watched_calendars' not in session:
+        session['watched_calendars'] = [current_user.email]
 
     locale_date = datetime.now(pytz.timezone(timezone)).date()
     dates = [locale_date + timedelta(days=i) for i in range(max_days)]

@@ -95,13 +95,10 @@ def poll():
 
                 user = init_new_user(userinfo, settings, refresh_token=refresh_token)
 
-                session['timezone'] = user.timezone
-                session['watched_calendars'] = [userinfo['email']]
-
             else:
                 user = update_existing_user(user, userinfo, refresh_token=refresh_token)
 
-            login_user(user)
+            login_user(user, remember=True)
 
             # redirect to dashboard on creation
             return redirect(
