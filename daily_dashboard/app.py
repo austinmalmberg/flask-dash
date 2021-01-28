@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, request, redirect
+from flask import Flask, request, redirect, session
 
 from daily_dashboard import brand, database
 from daily_dashboard.helpers import user_manager
@@ -24,6 +24,10 @@ def create_app(config_str=None):
     # this is used in route validation
     app.url_map.converters['datetime'] = DatetimeConverter
     app.url_map.converters['float_neg'] = CustomFloatConverter
+
+    @app.before_request
+    def set_permanent_session():
+        session.permanent = True
 
     @app.before_request
     def redirect_to_https():
