@@ -326,12 +326,13 @@ class CurrentWeatherDto(WeatherDto):
 
         self.is_current = True
         self.dt = datetime.fromtimestamp(current['dt'])
-        self.cloud_pct = current['clouds']
         self.curr_temp = round(current['temp'])
         self.weather_id = current['weather'][0]['id']
-        self.weather_condition = current['weather'][0]['main']
-        self.weather_description = current['weather'][0]['description']
-        self.wind_speed = current['wind_speed']
+
+        # self.cloud_pct = current['clouds']
+        # self.weather_condition = current['weather'][0]['main']
+        # self.weather_description = current['weather'][0]['description']
+        # self.wind_speed = current['wind_speed']
 
         # self.theme = get_theme(self.weather_id)
 
