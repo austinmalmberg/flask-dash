@@ -1,9 +1,10 @@
-from wtforms import Form, SelectField, RadioField, validators
+from wtforms import RadioField
 
-from daily_dashboard.forms.custom_forms import MultiCheckboxField
+from daily_dashboard.forms.csrf import CSRF_Form
+from daily_dashboard.forms.custom_fields import MultiCheckboxField
 
 
-class SettingsForm(Form):
+class SettingsForm(CSRF_Form):
     date_format = RadioField(
         u'Date Format',
         choices=[
