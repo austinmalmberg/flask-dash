@@ -158,12 +158,8 @@ def callback():
     return redirect(url_for('index'))
 
 
-@bp.route('/revoke')
-@login_required
-@validate_oauth_token
-@handle_refresh_error
-def revoke():
-    token = session.get('token', None)
+def revoke_token(token):
+    print('token:', token)
 
     if token:
         response = requests.post(
@@ -172,15 +168,48 @@ def revoke():
             params={'token': token}
         )
 
-        session.pop('token', None)
-        logout_user()
-
-        current_user.refresh_token = None
-        db.session.commit()
-
-        flash('Credentials revoked', 'info')
+        print('response:', response.status_code)
 
         if response.status_code != 200:
             print('An unhandled error occurred on revoke attempt', response.json())
+
+        return response.status_code == 200
+
+    return False
+
+
+@bp.route('/logout')
+@login_required
+def logout():
+    # TODO: Deauthorize device
+
+    revoke_token(session.get('token'))
+
+    print('token after logout:', session.get('token'))
+
+    session.pop('token', None)
+    logout_user()
+
+    flash('Logout successful', 'info')
+
+    return redirect(url_for('main.login'))
+
+
+@bp.route('/revoke')
+@login_required
+def revoke():
+    # TODO: Deauthorize all devices
+
+    revoke_token(session.get('token'))
+
+    print('token after revoking:', session.get('token'))
+
+    session.pop('token', None)
+    logout_user()
+
+    current_user.refresh_token = None
+    db.session.commit()
+
+    flash('Credentials revoked', 'info')
 
     return redirect(url_for('main.login'))
