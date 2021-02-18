@@ -5,60 +5,112 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/navbar.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/flash.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/settings.css') }}">
-{% endblock %}
 
-{% block navigation %}
-{% include 'navbar.html' %}
+    {# Bootstrap 4 #}
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 {% endblock %}
 
 {% block title %}Settings{% endblock %}
 
 {% block content %}
-    <div class="flash--container bottom">
-        {% for category, message in get_flashed_messages(with_categories=true) %}
-        <p class="flash {{ category }}">{{ message }}</p>
-        {% endfor %}
+    <div class="container-fluid row h-100 p-4">
+
+        {# Navigation #}
+        <div id="sidebar" class="col col-md-2">
+            <div class="d-flex flex-md-column justify-content-between h-100">
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a href="#general" class="nav-link h4">General</a></li>
+                    <li class="nav-item"><a href="#calendar" class="nav-link h4">Calendar</a></li>
+                    {# <!--<li class="nav--item"><a href="#weather" class="nav-link h3">Weather</a></li>--> #}
+                    <li class="nav-item"><a href="#logout" class="nav-link h4">Logout</a></li>
+                </ul>
+
+                <div>
+                    <button id="settings-submit" class="btn btn-lg btn-primary w-100">Save</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-10">
+            <div class="flash--container bottom">
+                {% for category, message in get_flashed_messages(with_categories=true) %}
+                <p class="flash {{ category }}">{{ message }}</p>
+                {% endfor %}
+            </div>
+
+            <form id="settings--form" method="post">
+                {{ form.csrf_token }}
+                <div id="general" class="mx-1 my-2 py-2 px-3 border border-secondary">
+                    <h2>General</h2>
+
+                    <div class="form-group">
+                        {{ form.date_format.label(class='h5') }}
+                        <p class="font-weight-light">Dictates how the date is displayed</p>
+                        {{ form.date_format(class='form--list') }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.time_format.label(class='h5') }}
+                        <p class="font-weight-light">Dictates how the time is displayed</p>
+                        {{ form.time_format(class='form--list') }}
+                    </div>
+                </div>
+
+                <div id="calendar" class="mx-1 my-2 py-2 px-3 border border-secondary">
+                    <h2>Calendar</h2>
+
+                    <div class="form-group">
+                        {{ form.calendars.label(class='h5') }}
+                        <p class="font-weight-light">Choose which calendars are displayed on the dashboard</p>
+                        {{ form.calendars(class='form--list') }}
+                    </div>
+                </div>
+
+                {#
+                <!--
+                <div id="weather" class="m-1 py-2 px-3 border border-secondary">
+                    <h2>Weather</h2>
+
+                    <div class="form-group">
+                        {{ form.location.label }}
+                        {{ form.location(class='form--list') }}
+                    </div>
+                    <input type="submit" value="Save">
+                </div>
+                -->
+                #}
+
+            </form>
+
+            <div id="logout" class="mx-1 my-2 py-2 px-3 border border-secondary">
+                <h2>Logout</h2>
+                <div class="row">
+                    <div class="form-group col-md">
+                        <a id="btn-logout" href="{{ url_for('oauth.logout') }}" class="btn btn-danger my-2" role="button">Logout</a>
+                        <p>Log out of the application from this device.</p>
+                    </div>
+
+                    <div class="form-group col-md">
+                        <a id="btn-deauthorize" href="{{ url_for('oauth.revoke') }}" class="btn btn-danger my-2" role="button">Deauthorize</a>
+                        <p>Revoke access to this application.<br/>
+                        <b>Caution:</b> Doing this will cause other devices to stop working.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
+{% endblock %}
 
-    <div id="sidebar">
-        <ul class="page--nav">
-            <li class="nav--item"><a href="#general">General</a></li>
-            <li class="nav--item"><a href="#calendar">Calendar</a></li>
-            <li class="nav--item"><a href="#logout">Logout</a></li>
-        </ul>
-    </div>
+{% block scripts %}
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 
-    <div id="settings--container">
-        <form id="settings--form" method="post">
-            {{ form.csrf_token }}
-            <fieldset id="general">
-                <legend>General</legend>
-
-                <fieldset class="no-border">
-                    {{ form.date_format.label }}
-                    {{ form.date_format(class='form--list') }}
-                </fieldset>
-
-                <fieldset class="no-border">
-                    {{ form.time_format.label }}
-                    {{ form.time_format(class='form--list') }}
-                </fieldset>
-                <input type="submit" value="Save">
-            </fieldset>
-
-            <fieldset id="calendar">
-                <legend>Calendar</legend>
-
-                <fieldset class="no-border">
-                    {{ form.calendars.label }}
-                    {{ form.calendars(class='form--list') }}
-                </fieldset>
-                <input type="submit" value="Save">
-            </fieldset>
-        </form>
-
-        <a id="logout" href="{{ url_for('oauth.revoke') }}">
-            <button class="large error">Logout</button>
-        </a>
-    </div>
+    <script type="text/javascript">
+        {# add event listener to submit button on sidebar #}
+        const saveButton = document.getElementById('settings-submit');
+        const settingsForm = document.getElementById('settings--form');
+        saveButton.addEventListener('click', () => settingsForm.submit());
+    </script>
 {% endblock %}
