@@ -131,21 +131,18 @@ def get_events_from_multiple_calendars(credentials, calendar_ids, dt_min=None, m
 
         return start_diff
 
-    kwargs = dict(credentials=credentials)
-
+    # set additional arguments, if specified. Otherwise, use the defaults from the get_events method
+    kwargs = dict()
     if dt_min:
         kwargs['dt_min'] = dt_min
-
     if max_days:
         kwargs['max_days'] = max_days
-
     if timezone:
         kwargs['timezone'] = timezone
 
     res = []
     for calendar_id in calendar_ids:
-        kwargs['calendar_id'] = calendar_id
-        event_list = get_events(**kwargs)
+        event_list = get_events(credentials, calendar_id, **kwargs)
         res = merge_sorted_lists(event_comparator, res, event_list)
 
     return res
