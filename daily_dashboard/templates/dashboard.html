@@ -49,9 +49,9 @@
         {# const weatherUrl = "{{ url_for('weather.index') }}"; #}
     </script>
     <script type="module" src="{{ url_for('static', filename='scripts/dashboard/general.mjs') }}"></script>
-    <script src="{{ url_for('static', filename='scripts/dashboard/clock.js') }}"></script>
-    <script src="{{ url_for('static', filename='scripts/dashboard/reload.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='scripts/dashboard/clock.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='scripts/dashboard/reload.js') }}"></script>
 
-    <script src="{{ url_for('static', filename='scripts/dashboard/skycons.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='scripts/dashboard/skycons.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='scripts/dashboard/weather.mjs') }}"></script>
 {% endblock %}
