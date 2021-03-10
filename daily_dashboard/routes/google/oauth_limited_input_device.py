@@ -7,9 +7,9 @@ from flask_login import login_user
 import requests
 
 from daily_dashboard.database.queries import find_user, init_new_user, update_existing_user
-from daily_dashboard.helpers.google import SCOPES, GoogleApiEndpoints, build_credentials
-from daily_dashboard.helpers.google.calendars import get_calendar_settings
-from daily_dashboard.helpers.google.userinfo import get_userinfo
+from daily_dashboard.providers.google import SCOPES, GoogleApiEndpoints, build_credentials
+from daily_dashboard.providers.google.calendars import get_calendar_settings
+from daily_dashboard.providers.google.userinfo import get_userinfo
 
 bp = Blueprint('oauth_lid', __name__)
 

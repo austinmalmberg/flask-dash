@@ -7,9 +7,9 @@ from pytz import UnknownTimeZoneError
 
 from daily_dashboard.dto.event_dto import EventDto
 from daily_dashboard.forms.settings import SettingsForm
-from daily_dashboard.helpers.google import build_credentials
-from daily_dashboard.helpers.google.calendars import get_calendar_list
-from daily_dashboard.helpers.google.calendars import get_events_from_multiple_calendars, get_colors
+from daily_dashboard.providers.google import build_credentials
+from daily_dashboard.providers.google.calendars import get_calendar_list
+from daily_dashboard.providers.google.calendars import get_events_from_multiple_calendars, get_colors
 from daily_dashboard.routes.google import oauth_limited_input_device
 from daily_dashboard.routes.google.oauth import validate_oauth_token, handle_refresh_error
 from daily_dashboard.util.dt_formatter import strftime_date_format, strftime_time_format
@@ -116,3 +116,13 @@ def login():
         session['device_credentials'] = oauth_limited_input_device.create_device_credentials()
 
     return render_template('login.html', device_credentials=session['device_credentials'])
+
+
+@bp.route('/devices')
+def devices():
+    """
+    A page for managing
+
+    :return:
+    """
+    pass

@@ -1,6 +1,6 @@
 import requests
 
-from daily_dashboard.helpers.google import GoogleApiEndpoints
+from daily_dashboard.providers.google import GoogleApiEndpoints
 
 
 def get_userinfo(token=None):
