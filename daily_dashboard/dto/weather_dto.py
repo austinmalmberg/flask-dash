@@ -1,7 +1,5 @@
 from datetime import datetime
 
-from daily_dashboard.theme.themes import get_theme
-
 openweathermap_ids = {
     200: {
         'main': 'Thunderstorm',
