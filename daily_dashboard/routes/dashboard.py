@@ -1,19 +1,18 @@
 from datetime import datetime, timedelta
 
 import pytz
-from flask import Blueprint, render_template, session, redirect, url_for, request, flash
+from flask import Blueprint, render_template, session, redirect, url_for, request
 from flask_login import login_required, current_user
-from pytz import UnknownTimeZoneError
 
 from daily_dashboard.dto.event_dto import EventDto
 from daily_dashboard.forms.settings import SettingsForm
+from daily_dashboard.helpers.location_manager import use_location_cookie
 from daily_dashboard.providers.google import build_credentials
 from daily_dashboard.providers.google.calendars import get_calendar_list
 from daily_dashboard.providers.google.calendars import get_events_from_multiple_calendars, get_colors
 from daily_dashboard.routes.google import oauth_limited_input_device
 from daily_dashboard.routes.google.oauth import validate_oauth_token, handle_refresh_error
 from daily_dashboard.util.dt_formatter import strftime_date_format, strftime_time_format
-from daily_dashboard.util.errors import BaseError
 
 bp = Blueprint('main', __name__)
 
@@ -22,6 +21,7 @@ bp = Blueprint('main', __name__)
 @login_required
 @validate_oauth_token
 @handle_refresh_error
+@use_location_cookie
 def dashboard():
     """
     Sends basic dashboard template.
@@ -31,11 +31,9 @@ def dashboard():
     # session variable for max_days not implemented yet
     max_days = session.get('max_days', 7)
 
-    timezone = request.args.get('tz')
-    if not timezone:
-        if 'timezone' not in session:
-            session['timezone'] = current_user.timezone
-        timezone = session['timezone']
+    timezone = request.args.get('tz', None) \
+        or session.get('timezone', None) \
+        or current_user.timezone
 
     if 'watched_calendars' not in session:
         session['watched_calendars'] = [current_user.email]
