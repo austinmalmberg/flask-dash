@@ -11,4 +11,4 @@ def request_location(ip_addr):
 
     response = requests.get(f'{BASE_ENDPOINT}/{ip_addr}', params=params)
 
-    return response.json()
+    return response.status_code, response.json()
