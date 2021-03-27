@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    {% if devices|length == 0 %}
+        <p>No current devices authenticated. <a href="{{ url_for('index') }}">Click here to view your dashboard from this device.</a></p>
+    {% else %}
+
+        {# display forms for each device #}
+        {% for device in devices %}
+            <p></p>
+        {% endfor %}
+
+    {% endif %}
+
+{% endblock %}

@@ -1,0 +1,21 @@
+Limited Input Device OAuth 2.0 Authentication
+	- Wallbuddy displays QR and login codes
+	- User visits www.google.com/device and authenticates the application
+	- Application polls Google for authentication token
+Device Manager
+	- User visits Wallbuddy device manager endpoint from another device
+	- 
+
+
+
+Device
+	Id		The primary key
+	UserId		The User's Id who is signed into the device. Foreign key
+	Name		The user-assigned device name. Not used for server-side identification.
+	IsLimitedInput	Boolean indicating whether the application was signed into via login page or QR code
+	Calendars	A semicolon delimited string of calendar ids to display
+
+	## Session variables
+	Timezone	
+	Token		The 	
+	

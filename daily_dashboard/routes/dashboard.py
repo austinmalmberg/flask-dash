@@ -4,12 +4,10 @@ import pytz
 from flask import Blueprint, render_template, session, redirect, url_for, request
 from flask_login import login_required, current_user
 
-from daily_dashboard.dto.event_dto import EventDto
 from daily_dashboard.forms.settings import SettingsForm
-from daily_dashboard.helpers.location_manager import use_location_cookie
+from daily_dashboard.helpers.location_manager import use_location
 from daily_dashboard.providers.google import build_credentials
 from daily_dashboard.providers.google.calendars import get_calendar_list
-from daily_dashboard.providers.google.calendars import get_events_from_multiple_calendars, get_colors
 from daily_dashboard.routes.google import oauth_limited_input_device
 from daily_dashboard.routes.google.oauth import validate_oauth_token, handle_refresh_error
 from daily_dashboard.util.dt_formatter import strftime_date_format, strftime_time_format
@@ -21,37 +19,24 @@ bp = Blueprint('main', __name__)
 @login_required
 @validate_oauth_token
 @handle_refresh_error
-@use_location_cookie
+@use_location
 def dashboard():
     """
     Sends basic dashboard template.
 
     :return: The template
     """
+
     # session variable for max_days not implemented yet
     max_days = session.get('max_days', 7)
 
-    timezone = request.args.get('tz', None) \
-        or session.get('timezone', None) \
-        or current_user.timezone
+    timezone = request.args.get('tz', None) or session.get('timezone', None) or current_user.timezone
 
     if 'watched_calendars' not in session:
         session['watched_calendars'] = [current_user.email]
 
     locale_date = datetime.now(pytz.timezone(timezone)).date()
     dates = [locale_date + timedelta(days=i) for i in range(max_days)]
-
-    credentials = build_credentials(token=session.get('token', None), refresh_token=current_user.refresh_token)
-    event_list = get_events_from_multiple_calendars(
-        credentials, session['watched_calendars'],
-        dt_min=locale_date,
-        max_days=max_days,
-        timezone=timezone
-    )
-
-    calendar_colors = get_colors(credentials)
-
-    event_dtos = [EventDto(event, colors=calendar_colors) for event in event_list]
 
     platform = request.user_agent.platform
     date_format = strftime_date_format(session.get('dt_format', current_user.date_field_order), platform)
@@ -60,7 +45,6 @@ def dashboard():
     return render_template(
         'dashboard.html',
         dates=dates,
-        events=event_dtos,
         date_format=date_format,
         time_format=time_format,
         clock_24hr=session.get('clock_24hr', current_user.time_24hour)
@@ -71,6 +55,7 @@ def dashboard():
 @login_required
 @validate_oauth_token
 @handle_refresh_error
+@use_location
 def settings():
     """
     View and update user settings
@@ -81,6 +66,7 @@ def settings():
     :return:
     """
     form = SettingsForm(request.form)
+    form.zip_code.data = session['zip_code']
 
     calendar_list = get_calendar_list(
         build_credentials(token=session.get('token', None), refresh_token=current_user.refresh_token)
@@ -114,13 +100,3 @@ def login():
         session['device_credentials'] = oauth_limited_input_device.create_device_credentials()
 
     return render_template('login.html', device_credentials=session['device_credentials'])
-
-
-@bp.route('/devices')
-def devices():
-    """
-    A page for managing
-
-    :return:
-    """
-    pass

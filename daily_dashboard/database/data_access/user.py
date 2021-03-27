@@ -11,14 +11,14 @@ def find_user(google_id):
     return User.query.filter_by(google_id=google_id).first()
 
 
-def init_new_user(userinfo, settings, refresh_token=None):
+def init_new_user(userinfo, settings, refresh_token=None, is_limited_input_device=False):
     """
     Creates a new user in the database.
 
     :param userinfo: userinfo from Google
     :param settings: list of Google calendar settings for the user
     :param refresh_token: OAuth refresh token
-    :param credentials: google.oauth2.credentials.Credentials
+    :param is_limited_input_device: determines which database field to add the refresh token to
     :return: The newly created user, or None if a user already exists
     """
 
@@ -26,9 +26,14 @@ def init_new_user(userinfo, settings, refresh_token=None):
     user = User(
         google_id=userinfo['id'],
         email=userinfo['email'],
-        name=userinfo['name'],
-        refresh_token=refresh_token
+        name=userinfo['name']
     )
+
+    if refresh_token:
+        if is_limited_input_device:
+            user.refresh_token_lid = refresh_token
+        else:
+            user.refresh_token = refresh_token
 
     user.locale = settings['locale']
     user.timezone = settings['timezone']
@@ -42,7 +47,7 @@ def init_new_user(userinfo, settings, refresh_token=None):
     return user
 
 
-def update_existing_user(user, userinfo=None, refresh_token=None):
+def update_existing_user(user, userinfo=None, refresh_token=None, is_limited_input_device=False):
     """
     Updates an existing user's user info and tokens, if provided.  Tokens will not be overridden if they are not
     provided.
@@ -52,18 +57,22 @@ def update_existing_user(user, userinfo=None, refresh_token=None):
     :param user: The user
     :param userinfo: The userinfo from Google
     :param refresh_token: OAuth refresh token
+    :param is_limited_input_device: determines which database field to update with the refresh token
     :return: The user that was updated, or None if the user was not found
     """
 
     user.last_updated = datetime.utcnow()
 
     if userinfo:
-        user.google_id=userinfo.get('id', user.google_id)
+        user.google_id = userinfo.get('id', user.google_id)
         user.name = userinfo.get('name', user.name)
         user.email = userinfo.get('email', user.email)
 
     if refresh_token:
-        user.refresh_token = refresh_token
+        if is_limited_input_device:
+            user.refresh_token_lid = refresh_token
+        else:
+            user.refresh_token = refresh_token
 
     db.session.commit()
 

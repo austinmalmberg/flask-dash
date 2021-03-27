@@ -3,17 +3,20 @@ import os
 import hashlib
 
 from flask import Blueprint, session, url_for, redirect, request, flash
-from flask_login import current_user, login_required, login_user, logout_user
+from flask_login import login_required, current_user as current_device, login_user as login_device,\
+    logout_user as logout_device
 
 import requests
 from google.auth.exceptions import RefreshError
 from google.auth.transport.requests import Request
 
 from daily_dashboard.database import db
-from daily_dashboard.database.queries import find_user, init_new_user, update_existing_user
+from daily_dashboard.database.data_access.user import find_user, init_new_user, update_existing_user
+from daily_dashboard.helpers.device_manager import authenticate_device_session, deauthenticate_device,\
+    deauthenticate_all_devices
 from daily_dashboard.providers.google import GoogleApiEndpoints, build_credentials, get_flow
 from daily_dashboard.providers.google.calendars import get_calendar_settings
-from daily_dashboard.providers.google.userinfo import get_userinfo
+from daily_dashboard.providers.google.userinfo import request_userinfo
 
 bp = Blueprint('oauth', __name__, url_prefix='/oauth')
 
@@ -40,7 +43,7 @@ def validate_oauth_token(view):
     """
     Decorator function for maintaining the user's OAuth tokens. Should be present on all methods that use OAuth.
 
-    NOTE: This method assumes current_user is present and not anonymous
+    NOTE: This method assumes current_device is present and not anonymous
 
     :param view: A view that requires a valid token
     :return: The view if the token is successfully refreshed. Otherwise, an error object
@@ -48,16 +51,18 @@ def validate_oauth_token(view):
 
     @functools.wraps(view)
     def wrapped_view(*args, **kwargs):
-        credentials = build_credentials(session.get('token', None), current_user.refresh_token)
+        refresh_token = current_device.user.refresh_token
+        credentials = build_credentials(session.get('token', None), refresh_token)
 
         if not credentials.valid:
             err = refresh_credentials(credentials)
 
             if err:
+                # remove tokens and logout device if the credentials could not be refreshed using the refresh token
                 session.pop('token', None)
-                logout_user()
+                logout_device()
 
-                current_user.refresh_token = None
+                current_device.user.refresh_token = None
                 db.session.commit()
 
                 flash(f'{err}. Please login again.', 'error')
@@ -78,11 +83,11 @@ def refresh_credentials(credentials):
 
         # update the credentials in the database
         session['token'] = credentials.token
-        current_user.refresh_token = credentials.refresh_token
+        current_device.user.refresh_token = credentials.refresh_token
 
     except RefreshError:
         session.pop('token', None)
-        current_user.refresh_token = None
+        current_device.user.refresh_token = None
 
         return 'Token refresh error'
 
@@ -112,6 +117,21 @@ def authorize():
     return redirect(authorization_url)
 
 
+def create_or_update_authenticated_user(credentials, userinfo):
+    # save token only when we have verified there are not errors
+    session['token'] = credentials.token
+
+    user = find_user(userinfo['id'])
+
+    if user:
+        user = update_existing_user(user, userinfo=userinfo, refresh_token=credentials.refresh_token)
+    else:
+        settings = get_calendar_settings(credentials)
+        user = init_new_user(userinfo, settings, refresh_token=credentials.refresh_token)
+
+    return user
+
+
 @bp.route('/callback')
 def callback():
     error = None
@@ -133,34 +153,22 @@ def callback():
 
         credentials = flow.credentials
 
-        session['token'] = credentials.token
-
-        userinfo = get_userinfo(session['token'])
+        userinfo = request_userinfo(credentials.token)
 
         error = userinfo.get('error')
 
         if not error:
-            user = find_user(userinfo['id'])
+            user = create_or_update_authenticated_user(credentials, userinfo)
+            device = authenticate_device_session(user)
+            login_device(device, remember=True)
 
-            if user is None:
-                settings = get_calendar_settings(credentials)
+    if error:
+        flash(error, 'error')
 
-                user = init_new_user(userinfo, settings, refresh_token=credentials.refresh_token)
-
-            else:
-                user = update_existing_user(user, userinfo=userinfo, refresh_token=credentials.refresh_token)
-
-            login_user(user, remember=True)
-
-            return redirect(url_for('main.dashboard'))
-
-    flash(error, 'error')
     return redirect(url_for('index'))
 
 
 def revoke_token(token):
-    print('token:', token)
-
     if token:
         response = requests.post(
             GoogleApiEndpoints.AUTH['oauth_token_revoke'],
@@ -168,10 +176,13 @@ def revoke_token(token):
             params={'token': token}
         )
 
-        print('response:', response.status_code)
-
         if response.status_code != 200:
-            print('An unhandled error occurred on revoke attempt', response.json())
+            from datetime import datetime
+            print(
+                datetime.utcnow(),
+                'An unhandled Google status code was received on token revoke attempt.',
+                response.json()
+            )
 
         return response.status_code == 200
 
@@ -185,10 +196,10 @@ def logout():
 
     revoke_token(session.get('token'))
 
-    print('token after logout:', session.get('token'))
-
     session.pop('token', None)
-    logout_user()
+
+    deauthenticate_device(current_device)
+    logout_device()
 
     flash('Logout successful', 'info')
 
@@ -202,12 +213,12 @@ def revoke():
 
     revoke_token(session.get('token'))
 
-    print('token after revoking:', session.get('token'))
-
     session.pop('token', None)
-    logout_user()
+    deauthenticate_all_devices(current_device.user.devices)
 
-    current_user.refresh_token = None
+    current_device.user.refresh_token = None
+    current_device.user.refresh_token_lid = None
+
     db.session.commit()
 
     flash('Credentials revoked', 'info')

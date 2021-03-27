@@ -33,25 +33,32 @@
 
 {% block scripts %}
     <script type="text/javascript">
-        {# ----- GENERAL ----- #}
         const flashContainer = document.getElementById('flash--container');
+    </script>
+    <script type="module" src="{{ url_for('static', filename='scripts/dashboard/general.mjs') }}"></script>
 
+    <script type="text/javascript">
         const timeOptions = {
             hour: 'numeric',
             minute: '2-digit',
             hour12: !{{ clock_24hr|lower }},
         };
 
-        {# ----- CLOCK ----- #}
         const clockElement = document.getElementById('clock--time');
-
-        {# ----- WEATHER ----- #}
-        {# const weatherUrl = "{{ url_for('weather.index') }}"; #}
     </script>
-    <script type="module" src="{{ url_for('static', filename='scripts/dashboard/general.mjs') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='scripts/dashboard/clock.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='scripts/dashboard/reload.js') }}"></script>
 
+    <script type="text/javascript">
+        const CALENDAR_ENDPOINT = "{{ url_for('calendar.events') }}";
+        const CARD_DATE_ATTRIBUTE = 'data-for-date';
+        const EVENT_CONTAINER_CLASS = 'event--container';
+    </script>
+    <script type="module" src="{{ url_for('static', filename='scripts/dashboard/calendarEvents.mjs') }}"></script>
+
+    <script type="text/javascript">
+        const WEATHER_ENDPOINT = "{{ url_for('weather.forecast') }}";
+    </script>
     <script type="text/javascript" src="{{ url_for('static', filename='scripts/dashboard/skycons.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='scripts/dashboard/weather.mjs') }}"></script>
 {% endblock %}

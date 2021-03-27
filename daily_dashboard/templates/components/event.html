@@ -5,7 +5,8 @@
 
 <div id="{{ event.id }}"
      class="event{{ ' carryover--yesterday' if not starts_today else '' }}{{ ' carryover--tomorrow' if not ends_today else '' }}"
-     style="{{ event.style }}">
+     style="{{ event.style }}"
+     data-for-date="{{ d|string }}">
     <div class="time">
         <p class="start">
             {%- if starts_today -%}

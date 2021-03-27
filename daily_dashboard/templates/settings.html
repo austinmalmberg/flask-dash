@@ -21,7 +21,7 @@
                 <ul class="nav flex-column">
                     <li class="nav-item"><a href="#general" class="nav-link h4">General</a></li>
                     <li class="nav-item"><a href="#calendar" class="nav-link h4">Calendar</a></li>
-                    {# <!--<li class="nav--item"><a href="#weather" class="nav-link h3">Weather</a></li>--> #}
+                    <li class="nav--item"><a href="#location" class="nav-link h4">Location</a></li>
                     <li class="nav-item"><a href="#logout" class="nav-link h4">Logout</a></li>
                 </ul>
 
@@ -41,59 +41,62 @@
             <form id="settings--form" method="post">
                 {{ form.csrf_token }}
                 <div id="general" class="mx-1 my-2 py-2 px-3 border border-secondary">
-                    <h2>General</h2>
+                    <h2 class="my-2">General</h2>
 
-                    <div class="form-group">
+                    <div class="form-group my-2">
                         {{ form.date_format.label(class='h5') }}
-                        <p class="font-weight-light">Dictates how the date is displayed</p>
+                        <p>Choose how to display the date</p>
                         {{ form.date_format(class='form--list') }}
                     </div>
 
-                    <div class="form-group">
+                    <div class="form-group my-2">
                         {{ form.time_format.label(class='h5') }}
-                        <p class="font-weight-light">Dictates how the time is displayed</p>
-                        {{ form.time_format(class='form--list') }}
+                        <p>Choose how to display the time</p>
+                        {{ form.time_format(class='form--list mb-0') }}
                     </div>
                 </div>
 
                 <div id="calendar" class="mx-1 my-2 py-2 px-3 border border-secondary">
-                    <h2>Calendar</h2>
+                    <h2 class="my-2">Calendar</h2>
 
-                    <div class="form-group">
+                    <div class="form-group my-2">
                         {{ form.calendars.label(class='h5') }}
-                        <p class="font-weight-light">Choose which calendars are displayed on the dashboard</p>
+                        <p>Choose which calendars are displayed on the dashboard</p>
                         {{ form.calendars(class='form--list') }}
                     </div>
                 </div>
 
-                {#
-                <!--
-                <div id="weather" class="m-1 py-2 px-3 border border-secondary">
-                    <h2>Weather</h2>
+                <div id="location" class="mx-1 my-2 py-2 px-3 border border-secondary">
+                    <h2 class="my-2">Location</h2>
+                    <p>Uses your location to determine your timezone and the weather forecast</p>
 
-                    <div class="form-group">
-                        {{ form.location.label }}
-                        {{ form.location(class='form--list') }}
+                    <div class="form-group my-2">
+                        {{ form.zip_code.label }}
+                        {{ form.zip_code(class='ml-2 p-1') }}
                     </div>
-                    <input type="submit" value="Save">
+                    {% if form.zip_code.errors %}
+                        <ul class="p-0">
+                            {% for error in form.zip_code.errors %}
+                                <li class="alert alert-danger px-2 py-1">{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
                 </div>
-                -->
-                #}
 
             </form>
 
             <div id="logout" class="mx-1 my-2 py-2 px-3 border border-secondary">
-                <h2>Logout</h2>
+                <h2 class="my-2">Logout</h2>
                 <div class="row">
-                    <div class="form-group col-md">
+                    <div class="form-group col-md mb-0">
                         <a id="btn-logout" href="{{ url_for('oauth.logout') }}" class="btn btn-danger my-2" role="button">Logout</a>
-                        <p>Log out of the application from this device.</p>
+                        <p>Log out of the application from this device</p>
                     </div>
 
-                    <div class="form-group col-md">
+                    <div class="form-group col-md mb-0">
                         <a id="btn-deauthorize" href="{{ url_for('oauth.revoke') }}" class="btn btn-danger my-2" role="button">Deauthorize</a>
                         <p>Revoke access to this application.<br/>
-                        <b>Caution:</b> Doing this will cause other devices to stop working.</p>
+                        <b>Caution:</b> Doing this will cause other devices to stop working</p>
                     </div>
                 </div>
             </div>

@@ -2,7 +2,7 @@ import os
 
 import requests
 
-from daily_dashboard.util.errors import BaseError
+from daily_dashboard.util.errors import BaseApplicationException
 
 BASE_ENDPOINT = 'https://api.openweathermap.org/data/2.5/onecall'
 EXCLUDE = ['minutely', 'hourly']
@@ -22,7 +22,7 @@ def request_weather(lat, lon, units='imperial'):
     response = requests.get(BASE_ENDPOINT, params=params)
 
     if response.status_code != 200:
-        raise BaseError(
+        raise BaseApplicationException(
             status=504,
             title='Weather Service Error',
             message='There was a problem retrieving the weather for your location. Please try again later.'

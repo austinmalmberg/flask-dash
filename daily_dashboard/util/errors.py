@@ -1,7 +1,7 @@
 from flask import jsonify, render_template
 
 
-class BaseError:
+class BaseApplicationException(Exception):
     template_path = 'error.html'
 
     def __init__(self, status=500, title='Unknown Error', message=None):

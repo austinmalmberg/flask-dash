@@ -1,4 +1,5 @@
-from wtforms import RadioField
+from wtforms import RadioField, StringField
+from wtforms.validators import InputRequired, Regexp
 
 from daily_dashboard.forms.csrf import CSRF_Form
 from daily_dashboard.forms.custom_fields import MultiCheckboxField
@@ -8,9 +9,9 @@ class SettingsForm(CSRF_Form):
     date_format = RadioField(
         u'Date Format',
         choices=[
-            ('MDY', 'January 1 2020'),
-            ('DMY', '1 January 2020'),
-            ('YMD', '2020 January 1')
+            ('MDY', 'MDY (i.e. January 1 2020)'),
+            ('DMY', 'DMY (i.e. 1 January 2020)'),
+            ('YMD', 'YMD (i.e. 2020 January 1)')
         ],
         default='MDY',
     )
@@ -24,9 +25,9 @@ class SettingsForm(CSRF_Form):
         default='12hr',
     )
 
-    # timezone = SelectField(
-    #     u'Time Zone',
-    #     coerce=int
-    # )
-
     calendars = MultiCheckboxField(u'Displayed Calendars')
+
+    zip_code = StringField(
+        u'Zip Code',
+        validators=[InputRequired(), Regexp('^\d+$')]
+    )

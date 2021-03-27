@@ -1,0 +1,12 @@
+{# 'with context' required to use context_processors #}
+{% from 'components/event.html' import event_container with context %}
+
+{% for d in dates %}
+    <div class="event--container" data-for-date="{{ d|string }}">
+    {% for event in events %}
+        {% if d|string in event.dates %}
+            {{ event_container(event, d) }}
+        {% endif %}
+    {% endfor %}
+    </div>
+{% endfor %}

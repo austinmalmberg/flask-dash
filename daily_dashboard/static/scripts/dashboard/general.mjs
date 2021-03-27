@@ -3,10 +3,10 @@
  * @param {date} date - The date object
 */
 export function isoDateString(date) {
-    return `${ date.getFullYear() }-${ padNum(date.getMonth() + 1) }-${ padNum(date.getDate()) }`;
+    return `${ date.getFullYear() }-${ zPadNum(date.getMonth() + 1) }-${ zPadNum(date.getDate()) }`;
 
-    function padNum(n) {
-        return n.toString().padStart(2, '0');
+    function zPadNum(n, d=2) {
+        return n.toString().padStart(d, '0');
     }
 }
 

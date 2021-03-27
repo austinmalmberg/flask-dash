@@ -16,16 +16,13 @@ location.
 */
 
 import { flashInfo, flashError, clearContainer, generateElement } from './general.mjs';
-import { requestPosition } from './geolocation.mjs';
-import { getCookie, setCookie } from '../cookieManager.mjs';
-
-const WEATHER_ENDPOINT = '/weather';
+import { getPosition } from './geolocation.mjs';
 
 
 async function fetchWeather() {
     const position = await getPosition();
 
-    const endpoint = `${WEATHER_ENDPOINT}/${position}`;
+    const endpoint = `${WEATHER_ENDPOINT}${position}`;
     const response = await fetch(endpoint);
 
     if (response.ok) {
@@ -36,52 +33,10 @@ async function fetchWeather() {
         addWeatherToCards([...container.children]);
         addSkycons();
     } else {
-        flashError('Unable to retrieve forecast due to a problem with the server. If this persists, contact the developer.');
+        flashError('Unable to retrieve forecast. If this problem persists, contact the developer.');
 
         const err = await response.json();
         console.error(err);
-    }
-
-
-    async function getPosition() {
-        const COOKIE_NAME = 'coords';
-
-        const position = getCookie(COOKIE_NAME);
-        if (position)
-            return position;
-
-        return await setPositionCookie();
-
-
-        async function setPositionCookie() {
-            const DECIMAL_PLACES = 2;
-            const COOKIE_DURATION = 30;
-
-            // set cookie manually for now
-            let result = `35.52,-80.98`;
-
-            // if the browser does not have the grid data stored as a cookie, set it
-            try {
-                // request user's location for 20 seconds
-                const positionTimeout = 20000;
-                const { coords } = await requestPosition({ timeout: positionTimeout }, positionTimeout);
-                const { latitude, longitude } = coords;
-
-                result = `${formatDecimal(latitude, DECIMAL_PLACES)},${formatDecimal(longitude, DECIMAL_PLACES)}`;
-            } catch (err) {
-                flashError('Unable to retrieve the forecast due to a problem getting your location. Please update your location in settings');
-            }
-
-            setCookie(COOKIE_NAME, result, COOKIE_DURATION);
-
-            return result;
-
-
-            function formatDecimal(n, decimalPlaces) {
-                const factor = Math.pow(10, decimalPlaces);
-                return Math.round(n * factor) / factor;
-            }
-        }
     }
 }
 

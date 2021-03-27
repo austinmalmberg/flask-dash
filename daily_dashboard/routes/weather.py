@@ -1,33 +1,25 @@
 """
-Prefix:     /weather
-Endpoints:
-
-/<lat:int>,<long:int>       Takes latitude/longitude and returns the current weather
-    Options:
-    - format [json, html]   Default json
-
 TODO: Store weather in a Redis database
 TODO: Return cached weather unless it older than X minutes
 TODO: Allow user to update their location through `/settings`
 TODO: Allow user to update their preferred weather units through `/settings`
-
 """
 
 from flask import Blueprint, request, session, jsonify, render_template, flash
 from flask_login import login_required
 
-from daily_dashboard.helpers.location_manager import use_location_cookie
+from daily_dashboard.helpers.location_manager import use_location
 from daily_dashboard.providers.openweathermap import request_weather, ACCEPTABLE_UNITS
 from daily_dashboard.dto.weather_dto import WeatherDto, CurrentWeatherDto
-from daily_dashboard.util.errors import BaseError
+from daily_dashboard.util.errors import BaseApplicationException
 
 bp = Blueprint('weather', __name__, url_prefix='/weather')
 
 
 @bp.route('/', methods=('GET',))
 @login_required
-@use_location_cookie
-def get_weather():
+@use_location
+def forecast():
     json_response = request.args.get('res', None) == 'json'
 
     kwargs = dict()
@@ -36,10 +28,11 @@ def get_weather():
         kwargs['units'] = units
     elif 'weather_units' in session:
         kwargs['units'] = session['weather_units']
+        print(session['lat'], session['lon'], kwargs['units'])
 
     try:
         weather = request_weather(session['lat'], session['lon'], **kwargs)
-    except BaseError as err:
+    except BaseApplicationException as err:
         flash(err.message)
 
         return (err.as_json() if json_response else err.as_template()), err.status
@@ -61,7 +54,7 @@ def get_weather():
 
 @bp.route('/<float_neg:lat>,<float_neg:lon>', methods=('GET',))
 @login_required
-def get_weather_from_coords(lat, lon):
+def forecast_from_coords(lat, lon):
     json_response = request.args.get('res', None) == 'json'
 
     kwargs = dict()

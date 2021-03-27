@@ -2,14 +2,15 @@ import os
 from datetime import datetime, timedelta
 
 from flask import Blueprint, session, Response, redirect, url_for, flash
-from flask_login import login_user
+from flask_login import login_user as login_device
 
 import requests
 
-from daily_dashboard.database.queries import find_user, init_new_user, update_existing_user
+from daily_dashboard.database.data_access.user import find_user, init_new_user, update_existing_user
+from daily_dashboard.helpers.device_manager import authenticate_device_session
 from daily_dashboard.providers.google import SCOPES, GoogleApiEndpoints, build_credentials
 from daily_dashboard.providers.google.calendars import get_calendar_settings
-from daily_dashboard.providers.google.userinfo import get_userinfo
+from daily_dashboard.providers.google.userinfo import request_userinfo
 
 bp = Blueprint('oauth_lid', __name__)
 
@@ -29,6 +30,21 @@ def create_device_credentials():
         device_credentials['valid_until'] = datetime.utcnow() + timedelta(seconds=device_credentials['expires_in'])
 
         return device_credentials
+
+
+def create_or_update_authenticated_user(token, refresh_token, userinfo):
+    # store tokens only when we have verified it works (by testing getting the userinfo)
+    session['token'] = token
+    user = find_user(userinfo.get('id'))
+
+    if user:
+        user = update_existing_user(user, userinfo, refresh_token=refresh_token, is_limited_input_device=True)
+    else:
+        credentials = build_credentials(token=session['token'], refresh_token=refresh_token)
+        settings = get_calendar_settings(credentials)
+        user = init_new_user(userinfo, settings, refresh_token=refresh_token, is_limited_input_device=True)
+
+    return user
 
 
 @bp.route('/poll', methods=('GET',))
@@ -70,39 +86,26 @@ def poll():
         # remove device_credentials from session when the code is consumed
         session.pop('device_credentials')
 
-        if response.status_code > 400 or error == 'access_denied':
+        if response.status_code >= 400 or error == 'access_denied':
             # Occurs on notable status codes, such as:
             # 400, invalid code or grant_type parameters
             # 401, invalid client_id
             # 403, user denied access
+            flash('There was a problem authenticating. Please try again', 'error')
             return redirect(url_for('main.login'))
 
-        session['token'] = data.get('access_token')
-
-        refresh_token = data.get('refresh_token')
-
-        userinfo = get_userinfo(token=session['token'])
+        userinfo = request_userinfo(token=data.get('access_token'))
 
         error = userinfo.get('error')
 
         if not error:
-            user = find_user(userinfo.get('id'))
-
-            if not user:
-                credentials = build_credentials(token=session['token'], refresh_token=refresh_token)
-
-                settings = get_calendar_settings(credentials)
-
-                user = init_new_user(userinfo, settings, refresh_token=refresh_token)
-
-            else:
-                user = update_existing_user(user, userinfo, refresh_token=refresh_token)
-
-            login_user(user, remember=True)
+            user = create_or_update_authenticated_user(data.get('access_token'), data.get('refresh_token'), userinfo)
+            device = authenticate_device_session(user)
+            login_device(device, remember=True)
 
             # redirect to dashboard on creation
             return redirect(
-                location=url_for('main.dashboard'),
+                location=url_for('index'),
                 code=303
             )
 
