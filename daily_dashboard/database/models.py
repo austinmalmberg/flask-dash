@@ -1,3 +1,4 @@
+import functools
 from datetime import datetime, timedelta
 import uuid
 
@@ -6,7 +7,7 @@ from flask_login import UserMixin
 from daily_dashboard.database import db
 
 
-class User(db.Model):
+class GoogleUser(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     created_on = db.Column(db.DateTime, default=datetime.utcnow())
     last_updated = db.Column(db.DateTime, default=datetime.utcnow())
@@ -28,7 +29,7 @@ class User(db.Model):
     time_24hour = db.Column(db.Boolean, default=False)
     hide_weekends = db.Column(db.Boolean, default=False)
 
-    devices = db.relationship('Device', back_populates='user')
+    devices = db.relationship('Device', back_populates='guser')
 
     def __init__(self, google_id=None, email=None, name=None):
         self.google_id = google_id
@@ -51,8 +52,8 @@ class Device(UserMixin, db.Model):
     is_limited_input_device = db.Column(db.Boolean, default=False)
 
     # foreign user keys
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    user = db.relationship('User', back_populates='devices')
+    guser_id = db.Column(db.Integer, db.ForeignKey('google_user.id'))
+    guser = db.relationship('GoogleUser', back_populates='devices')
 
     # Device Preferences
     # these variables are stored in the database as opposed to a cookie so they can be changed from another device,
@@ -76,16 +77,17 @@ class Device(UserMixin, db.Model):
 
         self.common_name = f'Device {self.uuid}'
 
-        self.user_id = user.id
+        self.guser_id = user.id
 
         self.locale = user.locale
         self.timezone = user.timezone
         self.date_field_order = user.date_field_order
         self.time_24hour = user.time_24hour
 
-        self.add_calendar(user.email)
+        self._watched_calendars = user.email
 
-    def update_device(self, common_name=None, locale=None, timezone=None, date_field_order=None, time_24hour=None):
+    def update_device(self, common_name=None, locale=None, timezone=None, date_field_order=None, time_24hour=None,
+                      calendars=None):
         was_modified = False
 
         if common_name:
@@ -104,8 +106,12 @@ class Device(UserMixin, db.Model):
             self.date_field_order = date_field_order
             was_modified = True
 
-        if time_24hour:
+        if time_24hour is not None:
             self.time_24hour = time_24hour
+            was_modified = True
+
+        if calendars:
+            self.set_calendars(calendars)
             was_modified = True
 
         if was_modified:
@@ -119,8 +125,10 @@ class Device(UserMixin, db.Model):
         self.last_updated = datetime.utcnow()
 
     def add_calendar(self, calendar_id):
-        self._watched_calendars = calendar_id if len(self._watched_calendars) == 0 \
-            else f'{self._watched_calendars};{calendar_id}'
+        if self._watched_calendars == '':
+            self._watched_calendars = calendar_id
+        else:
+            self._watched_calendars = f'{self._watched_calendars};{calendar_id}'
 
         self.last_updated = datetime.utcnow()
 
@@ -141,7 +149,7 @@ class Device(UserMixin, db.Model):
 
     def update_uuid(self):
         # TODO: check for uuid conflicts
-        self.uuid = uuid.uuid4()
+        self.uuid = str(uuid.uuid4())
         self.uuid_expiration = datetime.utcnow() + timedelta(minutes=20)
 
         self.last_updated = datetime.utcnow()

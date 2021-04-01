@@ -9,6 +9,7 @@ def register_blueprints(app):
     # Main Dashboard
     from daily_dashboard.routes import dashboard
     app.register_blueprint(dashboard.bp)
+    app.add_url_rule('/', 'index')
 
     # Authorization
     from daily_dashboard.routes.google import oauth, oauth_limited_input_device

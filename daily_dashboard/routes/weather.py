@@ -66,7 +66,7 @@ def forecast_from_coords(lat, lon):
 
     try:
         weather = request_weather(lat, lon, **kwargs)
-    except BaseError as err:
+    except BaseApplicationException as err:
         flash(err.message)
 
         return (err.as_json() if json_response else err.as_template()), err.status

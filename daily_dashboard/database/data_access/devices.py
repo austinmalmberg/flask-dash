@@ -9,7 +9,10 @@ DAY_THRESHOLD_UNTIL_STALE = 30
 def authenticate_device(user, is_limited_input_device):
     device = Device(user, is_limited_input_device)
     db.session.add(device)
+    db.session.flush()
     db.session.commit()
+
+    return device
 
 
 def device_check_in(device):
@@ -17,10 +20,10 @@ def device_check_in(device):
     db.session.commit()
 
 
-def remove_stale_devices(user):
+def remove_stale_devices(devices):
     device_removed = False
 
-    for device in user.devices:
+    for device in devices:
         if device.last_check_in + timedelta(days=DAY_THRESHOLD_UNTIL_STALE) < datetime.utcnow():
             db.session.delete(device)
             device_removed = True
@@ -54,3 +57,7 @@ def remove_multiple_devices(devices):
     db.session.commit()
 
 
+def update_device_settings(device, **kwargs):
+    device.update_device(**kwargs)
+
+    db.session.commit()

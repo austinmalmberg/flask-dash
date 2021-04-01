@@ -27,7 +27,7 @@ class SettingsForm(CSRF_Form):
 
     calendars = MultiCheckboxField(u'Displayed Calendars')
 
-    zip_code = StringField(
-        u'Zip Code',
-        validators=[InputRequired(), Regexp('^\d+$')]
-    )
+    # zip_code = StringField(
+    #     u'Zip Code',
+    #     validators=[InputRequired(), Regexp('^\d+$')]
+    # )

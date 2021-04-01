@@ -1,14 +1,14 @@
 from datetime import datetime
 
 from daily_dashboard.database import db
-from daily_dashboard.database.models import User
+from daily_dashboard.database.models import GoogleUser
 
 
 def find_user(google_id):
     if google_id is None:
         raise ValueError('google_id cannot be None')
 
-    return User.query.filter_by(google_id=google_id).first()
+    return GoogleUser.query.filter_by(google_id=google_id).first()
 
 
 def init_new_user(userinfo, settings, refresh_token=None, is_limited_input_device=False):
@@ -23,7 +23,7 @@ def init_new_user(userinfo, settings, refresh_token=None, is_limited_input_devic
     """
 
     # add user to the database
-    user = User(
+    user = GoogleUser(
         google_id=userinfo['id'],
         email=userinfo['email'],
         name=userinfo['name']
@@ -42,7 +42,10 @@ def init_new_user(userinfo, settings, refresh_token=None, is_limited_input_devic
     user.hide_weekends = (settings['hideWeekends'] == 'true')
 
     db.session.add(user)
+    db.session.flush()
     db.session.commit()
+
+    print('New user added.', user)
 
     return user
 

@@ -1,3 +1,14 @@
+from enum import Enum
+
+
+class AuthenticationMethod(Enum):
+    # used when authenticating from the same device
+    DIRECT = 0
+
+    # used when authenticating from a device other than the one that is being signed into
+    # i.e. limited input devices without mouse and/or keyboard
+    INDIRECT = 0
+
 
 class DeviceDto:
 
@@ -5,7 +16,10 @@ class DeviceDto:
         self.uuid = device.uuid
         self.common_name = device.common_name
 
-        self.authentication_method = 'QR Code' if device.is_limited_input_device else 'Direct'
+        if device.is_limited_input_device:
+            self.authentication_method = AuthenticationMethod.INDIRECT
+        else:
+            self.authentication_method = AuthenticationMethod.DIRECT
 
         self.locale = device.locale
         self.timezone = device.timezone

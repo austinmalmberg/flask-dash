@@ -7,7 +7,7 @@ from flask_login import login_user as login_device
 import requests
 
 from daily_dashboard.database.data_access.user import find_user, init_new_user, update_existing_user
-from daily_dashboard.helpers.device_manager import authenticate_device_session
+from daily_dashboard.helpers.device_manager import authenticate_device_session, remove_stale_device_sessions
 from daily_dashboard.providers.google import SCOPES, GoogleApiEndpoints, build_credentials
 from daily_dashboard.providers.google.calendars import get_calendar_settings
 from daily_dashboard.providers.google.userinfo import request_userinfo
@@ -100,7 +100,8 @@ def poll():
 
         if not error:
             user = create_or_update_authenticated_user(data.get('access_token'), data.get('refresh_token'), userinfo)
-            device = authenticate_device_session(user)
+            remove_stale_device_sessions(user)
+            device = authenticate_device_session(user, is_limited_input_device=True)
             login_device(device, remember=True)
 
             # redirect to dashboard on creation

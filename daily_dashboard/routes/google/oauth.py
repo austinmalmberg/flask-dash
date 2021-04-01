@@ -13,7 +13,7 @@ from google.auth.transport.requests import Request
 from daily_dashboard.database import db
 from daily_dashboard.database.data_access.user import find_user, init_new_user, update_existing_user
 from daily_dashboard.helpers.device_manager import authenticate_device_session, deauthenticate_device,\
-    deauthenticate_all_devices
+    deauthenticate_all_devices, remove_stale_device_sessions
 from daily_dashboard.providers.google import GoogleApiEndpoints, build_credentials, get_flow
 from daily_dashboard.providers.google.calendars import get_calendar_settings
 from daily_dashboard.providers.google.userinfo import request_userinfo
@@ -51,7 +51,7 @@ def validate_oauth_token(view):
 
     @functools.wraps(view)
     def wrapped_view(*args, **kwargs):
-        refresh_token = current_device.user.refresh_token
+        refresh_token = current_device.guser.refresh_token
         credentials = build_credentials(session.get('token', None), refresh_token)
 
         if not credentials.valid:
@@ -62,7 +62,7 @@ def validate_oauth_token(view):
                 session.pop('token', None)
                 logout_device()
 
-                current_device.user.refresh_token = None
+                current_device.guser.refresh_token = None
                 db.session.commit()
 
                 flash(f'{err}. Please login again.', 'error')
@@ -83,11 +83,11 @@ def refresh_credentials(credentials):
 
         # update the credentials in the database
         session['token'] = credentials.token
-        current_device.user.refresh_token = credentials.refresh_token
+        current_device.guser.refresh_token = credentials.refresh_token
 
     except RefreshError:
         session.pop('token', None)
-        current_device.user.refresh_token = None
+        current_device.guser.refresh_token = None
 
         return 'Token refresh error'
 
@@ -110,7 +110,7 @@ def authorize():
     authorization_url, _ = flow.authorization_url(
         state=session['state'],
         access_type='offline',
-        prompt='consent'
+        # prompt='consent'
     )
 
     # redirect request to the authorization url received from the flow
@@ -159,7 +159,8 @@ def callback():
 
         if not error:
             user = create_or_update_authenticated_user(credentials, userinfo)
-            device = authenticate_device_session(user)
+            remove_stale_device_sessions(user.devices)
+            device = authenticate_device_session(user, is_limited_input_device=False)
             login_device(device, remember=True)
 
     if error:
@@ -214,10 +215,10 @@ def revoke():
     revoke_token(session.get('token'))
 
     session.pop('token', None)
-    deauthenticate_all_devices(current_device.user.devices)
+    deauthenticate_all_devices(current_device.guser.devices)
 
-    current_device.user.refresh_token = None
-    current_device.user.refresh_token_lid = None
+    current_device.guser.refresh_token = None
+    current_device.guser.refresh_token_lid = None
 
     db.session.commit()
 
