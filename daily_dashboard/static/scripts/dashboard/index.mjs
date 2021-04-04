@@ -34,7 +34,7 @@ function setDateHeaders(cards, date=new Date()) {
 }
 
 
-function shiftCards() {
+function dateRollover() {
     const secondaryNode = document.querySelector('#secondary');
     const secondaryDateCards = secondaryNode.querySelectorAll('.date--card');
 
@@ -71,13 +71,22 @@ const clock = new Clock('clock');
 // WEATHER ON THE ONES!
 const weatherSubscriber = new Subscriber('weather',
     (dt, lastRun) => !lastRun || dt.getTime() % 10 === 1,
-    () => fetchWeather());
+    () => fetchWeather()
+);
 clock.addSubscriber(weatherSubscriber);
 
 // events every 10 minutes
 const eventSubscriber = new Subscriber('events',
-    (dt, lastRun) => !lastRun || lastRun.getTime() + 1000 * 60 * 10 >= dt.getTime(),
-    () => fetchEvents());
+    (dt, lastRun) => !lastRun || dt.getTime() - lastRun.getTime() >= 1000 * 60 * 10,
+    () => fetchEvents()
+);
 clock.addSubscriber(eventSubscriber);
+
+// card rollover!
+const rolloverSubscriber = new Subscriber('rollover',
+    (dt, lastRun) => dt.getHours() === 0 && dt.getMinutes() === 0,
+    () => dateRollover()
+);
+clock.addSubscriber(rolloverSubscriber);
 
 clock.start();
