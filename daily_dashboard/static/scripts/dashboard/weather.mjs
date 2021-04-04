@@ -18,6 +18,20 @@ location.
 import { flashInfo, flashError, clearContainer, generateElement } from './general.mjs';
 import { getPosition } from './geolocation.mjs';
 
+// darken specific features
+const colors = {
+    'main': "#111",
+    'fog': "#111",
+    'fogbank': "#111",
+    'light_cloud': "#333",
+    'cloud': "#111",
+    'dark_cloud': "#000",
+    'wind': "#111",
+    'moon': "#FFDC00",
+};
+
+const skycons = new Skycons({ monochrome: false, colors });
+
 
 export async function fetchWeather() {
     const position = await getPosition();
@@ -35,7 +49,7 @@ export async function fetchWeather() {
         container.id = 'temp--element';
         container.innerHTML = text;
         addWeatherToCards([...container.children]);
-        addSkycons();
+        placeSkycons();
     } else {
         flashError('Unable to retrieve forecast.');
 
@@ -82,27 +96,13 @@ export function clearWeather(n) {
 }
 
 
-function addSkycons() {
-
-    // darken specific features
-    const colors = {
-        'main': "#111",
-        'fog': "#111",
-        'fogbank': "#111",
-        'light_cloud': "#333",
-        'cloud': "#111",
-        'dark_cloud': "#000",
-        'wind': "#111",
-        'moon': "#FFDC00",
-    };
-
-    const skycons = new Skycons({ monochrome: false, colors });
+function placeSkycons() {
 
     const skyconCanvases = document.getElementsByClassName('skycon--canvas');
 
     for (const canvas of skyconCanvases) {
         const description = canvas.getAttribute('data-skycon-description');
-        skycons.add(canvas, Skycons[description]);
+        skycons.set(canvas, Skycons[description]);
     }
 
     skycons.play();
