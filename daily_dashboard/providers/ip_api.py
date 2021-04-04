@@ -9,7 +9,10 @@ def request_location(ip_addr):
         'fields': ','.join(PARAMS)
     }
 
-    response = requests.get(f'{BASE_ENDPOINT}/{ip_addr}', params=params)
+    try:
+        response = requests.get(f'{BASE_ENDPOINT}/{ip_addr}', params=params)
+    except requests.exceptions.ConnectionError as e:
+        # TODO: log error to file
+        return 000, None
 
-    print(response)
     return response.status_code, response.json()
