@@ -1,13 +1,13 @@
 {% macro forecast_template(forecast) %}
 <div id="{{ forecast.date }}__weather" class="weather" data-for-date="{{ forecast.date }}">
     <div class="temperatures">
-        <span class="temp hi">{{ forecast.hi }}</span>
-
-        {%- if forecast.curr_temp -%}
-        <span class="temp curr">{{ forecast.curr_temp }}</span>
-        {%- endif -%}
-
-        <span class="temp lo">{{ forecast.lo }}</span>
+        <span class="temp hi">{{ forecast.hi }}&deg;</span>
+        <span class="temp curr">
+            {%- if forecast.curr_temp -%}
+                {{ forecast.curr_temp }}&deg;
+            {%- endif -%}
+        </span>
+        <span class="temp lo">{{ forecast.lo }}&deg;</span>
     </div>
 
     <canvas

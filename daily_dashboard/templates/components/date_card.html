@@ -1,23 +1,14 @@
-{# 'with context' required to use context_processors #}
-{% from 'components/event.html' import event_container with context %}
-
-{% macro date_card(d, primary=false) %}
-<div id="{{ d|string }}" class="date--card">
+<div class="date--card">
     <div class="header">
         <div class="date--info">
-            {#- day of the week -#}
-            <h2>{{ d.strftime('%A') }}</h2>
-
-            {#- date -#}
-            <p>{{ d.strftime(date_format) }}</p>
+            <h2 class="day"></h2>
+            <p>
+                {%- for field in date_order -%}
+                <span class="{{ field }}"></span>
+                {% endfor %}
+            </p>
         </div>
+        <div class="weather"></div>
     </div>
-    <div class="event--container">
-        {% for event in events %}
-            {% if d|string in event.dates %}
-            {{ event_container(event, d) }}
-            {% endif %}
-        {% endfor %}
-    </div>
+    <div class="event--container"></div>
 </div>
-{% endmacro %}

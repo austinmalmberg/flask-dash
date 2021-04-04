@@ -1,15 +1,4 @@
-/*
- * Returns a date in the format: '2020-06-30'
- * @param {date} date - The date object
-*/
-export function isoDateString(date) {
-    return `${ date.getFullYear() }-${ zPadNum(date.getMonth() + 1) }-${ zPadNum(date.getDate()) }`;
-
-    function zPadNum(n, d=2) {
-        return n.toString().padStart(d, '0');
-    }
-}
-
+const flashContainer = document.getElementById('flash--container');
 
 /*
  * Creates a new element and append it to the given parent element.

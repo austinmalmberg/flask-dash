@@ -18,14 +18,15 @@ bp = Blueprint('calendar', __name__)
 @use_location
 def events():
     # session variable for max_days not implemented yet
-    max_days = session.get('max_days', 7)
+    max_days = 7  # session.get('max_days', 7)
 
     timezone = request.args.get('tz', None) or session.get('timezone', None) or current_device.timezone
 
-    locale_date = datetime.now(pytz.timezone(timezone)).date()
+    if request.args.get('date', None):
+        locale_date = datetime.fromisoformat(request.args.get('date')).date()
+    else:
+        locale_date = datetime.now(pytz.timezone(timezone)).date()
     dates = [locale_date + timedelta(days=i) for i in range(max_days)]
-
-    locale_date = datetime.now(pytz.timezone(timezone)).date()
 
     credentials = build_credentials(token=session.get('token', None), refresh_token=current_device.guser.refresh_token)
     event_list = get_events_from_multiple_calendars(

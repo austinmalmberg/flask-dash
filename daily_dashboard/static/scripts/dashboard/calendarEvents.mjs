@@ -1,8 +1,21 @@
 
 import { flashError } from './general.mjs';
 
-async function fetchEvents() {
-    const response = await fetch(CALENDAR_ENDPOINT);
+export async function fetchEvents() {
+    const firstDateCard = document.querySelector('.date--card');
+    const today = firstDateCard.id;
+    if (new Date(today) == 'Invalid Date') {
+        flashError('Unable to fetch events. Refresh the page or contact the developer if the problem persists.');
+        console.log('Date card does not have a valid date formatted id', firstDateCard)
+        return null;
+    }
+
+    const params = new URLSearchParams({
+        date: today,
+        tz: Intl.DateTimeFormat().resolvedOptions().timeZone
+    });
+
+    const response = await fetch(`${CALENDAR_ENDPOINT}?${params}`);
 
     if (response.ok) {
         const text = await response.text();
@@ -10,7 +23,7 @@ async function fetchEvents() {
         container.innerHTML = text;
         addEventsToContainers([...container.children]);
     } else {
-        flashError('Unable to retrieve calendar events. If this problem persists, contact the developer.');
+        flashError('Unable to retrieve calendar events.');
 
         const err = await response.json();
         console.error(err);
@@ -20,16 +33,33 @@ async function fetchEvents() {
 
 function addEventsToContainers(eventContainersArray) {
     for (const container of eventContainersArray) {
-        const forDate = container.getAttribute(CARD_DATE_ATTRIBUTE);
+        const forDate = container.getAttribute('data-for-date');
 
         const card = document.getElementById(forDate);
         if (card !== null) {
-            const eventContainer = card.querySelector(`.${EVENT_CONTAINER_CLASS}`);
+            const eventContainer = card.querySelector(`.event--container`);
             eventContainer.innerHTML = container.innerHTML;
         }
     }
 }
 
+/*
+ * Clears events from nodes with the event--container class.
+ *
+ * @param n - A node or array of nodes
+*/
+export function clearEvents(n) {
+    if (Array.isArray(n)) {
+        for (const e of n) {
+            const c = getEventContainer(e);
+            if (c) c.innerHTML = '';
+        }
+    } else if (typeof(n) === 'object') {
+        const c = getEventContainer(n);
+        if (c) c.innerHTML = '';
+    }
 
-fetchEvents();
-
+    function getEventContainer(node) {
+        return n.classList.contains('event--container') ? n : n.querySelector('.event--container');
+    }
+}

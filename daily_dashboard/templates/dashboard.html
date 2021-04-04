@@ -1,8 +1,5 @@
 {% extends 'base.html' %}
 
-{# 'with context' required to use context_processors #}
-{% from 'components/date_card.html' import date_card with context %}
-
 {% block title %}Home{% endblock %}
 
 {% block head %}
@@ -14,45 +11,37 @@
     <section id="info">
         <div id="flash--container" class="flash--container top">
             {% for category, message in get_flashed_messages(with_categories=true) %}
-                <p class="flash {{ category }}">{{ message }}</p>
+            <p class="flash {{ category }}">{{ message }}</p>
             {% endfor %}
         </div>
         <a id="settings" href="{{ url_for('main.settings') }}">Settings</a>
-        <h1 id="clock--time"></h1>
+        <h1 id="clock"></h1>
     </section>
     <section id="primary">
-        {{ date_card(dates[0], true) }}
+        {% include 'components/date_card.html' %}
     </section>
 
     <section id="secondary">
-        {% for d in dates[1:] %}
-            {{ date_card(d) }}
+        {% for n in range(card_count - 1) %}
+            {% include 'components/date_card.html' %}
         {% endfor %}
     </section>
 {% endblock %}
 
 {% block scripts %}
-    <script type="text/javascript">
-        const flashContainer = document.getElementById('flash--container');
-    </script>
     <script type="module" src="{{ url_for('static', filename='scripts/dashboard/general.mjs') }}"></script>
 
     <script type="text/javascript">
-        const timeOptions = {
+        const TIME_OPTIONS = {
             hour: 'numeric',
             minute: '2-digit',
             hour12: !{{ clock_24hr|lower }},
         };
-
-        const clockElement = document.getElementById('clock--time');
     </script>
-    <script type="text/javascript" src="{{ url_for('static', filename='scripts/dashboard/clock.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='scripts/dashboard/reload.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='scripts/dashboard/clock.mjs') }}"></script>
 
     <script type="text/javascript">
         const CALENDAR_ENDPOINT = "{{ url_for('calendar.events') }}";
-        const CARD_DATE_ATTRIBUTE = 'data-for-date';
-        const EVENT_CONTAINER_CLASS = 'event--container';
     </script>
     <script type="module" src="{{ url_for('static', filename='scripts/dashboard/calendarEvents.mjs') }}"></script>
 
@@ -61,4 +50,6 @@
     </script>
     <script type="text/javascript" src="{{ url_for('static', filename='scripts/dashboard/skycons.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='scripts/dashboard/weather.mjs') }}"></script>
+
+    <script type="module" src="{{ url_for('static', filename='scripts/dashboard/index.mjs') }}"></script>
 {% endblock %}

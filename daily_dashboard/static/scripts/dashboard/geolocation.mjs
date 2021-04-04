@@ -1,4 +1,5 @@
 import { getCookie, setCookie } from '../cookieManager.mjs';
+import { flashError } from './general.mjs';
 
 function requestPosition(options = {}, timeout) {
     const positionPromise = new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, options));
@@ -29,24 +30,23 @@ export async function getPosition() {
         const DECIMAL_PLACES = 2;
         const COOKIE_DURATION = 30;
 
-        // set cookie manually for now
-        let result = `35.52,-80.98`;
-
         // if the browser does not have the grid data stored as a cookie, set it
         try {
-            // request user's location for 20 seconds
-            const positionTimeout = 20000;
+            // request user's location for 10 seconds
+            const positionTimeout = 10000;
             const { coords } = await requestPosition({ timeout: positionTimeout }, positionTimeout);
             const { latitude, longitude } = coords;
 
-            result = `${formatDecimal(latitude, DECIMAL_PLACES)},${formatDecimal(longitude, DECIMAL_PLACES)}`;
+            const result = `${formatDecimal(latitude, DECIMAL_PLACES)},${formatDecimal(longitude, DECIMAL_PLACES)}`;
+
+            setCookie(COOKIE_NAME, result, COOKIE_DURATION);
+
+            return result;
         } catch (err) {
-            flashError('Unable to retrieve location. Please share your location or update it within the settings.');
+            console.log(err);
         }
 
-        setCookie(COOKIE_NAME, result, COOKIE_DURATION);
-
-        return result;
+        return null;
 
 
         function formatDecimal(n, decimalPlaces) {

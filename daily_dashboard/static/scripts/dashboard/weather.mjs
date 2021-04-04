@@ -19,10 +19,14 @@ import { flashInfo, flashError, clearContainer, generateElement } from './genera
 import { getPosition } from './geolocation.mjs';
 
 
-async function fetchWeather() {
+export async function fetchWeather() {
     const position = await getPosition();
 
-    const endpoint = `${WEATHER_ENDPOINT}${position}`;
+    let endpoint = WEATHER_ENDPOINT;
+    if (position) {
+        endpoint += position;
+    }
+
     const response = await fetch(endpoint);
 
     if (response.ok) {
@@ -33,7 +37,7 @@ async function fetchWeather() {
         addWeatherToCards([...container.children]);
         addSkycons();
     } else {
-        flashError('Unable to retrieve forecast. If this problem persists, contact the developer.');
+        flashError('Unable to retrieve forecast.');
 
         const err = await response.json();
         console.error(err);
@@ -49,13 +53,34 @@ function addWeatherToCards(weatherElements) {
         const card = document.getElementById(date);
 
         if (card) {
-            const header = card.querySelector('.header');
-            header.append(weatherElement);
-        } else {
-            console.error(`No event card found for ${date}`);
+            const weatherContainer = card.querySelector('.weather');
+            weatherContainer.outerHTML = weatherElement.outerHTML;
         }
     }
 }
+
+
+/*
+ * Clears events from nodes with the event--container class.
+ *
+ * @param n - A node or array of nodes
+*/
+export function clearWeather(n) {
+    if (Array.isArray(n)) {
+        for (const e of n) {
+            const w = getWeatherElement(e);
+            if (w) w.innerHTML = '';
+        }
+    } else if (typeof(n) === 'object') {
+        const w = getWeatherElement(n);
+        if (w) w.innerHTML = '';
+    }
+
+    function getWeatherElement(node) {
+        return n.classList.contains('weather') ? n : n.querySelector('.weather');
+    }
+}
+
 
 function addSkycons() {
 
@@ -82,6 +107,3 @@ function addSkycons() {
 
     skycons.play();
 }
-
-fetchWeather();
-

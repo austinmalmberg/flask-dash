@@ -65,7 +65,7 @@ main.content {
   font-size: 2em;
 }
 
-#clock--time {
+#clock {
   font-size: 6em;
   white-space: nowrap;
 }
@@ -247,10 +247,6 @@ main.content {
 
 #secondary .temperatures {
   font-size: 1.2em;
-}
-
-.temp:not(:empty)::after{
-  content: "\00b0";
 }
 
 .temp.hi {
