@@ -50,7 +50,7 @@ def init_new_user(userinfo, settings, refresh_token=None, is_limited_input_devic
     return user
 
 
-def update_existing_user(user, userinfo=None, refresh_token=None, is_limited_input_device=False):
+def update_existing_user(user, userinfo=None, refresh_token=None, refresh_token_lid=None):
     """
     Updates an existing user's user info and tokens, if provided.  Tokens will not be overridden if they are not
     provided.
@@ -60,9 +60,11 @@ def update_existing_user(user, userinfo=None, refresh_token=None, is_limited_inp
     :param user: The user
     :param userinfo: The userinfo from Google
     :param refresh_token: OAuth refresh token
-    :param is_limited_input_device: determines which database field to update with the refresh token
+    :param refresh_token_lid: OAuth refresh token granted for limited input devices
     :return: The user that was updated, or None if the user was not found
     """
+
+    was_modified = False
 
     user.last_updated = datetime.utcnow()
 
@@ -70,13 +72,32 @@ def update_existing_user(user, userinfo=None, refresh_token=None, is_limited_inp
         user.google_id = userinfo.get('id', user.google_id)
         user.name = userinfo.get('name', user.name)
         user.email = userinfo.get('email', user.email)
+        was_modified = True
 
     if refresh_token:
-        if is_limited_input_device:
-            user.refresh_token_lid = refresh_token
-        else:
-            user.refresh_token = refresh_token
+        user.refresh_token = refresh_token
+        was_modified = True
 
-    db.session.commit()
+    if user.refresh_token_lid:
+        user.refresh_token_lid = refresh_token_lid
+        was_modified = True
+
+    if was_modified:
+        db.session.commit()
 
     return user
+
+
+def remove_tokens(user, refresh_token=False, refresh_token_lid=False):
+    was_modified = False
+
+    if refresh_token:
+        user.refresh_token = None
+        was_modified = True
+
+    if refresh_token_lid:
+        user.refresh_token_lid = None
+        was_modified = True
+
+    if was_modified:
+        db.session.commit()

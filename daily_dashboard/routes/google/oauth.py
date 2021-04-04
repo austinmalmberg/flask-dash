@@ -10,8 +10,7 @@ import requests
 from google.auth.exceptions import RefreshError
 from google.auth.transport.requests import Request
 
-from daily_dashboard.database import db
-from daily_dashboard.database.data_access.user import find_user, init_new_user, update_existing_user
+from daily_dashboard.database.data_access.user import find_user, init_new_user, update_existing_user, remove_tokens
 from daily_dashboard.helpers.device_manager import authenticate_device_session, deauthenticate_device,\
     deauthenticate_all_devices, remove_stale_device_sessions
 from daily_dashboard.providers.google import GoogleApiEndpoints, build_credentials, get_flow
@@ -34,6 +33,14 @@ def handle_refresh_error(view):
         try:
             return view(*args, **kwargs)
         except RefreshError:
+            session.pop('token', None)
+            remove_tokens(
+                current_device.guser,
+                refresh_token=not current_device.is_limited_input_device,
+                refresh_token_lid=current_device.is_limited_input_device,
+            )
+            logout_device()
+            flash('Invalid token. Please login again')
             return redirect(url_for('main.login'), code=307)
 
     return wrapped_view
@@ -51,29 +58,32 @@ def validate_oauth_token(view):
 
     @functools.wraps(view)
     def wrapped_view(*args, **kwargs):
-        refresh_token = current_device.guser.refresh_token
+        refresh_token = current_device.guser.refresh_token_lid if current_device.is_limited_input_device else \
+            current_device.guser.refresh_token
         credentials = build_credentials(session.get('token', None), refresh_token)
 
         if not credentials.valid:
-            err = refresh_credentials(credentials)
+            err = refresh_credentials(credentials, current_device.is_limited_input_device)
 
             if err:
                 # remove tokens and logout device if the credentials could not be refreshed using the refresh token
                 session.pop('token', None)
+                remove_tokens(
+                    current_device.guser,
+                    refresh_token=not current_device.is_limited_input_device,
+                    refresh_token_lid=current_device.is_limited_input_device,
+                )
                 logout_device()
 
-                current_device.guser.refresh_token = None
-                db.session.commit()
-
                 flash(f'{err}. Please login again.', 'error')
-                redirect('main.login', code=307)
+                return redirect('main.login', code=307)
 
         return view(*args, **kwargs)
 
     return wrapped_view
 
 
-def refresh_credentials(credentials):
+def refresh_credentials(credentials, is_lid):
     if credentials.refresh_token is None:
         return 'No refresh token'
 
@@ -81,18 +91,19 @@ def refresh_credentials(credentials):
         # attempt to refresh token
         credentials.refresh(Request())
 
-        # update the credentials in the database
+        # update session token
         session['token'] = credentials.token
-        current_device.guser.refresh_token = credentials.refresh_token
+
+        # update refresh token in database
+        kwargs = dict()
+        if is_lid:
+            kwargs['refresh_token_lid'] = credentials.refresh_token
+        else:
+            kwargs['refresh_token'] = credentials.refresh_token
+        update_existing_user(current_device.guser, **kwargs)
 
     except RefreshError:
-        session.pop('token', None)
-        current_device.guser.refresh_token = None
-
         return 'Token refresh error'
-
-    finally:
-        db.session.commit()
 
     return None
 
@@ -195,8 +206,6 @@ def revoke_token(token):
 def logout():
     # TODO: Deauthorize device
 
-    revoke_token(session.get('token'))
-
     session.pop('token', None)
 
     deauthenticate_device(current_device)
@@ -215,12 +224,9 @@ def revoke():
     revoke_token(session.get('token'))
 
     session.pop('token', None)
+    remove_tokens(current_device.guser, refresh_token=True, refresh_token_lid=True)
+
     deauthenticate_all_devices(current_device.guser.devices)
-
-    current_device.guser.refresh_token = None
-    current_device.guser.refresh_token_lid = None
-
-    db.session.commit()
 
     flash('Credentials revoked', 'info')
 

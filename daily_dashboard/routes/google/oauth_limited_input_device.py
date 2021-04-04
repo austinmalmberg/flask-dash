@@ -38,7 +38,7 @@ def create_or_update_authenticated_user(token, refresh_token, userinfo):
     user = find_user(userinfo.get('id'))
 
     if user:
-        user = update_existing_user(user, userinfo, refresh_token=refresh_token, is_limited_input_device=True)
+        user = update_existing_user(user, userinfo, refresh_token_lid=refresh_token)
     else:
         credentials = build_credentials(token=session['token'], refresh_token=refresh_token)
         settings = get_calendar_settings(credentials)
