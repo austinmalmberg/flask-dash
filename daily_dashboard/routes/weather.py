@@ -28,7 +28,6 @@ def forecast():
         kwargs['units'] = units
     elif 'weather_units' in session:
         kwargs['units'] = session['weather_units']
-        print(session['lat'], session['lon'], kwargs['units'])
 
     try:
         weather = request_weather(session['lat'], session['lon'], **kwargs)
@@ -37,12 +36,11 @@ def forecast():
 
         return (err.as_json() if json_response else err.as_template()), err.status
 
-    # only need 7 day forecast. This API returns 8
-    forecasts = weather['daily'][:7]
+    forecasts = weather['daily']
     weather_dtos = []
 
-    for i, forecast in enumerate(forecasts):
-        dto = CurrentWeatherDto(forecast, weather['current']) if i == 0 else WeatherDto(forecast)
+    for i, forecastObj in enumerate(forecasts):
+        dto = CurrentWeatherDto(forecastObj, weather['current']) if i == 0 else WeatherDto(forecastObj)
         weather_dtos.append(dto)
 
     if json_response:
@@ -71,8 +69,7 @@ def forecast_from_coords(lat, lon):
 
         return (err.as_json() if json_response else err.as_template()), err.status
 
-    # only need 7 day forecast. This API returns 8
-    forecasts = weather['daily'][:7]
+    forecasts = weather['daily']
     weather_dtos = []
 
     for i, forecast in enumerate(forecasts):
