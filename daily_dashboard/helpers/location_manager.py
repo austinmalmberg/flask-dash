@@ -24,7 +24,10 @@ def use_location(view):
 
         if should_update:
             status_code, data = request_location(request.remote_addr)
-            print(data)
+
+            if data is None:
+                flash('There was a problem retrieving your relative location. Weather and events may not work as expected', 'info')
+                return view(*args, **kwargs)
 
             session['location_status'] = data['status']
 
@@ -38,7 +41,7 @@ def use_location(view):
                 # set temp session variables to NYC when location status fails
                 session['zip_code'] = '10007'
                 session['lat'] = 40.7128
-                session['lon'] = 74.0060
+                session['lon'] = -74.0060
                 session['timezone'] = 'America/New_York'
 
                 flash('Your location defaulted to New York City. For accurate time and weather, '
@@ -51,11 +54,17 @@ def use_location(view):
     return wrapped_view
 
 
-def set_location(zip_code):
-    # set:
-    #   lat
-    #   lon
-    #   timezone
+def set_location(zip_code=None, lat=None, lon=None):
+    # TODO: lat/lon only: get zip_code, timezone
+    if zip_code:
+        session['zip_code'] = zip_code
+        # TODO: zip_code only: get lat, lon, timezone
+
+    if lat and lon:
+        session['lat'] = lat
+        session['lon'] = lon
+
+    # session['timezone'] = timezone
 
     # pop expiry so it does not get set automatically
     session.pop('location_expires', None)
