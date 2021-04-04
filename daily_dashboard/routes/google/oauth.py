@@ -208,7 +208,6 @@ def logout():
 
     session.pop('token', None)
 
-    deauthenticate_device(current_device)
     logout_device()
 
     flash('Logout successful', 'info')

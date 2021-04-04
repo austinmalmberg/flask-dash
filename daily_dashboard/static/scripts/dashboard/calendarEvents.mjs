@@ -22,7 +22,9 @@ export async function fetchEvents() {
         const container = document.createElement('div');
         container.innerHTML = text;
         addEventsToContainers([...container.children]);
-    } else {
+    } else if (response.status === 307) {
+        window.location.replace(LOGIN_EXTERNAL_ENDPOINT);
+    } else{
         flashError('Unable to retrieve calendar events.');
 
         const err = await response.json();

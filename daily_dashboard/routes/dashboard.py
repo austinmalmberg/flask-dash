@@ -33,7 +33,8 @@ def dashboard():
         'dashboard.html',
         card_count=max_days,
         date_order=date_order,
-        clock_24hr=current_device.time_24hour
+        clock_24hr=current_device.time_24hour,
+        external_login_endpoint=url_for('main.login', _external=True)
     )
 
 
