@@ -8,6 +8,7 @@ from daily_dashboard.dto.event_dto import EventDto
 from daily_dashboard.helpers.location_manager import use_location
 from daily_dashboard.providers.google import build_credentials
 from daily_dashboard.providers.google.calendars import get_events_from_multiple_calendars, get_colors
+from daily_dashboard.routes.google.oauth import validate_oauth_token, handle_refresh_error
 from daily_dashboard.util.dt_formatter import strftime_date_format, strftime_time_format
 
 bp = Blueprint('calendar', __name__)
@@ -15,6 +16,8 @@ bp = Blueprint('calendar', __name__)
 
 @bp.route('/events', methods=('GET',))
 @login_required
+@handle_refresh_error
+@validate_oauth_token
 @use_location
 def events():
     # session variable for max_days not implemented yet
@@ -28,7 +31,9 @@ def events():
         locale_date = datetime.now(pytz.timezone(timezone)).date()
     dates = [locale_date + timedelta(days=i) for i in range(max_days)]
 
-    credentials = build_credentials(token=session.get('token', None), refresh_token=current_device.guser.refresh_token)
+    refresh_token = current_device.guser.refresh_token_lid if current_device.is_limited_input_device else \
+        current_device.guser.refresh_token
+    credentials = build_credentials(token=session.get('token', None), refresh_token=refresh_token)
     event_list = get_events_from_multiple_calendars(
         credentials, current_device.watched_calendars,
         dt_min=locale_date,
