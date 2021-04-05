@@ -15,8 +15,6 @@ bp = Blueprint('main', __name__)
 
 @bp.route('/')
 @login_required
-@validate_oauth_token
-@handle_refresh_error
 def dashboard():
     """
     Sends basic dashboard template.
@@ -40,8 +38,8 @@ def dashboard():
 
 @bp.route('/settings', methods=('GET', 'POST'))
 @login_required
-@validate_oauth_token
 @handle_refresh_error
+@validate_oauth_token
 def settings():
     """
     View and update user settings
