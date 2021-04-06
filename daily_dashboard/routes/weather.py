@@ -5,7 +5,7 @@ TODO: Allow user to update their location through `/settings`
 TODO: Allow user to update their preferred weather units through `/settings`
 """
 
-from flask import Blueprint, request, session, jsonify, render_template, flash, g
+from flask import Blueprint, request, session, jsonify, render_template, flash, g, abort
 from flask_login import login_required
 
 from daily_dashboard.helpers.request_context_manager import use_location
@@ -22,6 +22,9 @@ bp = Blueprint('weather', __name__, url_prefix='/weather')
 def forecast():
     json_response = request.args.get('res', None) == 'json'
 
+    if g.location_error:
+        abort(404)
+
     kwargs = dict()
     units = request.args.get('units', None)
     if units and units in ACCEPTABLE_UNITS:
@@ -30,7 +33,7 @@ def forecast():
         kwargs['units'] = session['weather_units']
 
     try:
-        weather = request_weather(g.location['lat'], g.location['lon'], **kwargs)
+        weather = request_weather(g.lat, g.lon, **kwargs)
     except BaseApplicationException as err:
         flash(err.message)
 
