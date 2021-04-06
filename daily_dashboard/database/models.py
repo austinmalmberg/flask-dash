@@ -1,4 +1,3 @@
-import functools
 from datetime import datetime, timedelta
 import uuid
 
@@ -7,14 +6,10 @@ from flask_login import UserMixin
 from daily_dashboard.database import db
 
 
-class GoogleUser(db.Model):
+class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     created_on = db.Column(db.DateTime, default=datetime.utcnow())
     last_updated = db.Column(db.DateTime, default=datetime.utcnow())
-
-    # Google OAuth 2.0 tokens
-    refresh_token = db.Column(db.String())
-    refresh_token_lid = db.Column(db.String())
 
     # Google userinfo
     google_id = db.Column(db.String(), nullable=False)
@@ -25,11 +20,11 @@ class GoogleUser(db.Model):
     # these will be the initial values for new devices
     locale = db.Column(db.String(10), default='en')
     timezone = db.Column(db.String(), default='Etc/GMT')
-    date_field_order = db.Column(db.String(3), default='MDY')
+    date_order = db.Column(db.String(3), default='MDY')
     time_24hour = db.Column(db.Boolean, default=False)
     hide_weekends = db.Column(db.Boolean, default=False)
 
-    devices = db.relationship('Device', back_populates='guser')
+    devices = db.relationship('Device', back_populates='user')
 
     def __init__(self, google_id=None, email=None, name=None):
         self.google_id = google_id
@@ -37,30 +32,27 @@ class GoogleUser(db.Model):
         self.name = name
 
 
-class Device(UserMixin, db.Model):
+class Device(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     created_on = db.Column(db.DateTime, default=datetime.utcnow())
+    last_used = db.Column(db.DateTime, default=datetime.utcnow())
     last_updated = db.Column(db.DateTime, default=datetime.utcnow())
-    last_check_in = db.Column(db.DateTime, default=datetime.utcnow())
 
-    uuid = db.Column(db.String(), nullable=False)
-    uuid_expiration = db.Column(db.DateTime, default=datetime.utcnow())
-
-    common_name = db.Column(db.String())
+    name = db.Column(db.String())
 
     # set depending on the authentication method
-    is_limited_input_device = db.Column(db.Boolean, default=False)
+    is_lid = db.Column(db.Boolean, default=False)
 
     # foreign user keys
-    guser_id = db.Column(db.Integer, db.ForeignKey('google_user.id'))
-    guser = db.relationship('GoogleUser', back_populates='devices')
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user = db.relationship('User', back_populates='devices')
 
     # Device Preferences
     # these variables are stored in the database as opposed to a cookie so they can be changed from another device,
     # specifically for devices that do not have input devices (i.e. TVs and kiosks)
     locale = db.Column(db.String(10), default='en')
     timezone = db.Column(db.String(), default='Etc/GMT')
-    date_field_order = db.Column(db.String(3), default='MDY')
+    date_order = db.Column(db.String(3), default='MDY')
     time_24hour = db.Column(db.Boolean, default=False)
 
     # a semicolon delimited string of watched calendars
@@ -70,28 +62,28 @@ class Device(UserMixin, db.Model):
     def watched_calendars(self):
         return self._watched_calendars.split(';')
 
-    def __init__(self, user, is_limited_input_device=False):
+    def __init__(self, user, is_lid=False):
         self.update_uuid()
 
-        self.is_limited_input_device = is_limited_input_device
+        self.is_lid = is_lid
 
-        self.common_name = f'Device {self.uuid}'
+        self.name = f'Device {self.uuid[:5]}'
 
-        self.guser_id = user.id
+        self.user_id = user.id
 
         self.locale = user.locale
         self.timezone = user.timezone
-        self.date_field_order = user.date_field_order
+        self.date_order = user.date_order
         self.time_24hour = user.time_24hour
 
         self._watched_calendars = user.email
 
-    def update_device(self, common_name=None, locale=None, timezone=None, date_field_order=None, time_24hour=None,
+    def update_device(self, name=None, locale=None, timezone=None, date_order=None, time_24hour=None,
                       calendars=None):
         was_modified = False
 
-        if common_name:
-            self.common_name = common_name
+        if name:
+            self.name = name
             was_modified = True
 
         if locale:
@@ -102,8 +94,8 @@ class Device(UserMixin, db.Model):
             self.timezone = timezone
             was_modified = True
 
-        if date_field_order:
-            self.date_field_order = date_field_order
+        if date_order:
+            self.date_order = date_order
             was_modified = True
 
         if time_24hour is not None:

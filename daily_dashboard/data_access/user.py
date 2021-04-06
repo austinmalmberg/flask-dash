@@ -1,17 +1,17 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from daily_dashboard.database import db
-from daily_dashboard.database.models import GoogleUser
+from daily_dashboard.database.models import User
 
 
 def find_user(google_id):
     if google_id is None:
         raise ValueError('google_id cannot be None')
 
-    return GoogleUser.query.filter_by(google_id=google_id).first()
+    return User.query.filter_by(google_id=google_id).first()
 
 
-def init_new_user(userinfo, settings, refresh_token=None, is_limited_input_device=False):
+def create_new_user(userinfo, settings):
     """
     Creates a new user in the database.
 
@@ -23,17 +23,11 @@ def init_new_user(userinfo, settings, refresh_token=None, is_limited_input_devic
     """
 
     # add user to the database
-    user = GoogleUser(
+    user = User(
         google_id=userinfo['id'],
         email=userinfo['email'],
         name=userinfo['name']
     )
-
-    if refresh_token:
-        if is_limited_input_device:
-            user.refresh_token_lid = refresh_token
-        else:
-            user.refresh_token = refresh_token
 
     user.locale = settings['locale']
     user.timezone = settings['timezone']
@@ -50,7 +44,7 @@ def init_new_user(userinfo, settings, refresh_token=None, is_limited_input_devic
     return user
 
 
-def update_existing_user(user, userinfo=None, refresh_token=None, refresh_token_lid=None):
+def update_existing_user(user, userinfo):
     """
     Updates an existing user's user info and tokens, if provided.  Tokens will not be overridden if they are not
     provided.
@@ -74,30 +68,34 @@ def update_existing_user(user, userinfo=None, refresh_token=None, refresh_token_
         user.email = userinfo.get('email', user.email)
         was_modified = True
 
-    if refresh_token:
-        user.refresh_token = refresh_token
-        was_modified = True
-
-    if user.refresh_token_lid:
-        user.refresh_token_lid = refresh_token_lid
-        was_modified = True
-
     if was_modified:
         db.session.commit()
 
     return user
 
 
-def remove_tokens(user, refresh_token=False, refresh_token_lid=False):
+def remove_devices(user):
     was_modified = False
 
-    if refresh_token:
-        user.refresh_token = None
-        was_modified = True
-
-    if refresh_token_lid:
-        user.refresh_token_lid = None
+    for device in user.devices:
+        db.session.delete(device)
         was_modified = True
 
     if was_modified:
         db.session.commit()
+
+
+def remove_stale_devices(user):
+    DAY_THRESHOLD_UNTIL_STALE = 30
+
+    device_removed = False
+
+    for device in user.devices:
+        if datetime.utcnow() >= device.last_used + timedelta(days=DAY_THRESHOLD_UNTIL_STALE):
+            db.session.delete(device)
+            device_removed = True
+
+    if device_removed:
+        db.session.commit()
+
+

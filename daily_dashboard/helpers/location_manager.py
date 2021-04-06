@@ -1,71 +1,43 @@
 from datetime import datetime, timedelta
-import functools
 
-from flask import session, request, flash
+from flask import session, request
 
 from daily_dashboard.providers.ip_api import request_location
 
 LOCATION_VARIABLES = ['lat', 'lon', 'timezone']
-LOCATION_DURATION = 7
+LOCATION_DURATION = 14
 
 
-def use_location(view):
-    @functools.wraps(view)
-    def wrapped_view(*args, **kwargs):
-        should_update=False
+def set_location_from_ip(ip_addr, force=False):
+    """
+    Sets the location for the session.
 
-        # if any of the the session location variables are not in the session, get the location from the request address
-        for var in LOCATION_VARIABLES:
-            if var not in session:
-                should_update = True
+    :return:
+    """
+    should_update = force
 
-        if 'location_expires' in session and datetime.utcnow() >= session['location_expires']:
+    # if any of the the session location variables are not in the session,
+    # get the relative location from the request address
+    for var in LOCATION_VARIABLES:
+        if f'location_{var}' not in session:
             should_update = True
+            break
 
-        if should_update:
-            status_code, data = request_location(request.remote_addr)
+    if 'location_expires' in session and datetime.utcnow() >= session['location_expires'] or \
+        'location_error' in session:
+        should_update = True
 
-            if data is None:
-                flash('There was a problem retrieving your relative location. Weather and events may not work as expected', 'info')
-                return view(*args, **kwargs)
+    if should_update:
+        status_code, data = request_location(ip_addr or request.remote_addr)
 
-            session['location_status'] = data['status']
-
-            if status_code == 200 and session['location_status'] == 'success':
-                # set cookies
-                for var in LOCATION_VARIABLES:
-                    session[var] = data[var]
-
+        if status_code == 200:
+            if data['status'] == 'success':
                 session['location_expires'] = datetime.utcnow() + timedelta(days=LOCATION_DURATION)
+                for var in LOCATION_VARIABLES:
+                    session[f'location_{var}'] = data[var]
+
+                session.pop('location_error', None)
             else:
-                # set temp session variables to NYC when location status fails
-                session['zip_code'] = '10007'
-                session['lat'] = 40.7128
-                session['lon'] = -74.0060
-                session['timezone'] = 'America/New_York'
-
-                flash('Your location defaulted to New York City. For accurate time and weather, '
-                      'update this manually in Settings or share your location.', 'info')
-
-                session['location_expires'] = datetime.utcnow() + timedelta(days=1)
-
-        return view(*args, **kwargs)
-
-    return wrapped_view
-
-
-def set_location(zip_code=None, lat=None, lon=None):
-    # TODO: lat/lon only: get zip_code, timezone
-    if zip_code:
-        session['zip_code'] = zip_code
-        # TODO: zip_code only: get lat, lon, timezone
-
-    if lat and lon:
-        session['lat'] = lat
-        session['lon'] = lon
-
-    # session['timezone'] = timezone
-
-    # pop expiry so it does not get set automatically
-    session.pop('location_expires', None)
-    pass
+                session['location_error'] = f"Unable to retrieve location. Reason: {data['message']}"
+        else:
+            session['location_error'] = f"Unable to retrieve location. Status code: {status_code}"

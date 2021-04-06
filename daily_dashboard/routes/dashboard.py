@@ -1,14 +1,13 @@
 from datetime import datetime
 
-from flask import Blueprint, render_template, session, redirect, url_for, request
-from flask_login import login_required, current_user as current_device
+from flask import Blueprint, render_template, session, redirect, url_for, request, g
+from flask_login import login_required
 
-from daily_dashboard.database.data_access.devices import update_device_settings
+from daily_dashboard.data_access.devices import update_device_settings
 from daily_dashboard.forms.settings import SettingsForm
-from daily_dashboard.providers.google import build_credentials
+from daily_dashboard.helpers.request_context_manager import use_credentials
 from daily_dashboard.providers.google.calendars import get_calendar_list
 from daily_dashboard.routes.google import oauth_limited_input_device
-from daily_dashboard.routes.google.oauth import validate_oauth_token, handle_refresh_error
 
 bp = Blueprint('main', __name__)
 
@@ -25,21 +24,20 @@ def dashboard():
     # session variable for max_days not implemented yet
     max_days = 7  # session.get('max_days', 7)
 
-    date_order = ('date', 'month') if current_device.date_field_order == 'DMY' else ('month', 'date')
+    date_order = ('date', 'month') if g.device.date_order == 'DMY' else ('month', 'date')
 
     return render_template(
         'dashboard.html',
         card_count=max_days,
         date_order=date_order,
-        clock_24hr=current_device.time_24hour,
+        clock_24hr=g.device.time_24hour,
         external_login_endpoint=url_for('main.login', _external=True)
     )
 
 
 @bp.route('/settings', methods=('GET', 'POST'))
 @login_required
-@handle_refresh_error
-@validate_oauth_token
+@use_credentials
 def settings():
     """
     View and update user settings
@@ -51,21 +49,19 @@ def settings():
     """
     form = SettingsForm(request.form)
 
-    calendar_list = get_calendar_list(
-        build_credentials(token=session.get('token', None), refresh_token=current_device.guser.refresh_token)
-    )
+    calendar_list = get_calendar_list(g.credentials)
 
     form.calendars.choices = [
-        (calendar['id'], calendar['summary'], calendar['id'] in current_device.watched_calendars)
+        (calendar['id'], calendar['summary'], calendar['id'] in g.device.watched_calendars)
         for calendar in calendar_list
     ]
 
     if request.method == 'POST' and form.validate():
         print(form.time_format.data)
         update_device_settings(
-            current_device,
+            g.device,
             # common_name=form.device_name.data,
-            date_field_order=form.date_format.data,
+            date_order=form.date_format.data,
             time_24hour=form.time_format.data == '24hr',
             calendars=form.calendars.data
         )
@@ -73,10 +69,10 @@ def settings():
         return redirect(url_for('index'))
 
     # set the selected date_format value
-    form.date_format.data = current_device.date_field_order
+    form.date_format.data = g.device.date_order
 
     # set the selected time_format value
-    form.time_format.data = '24hr' if current_device.time_24hour else '12hr'
+    form.time_format.data = '24hr' if g.device.time_24hour else '12hr'
 
     return render_template('settings.html', form=form)
 

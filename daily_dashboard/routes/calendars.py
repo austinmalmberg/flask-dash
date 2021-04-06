@@ -1,14 +1,12 @@
 from datetime import datetime, timedelta
 import pytz
 
-from flask import Blueprint, session, request, jsonify, render_template
-from flask_login import login_required, current_user as current_device
+from flask import Blueprint, request, jsonify, render_template, g
+from flask_login import login_required
 
 from daily_dashboard.dto.event_dto import EventDto
-from daily_dashboard.helpers.location_manager import use_location
-from daily_dashboard.providers.google import build_credentials
+from daily_dashboard.helpers.request_context_manager import use_location, use_credentials
 from daily_dashboard.providers.google.calendars import get_events_from_multiple_calendars, get_colors
-from daily_dashboard.routes.google.oauth import validate_oauth_token, handle_refresh_error
 from daily_dashboard.util.dt_formatter import strftime_date_format, strftime_time_format
 
 bp = Blueprint('calendar', __name__)
@@ -16,38 +14,41 @@ bp = Blueprint('calendar', __name__)
 
 @bp.route('/events', methods=('GET',))
 @login_required
-@handle_refresh_error
-@validate_oauth_token
-@use_location
+@use_credentials
 def events():
     # session variable for max_days not implemented yet
     max_days = 7  # session.get('max_days', 7)
 
-    timezone = request.args.get('tz', None) or session.get('timezone', None) or current_device.timezone
+    try:
+        # make sure timezone is valid
+        timezone = pytz.timezone(request.args.get('tz', None))
+    except pytz.exceptions.UnknownTimeZoneError:
+        # fallback to device timezone
+        timezone = pytz.timezone(g.device.timezone)
 
-    if request.args.get('date', None):
-        locale_date = datetime.fromisoformat(request.args.get('date')).date()
-    else:
+    try:
+        # make sure the date arg is formatted correctly
+        locale_date = datetime.fromisoformat(request.args.get('date', None)).date()
+    except (ValueError, TypeError):
+        # fallback to date at timezone (set by args
         locale_date = datetime.now(pytz.timezone(timezone)).date()
+
     dates = [locale_date + timedelta(days=i) for i in range(max_days)]
 
-    refresh_token = current_device.guser.refresh_token_lid if current_device.is_limited_input_device else \
-        current_device.guser.refresh_token
-    credentials = build_credentials(token=session.get('token', None), refresh_token=refresh_token)
     event_list = get_events_from_multiple_calendars(
-        credentials, current_device.watched_calendars,
+        g.credentials, g.device.watched_calendars,
         dt_min=locale_date,
         max_days=max_days,
         timezone=timezone
     )
 
-    calendar_colors = get_colors(credentials)
+    calendar_colors = get_colors(g.credentials)
 
     event_dtos = [EventDto(event, colors=calendar_colors) for event in event_list]
 
     platform = request.user_agent.platform
-    date_format = strftime_date_format(current_device.date_field_order, platform)
-    time_format = strftime_time_format(current_device.time_24hour, platform)
+    date_format = strftime_date_format(g.device.date_order, platform)
+    time_format = strftime_time_format(g.device.time_24hour, platform)
 
     if request.args.get('res', None) == 'json':
         return jsonify([dto.__dict__ for dto in event_dtos])

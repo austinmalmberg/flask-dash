@@ -3,7 +3,7 @@ import os
 from flask import Flask, request, redirect, session
 
 from daily_dashboard import brand, database
-from daily_dashboard.helpers import device_manager
+from daily_dashboard.helpers import user_manager
 from daily_dashboard.util.converters import DatetimeConverter, CustomFloatConverter
 
 
@@ -41,7 +41,7 @@ def create_app(config_str=None):
 
     database.init_app(app)
 
-    device_manager.init_app(app)
+    user_manager.init_app(app)
 
     from daily_dashboard import routes
     routes.register_blueprints(app)

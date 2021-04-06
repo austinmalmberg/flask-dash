@@ -2,12 +2,12 @@ import os
 from datetime import datetime, timedelta
 
 from flask import Blueprint, session, Response, redirect, url_for, flash
-from flask_login import login_user as login_device
+from flask_login import login_user
 
 import requests
 
-from daily_dashboard.database.data_access.user import find_user, init_new_user, update_existing_user
-from daily_dashboard.helpers.device_manager import authenticate_device_session, remove_stale_device_sessions
+from daily_dashboard.data_access.devices import create_device
+from daily_dashboard.data_access.user import find_user, create_new_user, update_existing_user, remove_stale_devices
 from daily_dashboard.providers.google import SCOPES, GoogleApiEndpoints, build_credentials
 from daily_dashboard.providers.google.calendars import get_calendar_settings
 from daily_dashboard.providers.google.userinfo import request_userinfo
@@ -30,21 +30,6 @@ def create_device_credentials():
         device_credentials['valid_until'] = datetime.utcnow() + timedelta(seconds=device_credentials['expires_in'])
 
         return device_credentials
-
-
-def create_or_update_authenticated_user(token, refresh_token, userinfo):
-    # store tokens only when we have verified it works (by testing getting the userinfo)
-    session['token'] = token
-    user = find_user(userinfo.get('id'))
-
-    if user:
-        user = update_existing_user(user, userinfo, refresh_token_lid=refresh_token)
-    else:
-        credentials = build_credentials(token=session['token'], refresh_token=refresh_token)
-        settings = get_calendar_settings(credentials)
-        user = init_new_user(userinfo, settings, refresh_token=refresh_token, is_limited_input_device=True)
-
-    return user
 
 
 @bp.route('/poll', methods=('GET',))
@@ -83,8 +68,8 @@ def poll():
             # polling too quickly
             return Response(status=202)
 
-        # remove device_credentials from session when the code is consumed
-        session.pop('device_credentials')
+        # clean up device_credentials from session when the code is consumed
+        session.pop('device_credentials', None)
 
         if response.status_code >= 400 or error == 'access_denied':
             # Occurs on notable status codes, such as:
@@ -94,15 +79,31 @@ def poll():
             flash('There was a problem authenticating. Please try again', 'error')
             return redirect(url_for('main.login'))
 
-        userinfo = request_userinfo(token=data.get('access_token'))
+        token = data.get('access_token')
+        userinfo = request_userinfo(token)
 
-        error = userinfo.get('error')
+        error = userinfo.get('error', None)
 
         if not error:
-            user = create_or_update_authenticated_user(data.get('access_token'), data.get('refresh_token'), userinfo)
-            remove_stale_device_sessions(user)
-            device = authenticate_device_session(user, is_limited_input_device=True)
-            login_device(device, remember=True)
+            session['token'] = token
+            session['refresh_token'] = data['refresh_token']
+
+            user = find_user(userinfo['id'])
+
+            if user:
+                user = update_existing_user(user, userinfo)
+                remove_stale_devices(user)
+            else:
+                credentials = build_credentials(token, refresh_token=session['refresh_token'])
+                settings = get_calendar_settings(credentials)
+                user = create_new_user(userinfo, settings)
+
+            # create a new device if the device has not been signed into before
+            if 'device_id' not in session:
+                device = create_device(user, is_limited_input_device=True)
+                session['device_id'] = device.id
+
+            login_user(user, remember=True)
 
             # redirect to dashboard on creation
             return redirect(
@@ -111,7 +112,7 @@ def poll():
             )
 
     else:
-        error = 'Credentials expired'
+        error = 'Access code expired'
 
     flash(error, 'error')
     return redirect(url_for('main.login'))

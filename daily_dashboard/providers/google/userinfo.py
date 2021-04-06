@@ -3,7 +3,7 @@ import requests
 from daily_dashboard.providers.google import GoogleApiEndpoints
 
 
-def request_userinfo(token=None):
+def request_userinfo(token):
     """
     Makes a call to the Google endpoint for user info
 
