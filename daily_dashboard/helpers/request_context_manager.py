@@ -18,7 +18,7 @@ def use_credentials(view):
         error = None
 
         if 'refresh_token' in session:
-            credentials = build_credentials(session.get('token', None), session['refresh_token'])
+            credentials = build_credentials(session.get('token', None), session['refresh_token'], g.device.is_lid)
 
             if credentials.valid:
                 g.credentials = credentials
@@ -43,6 +43,10 @@ def use_credentials(view):
 
         else:
             error = 'Refresh token not set.'
+
+            session.pop('token', None)
+
+            logout_user()
 
         if error:
             flash(error, 'error')

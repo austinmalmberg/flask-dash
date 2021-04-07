@@ -41,6 +41,13 @@ CLIENT_SECRETS = {
     'token_uri': GoogleApiEndpoints.AUTH['token_uri']
 }
 
+CLIENT_SECRETS_LIMITED = {
+    'client_id': os.environ['GOOGLE_OAUTH2_CLIENT_ID_LIMITED'],
+    'client_secret': os.environ['GOOGLE_OAUTH2_CLIENT_SECRET_LIMITED'],
+    'auth_uri': GoogleApiEndpoints.AUTH['auth_uri'],
+    'token_uri': GoogleApiEndpoints.AUTH['token_uri']
+}
+
 SCOPES = [
     'openid',
     'https://www.googleapis.com/auth/userinfo.email',
@@ -55,7 +62,17 @@ def get_flow(redirect_uri):
     }, SCOPES, redirect_uri=redirect_uri)
 
 
-def build_credentials(token=None, refresh_token=None):
+def build_credentials(token=None, refresh_token=None, limited_input_device=False):
+    if limited_input_device:
+        return Credentials(
+            token=token,
+            refresh_token=refresh_token,
+            token_uri=GoogleApiEndpoints.AUTH['token_uri'],
+            client_id=CLIENT_SECRETS_LIMITED['client_id'],
+            client_secret=CLIENT_SECRETS_LIMITED['client_secret'],
+            scopes=SCOPES
+        )
+
     return Credentials(
         token=token,
         refresh_token=refresh_token,
