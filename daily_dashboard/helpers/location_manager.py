@@ -24,7 +24,7 @@ def set_location_from_ip(ip_addr, force=False):
             break
 
     if 'location_expires' in session and datetime.utcnow() >= session['location_expires'] or \
-        'location_error' in session:
+            'location_error' in session:
         should_update = True
 
     if should_update:

@@ -69,11 +69,9 @@ def use_location(view):
         if 'location_error' in session:
             g.location_error = session['location_error']
         else:
-            g.location = dict(
-                lat=session['location_lat'],
-                lon=session['location_lon'],
-                timezone=session['location_timezone']
-            )
+            g.lat = session['location_lat'],
+            g.lon = session['location_lon'],
+            g.timezone = session['location_timezone']
 
         return view(*args, **kwargs)
 
