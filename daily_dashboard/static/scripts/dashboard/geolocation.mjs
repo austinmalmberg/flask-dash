@@ -17,7 +17,7 @@ function requestPosition(options = {}, timeout) {
 
 
 export async function getPosition() {
-    const COOKIE_NAME = 'coords';
+    const COOKIE_NAME = 'position';
 
     const position = getCookie(COOKIE_NAME);
     if (position)
@@ -37,7 +37,7 @@ export async function getPosition() {
             const { coords } = await requestPosition({ timeout: positionTimeout }, positionTimeout);
             const { latitude, longitude } = coords;
 
-            const result = `${formatDecimal(latitude, DECIMAL_PLACES)},${formatDecimal(longitude, DECIMAL_PLACES)}`;
+            const result = `lat=${formatDecimal(latitude, DECIMAL_PLACES)}&lon=${formatDecimal(longitude, DECIMAL_PLACES)}`;
 
             setCookie(COOKIE_NAME, result, COOKIE_DURATION);
 

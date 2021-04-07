@@ -5,11 +5,11 @@ from flask import Blueprint, request, jsonify, render_template, g
 from flask_login import login_required
 
 from daily_dashboard.dto.event_dto import EventDto
-from daily_dashboard.helpers.request_context_manager import use_location, use_credentials
+from daily_dashboard.helpers.request_context_manager import use_credentials
 from daily_dashboard.providers.google.calendars import get_events_from_multiple_calendars, get_colors
 from daily_dashboard.util.dt_formatter import strftime_date_format, strftime_time_format
 
-bp = Blueprint('calendar', __name__)
+bp = Blueprint('calendar_api', __name__, url_prefix='/api/v0')
 
 
 @bp.route('/events', methods=('GET',))
@@ -28,10 +28,11 @@ def events():
 
     try:
         # make sure the date arg is formatted correctly
-        locale_date = datetime.fromisoformat(request.args.get('date', None)).date()
+        iso_date_str = request.args.get('date', None)
+        locale_date = datetime.fromisoformat(iso_date_str).date()
     except (ValueError, TypeError):
         # fallback to date at timezone (set by args
-        locale_date = datetime.now(pytz.timezone(timezone)).date()
+        locale_date = datetime.now(timezone).date()
 
     dates = [locale_date + timedelta(days=i) for i in range(max_days)]
 

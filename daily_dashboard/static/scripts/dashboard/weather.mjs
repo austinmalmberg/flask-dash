@@ -36,12 +36,13 @@ const skycons = new Skycons({ monochrome: false, colors });
 export async function fetchWeather() {
     const position = await getPosition();
 
-    let endpoint = WEATHER_ENDPOINT;
-    if (position) {
-        endpoint += position;
+    let response;
+    if (position !== null) {
+        response = await fetch(`${WEATHER_ENDPOINT}?${position}`);
+        console.log()
+    } else {
+        response = await fetch(WEATHER_ENDPOINT);
     }
-
-    const response = await fetch(endpoint);
 
     if (response.ok) {
         const text = await response.text();

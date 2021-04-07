@@ -64,26 +64,17 @@ function dateRollover() {
 const dateCards = document.querySelectorAll('.date--card');
 const clock = new Clock('clock');
 
-// card rollover!
+// set headers when date changes
 const setNewHeadersSubscriber = new Subscriber('rollover',
-    (dt, lastRun) => dt.getHours() === 0 && dt.getMinutes() === 0,
+    (dt, lastRun) => !lastRun || dt.toDateString() != lastRun.toDateString(),
     () => setDateHeaders(dateCards)
 );
 clock.addSubscriber(setNewHeadersSubscriber, 'force');
 
-// WEATHER ON THE ONES!
-const weatherSubscriber = new Subscriber('weather',
-    (dt, lastRun) => !lastRun || dt.getMinutes() % 10 === 1,
-    () => fetchWeather()
-);
-clock.addSubscriber(weatherSubscriber, 'force');
-
-// events every 10 minutes
-const eventSubscriber = new Subscriber('events',
-    (dt, lastRun) => !lastRun || dt.getTime() >= lastRun.getTime() + 1000 * 60 * 10,
-    () => fetchEvents()
-);
-clock.addSubscriber(eventSubscriber, 'force');
-
-
 clock.start();
+
+fetchWeather();
+setInterval(fetchWeather, 1000 * 60 * 10);
+
+fetchEvents();
+setInterval(fetchEvents, 1000 * 60 * 10);
