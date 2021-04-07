@@ -50,6 +50,8 @@ export async function fetchWeather() {
         container.innerHTML = text;
         addWeatherToCards([...container.children]);
         placeSkycons();
+
+        console.log(new Date().toLocaleString(), 'Weather updated');
     } else {
         flashError('Unable to retrieve forecast.');
 
@@ -97,6 +99,9 @@ export function clearWeather(n) {
 
 
 function placeSkycons() {
+    // since we're overriding the element with a new one,
+    // we need to clear out all the old elements from the skycons list
+    skycons.list = [];
 
     const skyconCanvases = document.getElementsByClassName('skycon--canvas');
 
