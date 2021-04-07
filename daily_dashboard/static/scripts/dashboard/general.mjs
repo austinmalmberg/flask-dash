@@ -25,18 +25,30 @@ export function clearContainer(element) {
     element.innerHTML = '';
 }
 
-export function flashError(message) {
-    generateElement({
+export function flashError(message, classList=[], secTimeout=30) {
+    const newElement = generateElement({
         tag: 'p',
-        classes: ['flash', 'error'],
+        classes: ['flash', 'error', ...classList],
         innerHTML: message
     }, flashContainer);
+
+    setElementTimeout(newElement, secTimeout);
+
+    return newElement;
 }
 
-export function flashInfo(message) {
-    generateElement({
+export function flashInfo(message, classList=[], secTimeout=30) {
+    const newElement =  generateElement({
         tag: 'p',
-        classes: ['flash', 'info'],
+        classes: ['flash', 'info', ...classList],
         innerHTML: message
     }, flashContainer);
+
+    setElementTimeout(newElement, secTimeout);
+
+    return newElement;
+}
+
+function setElementTimeout(element, secTimeout) {
+    setTimeout(() => element.remove(), secTimeout * 1000)
 }

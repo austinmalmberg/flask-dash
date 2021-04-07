@@ -33,6 +33,11 @@ main.content {
   100% { opacity: 1 }
 }
 
+@keyframes growDown {
+  0% { transform: scaleY(0) }
+  100% { transform: scaleY(1) }
+}
+
 /* INFO PANEL */
 
 #info {
@@ -68,6 +73,17 @@ main.content {
 #clock {
   font-size: 6em;
   white-space: nowrap;
+}
+
+#flash--container {
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  overflow: hidden;
+}
+
+.flash {
+  animation: growDown 400ms ease-in-out;
+  transform-origin: top center;
 }
 
 /* DAY CARD */
