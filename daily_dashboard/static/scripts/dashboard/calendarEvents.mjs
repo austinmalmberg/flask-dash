@@ -22,13 +22,15 @@ export async function fetchEvents() {
         const container = document.createElement('div');
         container.innerHTML = text;
         addEventsToContainers([...container.children]);
-    } else if (response.status === 307) {
+        console.log(new Date().toLocaleString(), 'Events updated');
+    } else if (response.redirected) {
         window.location.replace(LOGIN_EXTERNAL_ENDPOINT);
+        console.log(new Date().toLocaleString(), 'Redirecting to login');
     } else{
         flashError('Unable to retrieve calendar events.');
 
         const err = await response.json();
-        console.error(err);
+        console.error(new Date().toLocaleString(), err);
     }
 }
 

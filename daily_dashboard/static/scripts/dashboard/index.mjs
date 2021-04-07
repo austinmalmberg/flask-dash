@@ -59,34 +59,31 @@ function dateRollover() {
 
         return nextDay;
     }
-
-    fetchEvents();
-    fetchWeather();
 }
 
-setDateHeaders(document.querySelectorAll('.date--card'));
-
+const dateCards = document.querySelectorAll('.date--card');
 const clock = new Clock('clock');
+
+// card rollover!
+const setNewHeadersSubscriber = new Subscriber('rollover',
+    (dt, lastRun) => dt.getHours() === 0 && dt.getMinutes() === 0,
+    () => setDateHeaders(dateCards)
+);
+clock.addSubscriber(setNewHeadersSubscriber, 'force');
 
 // WEATHER ON THE ONES!
 const weatherSubscriber = new Subscriber('weather',
-    (dt, lastRun) => !lastRun || dt.getTime() % 10 === 1,
+    (dt, lastRun) => !lastRun || dt.getMinutes() % 10 === 1,
     () => fetchWeather()
 );
-clock.addSubscriber(weatherSubscriber);
+clock.addSubscriber(weatherSubscriber, 'force');
 
 // events every 10 minutes
 const eventSubscriber = new Subscriber('events',
-    (dt, lastRun) => !lastRun || dt.getTime() - lastRun.getTime() >= 1000 * 60 * 10,
+    (dt, lastRun) => !lastRun || dt.getTime() >= lastRun.getTime() + 1000 * 60 * 10,
     () => fetchEvents()
 );
-clock.addSubscriber(eventSubscriber);
+clock.addSubscriber(eventSubscriber, 'force');
 
-// card rollover!
-const rolloverSubscriber = new Subscriber('rollover',
-    (dt, lastRun) => dt.getHours() === 0 && dt.getMinutes() === 0,
-    () => dateRollover()
-);
-clock.addSubscriber(rolloverSubscriber);
 
 clock.start();
