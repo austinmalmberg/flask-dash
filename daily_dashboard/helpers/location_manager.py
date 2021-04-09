@@ -38,6 +38,6 @@ def set_location_from_ip(ip_addr, force=False):
 
                 session.pop('location_error', None)
             else:
-                session['location_error'] = f"Unable to retrieve location. Reason: {data['message']}"
+                session['location_error'] = f"Unable to retrieve location for {request.remote_addr}. Reason: {data['message']}"
         else:
             session['location_error'] = f"Unable to retrieve location. Status code: {status_code}"
