@@ -1,5 +1,5 @@
 
-import { flashError } from './general.mjs';
+import { flashError } from '../general.mjs';
 
 export async function fetchEvents() {
     const firstDateCard = document.querySelector('.date--card');
@@ -11,8 +11,7 @@ export async function fetchEvents() {
     }
 
     const params = new URLSearchParams({
-        date: today,
-        tz: Intl.DateTimeFormat().resolvedOptions().timeZone
+        date: today
     });
 
     const response = await fetch(`${CALENDAR_ENDPOINT}?${params}`);

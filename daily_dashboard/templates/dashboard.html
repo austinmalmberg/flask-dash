@@ -29,7 +29,7 @@
 {% endblock %}
 
 {% block scripts %}
-    <script type="module" src="{{ url_for('static', filename='scripts/dashboard/general.mjs') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='scripts/general.mjs') }}"></script>
 
     <script type="text/javascript">
         const TIME_OPTIONS = {
@@ -53,6 +53,9 @@
 
     <script type="text/javascript">
         const LOGIN_EXTERNAL_ENDPOINT = "{{ external_login_endpoint }}";
+        const DEVICE_ENDPOINT = "{{ url_for('device_api.current_device') }}";
+        const locationSet = {{ position_set|tojson }};
     </script>
+    <script type="module" src="{{ url_for('static', filename='scripts/location.mjs') }}"></script>
     <script type="module" src="{{ url_for('static', filename='scripts/dashboard/index.mjs') }}"></script>
 {% endblock %}

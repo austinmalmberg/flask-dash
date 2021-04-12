@@ -1,9 +1,8 @@
-import { flashError } from './general.mjs'
-import { requestPosition } from './geolocation.mjs';
+import { flashError } from '../general.mjs'
+import { requestLocation } from '../location.mjs';
 import { Clock, Subscriber } from './clock.mjs';
 import { fetchWeather, clearWeather } from './weather.mjs';
 import { fetchEvents, clearEvents } from './calendarEvents.mjs';
-import { getCookie, setCookie } from '../cookieManager.mjs';
 
 /*
  * Returns a date in the format: '2020-06-30'
@@ -49,34 +48,47 @@ clock.addSubscriber(setNewHeadersSubscriber, 'force');
 
 clock.start();
 
-async function startWeatherInterval() {
-    let error;
+// wait for the user to share location
 
-    // attempt to set position cookie from navigator.geolocation
-    if (!getCookie('position')) {
-        await requestPosition()
-            .then(coords => {
-                let { latitude, longitude } = coords;
+// fetch weather and start weather interval
+async function setLocation() {
+    try {
+        const { coords } = await requestLocation();
+        const { latitude, longitude } = coords;
+        if (latitude && longitude) {
+            const response = await fetch(DEVICE_ENDPOINT, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    lat: latitude,
+                    lon: longitude
+                })
+            }).catch(console.error);
 
-                // round to two decimal places
-                latitude = parseInt(Math.round(latitude * 100)) / 100;
-                longitude = parseInt(Math.round(longitude * 100)) / 100;
+            if (response.ok) fetchWeather();
 
-                // set the position cookie with location
-                setCookie('position', `${latitude},${longitude}`, 14)
-            })
-            .catch(err => error = err.message);
+            return true;
+        }
+
+        throw new Error('Latitude and/or longitude could not be obtained from navigator.geolocation');
+
+    } catch (err) {
+        console.error(err);
+        flashError('Could not get location. Update this manually through settings.');
     }
 
-    // try once to fetch weather (whether or not the cookie was set)
-    // if successful, fetch weather on a 10 minute interval
-    fetchWeather()
-        .then(response => {
-            if (response.ok) setInterval(fetchWeather, 1000 * 60 * 10);
-        }).catch(err => flashError(error || err.message));
+    return false;
 }
 
-startWeatherInterval();
+if (!locationSet) {
+    setLocation();
+} else {
+    fetchWeather();
+}
+
+setInterval(fetchWeather, 1000 * 60 * 5);
 
 fetchEvents();
-setInterval(fetchEvents, 1000 * 60 * 10);
+setInterval(fetchEvents, 1000 * 60 * 5);

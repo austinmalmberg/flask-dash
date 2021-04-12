@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from flask_login import UserMixin
 
@@ -37,7 +37,7 @@ class Device(db.Model):
     last_used = db.Column(db.DateTime, default=datetime.utcnow())
     last_updated = db.Column(db.DateTime, default=datetime.utcnow())
 
-    name = db.Column(db.String())
+    name = db.Column(db.String(), default='')
 
     # set depending on the authentication method
     is_lid = db.Column(db.Boolean, default=False)
@@ -57,9 +57,8 @@ class Device(db.Model):
     # a semicolon delimited string of watched calendars
     _watched_calendars = db.Column(db.String(), default='')
 
-    @property
-    def watched_calendars(self):
-        return self._watched_calendars.split(';')
+    # for weather
+    _position = db.Column(db.String(20))
 
     def __init__(self, user, is_lid=False):
         self.is_lid = is_lid
@@ -73,42 +72,13 @@ class Device(db.Model):
 
         self._watched_calendars = user.email
 
-    def update_device(self, is_lid=None, name=None, locale=None, timezone=None, date_order=None, time_24hour=None,
-                      calendars=None):
-        was_modified = False
+    @property
+    def is_stale(self):
+        return datetime.utcnow() >= self.last_updated + timedelta(days=6*30)
 
-        if is_lid is not None:
-            self.is_lid = is_lid
-            was_modified = True
-
-        if name:
-            self.name = name
-            was_modified = True
-
-        if locale:
-            self.locale = locale
-            was_modified = True
-
-        if timezone:
-            self.timezone = timezone
-            was_modified = True
-
-        if date_order:
-            self.date_order = date_order
-            was_modified = True
-
-        if time_24hour is not None:
-            self.time_24hour = time_24hour
-            was_modified = True
-
-        if calendars:
-            self.set_calendars(calendars)
-            was_modified = True
-
-        if was_modified:
-            self.last_updated = datetime.utcnow()
-
-        return self
+    @property
+    def watched_calendars(self):
+        return self._watched_calendars.split(';')
 
     def set_calendars(self, calendar_ids):
         self._watched_calendars = ';'.join(calendar_ids)
@@ -137,3 +107,29 @@ class Device(db.Model):
         self.last_updated = datetime.utcnow()
 
         return new_calendar_list
+
+    @property
+    def position(self):
+        """
+        A tuple representing the lat and lon coordinates to pull weather for
+
+        :return: (lat, lon) as float values or None, None if not set
+        """
+        if self._position is None:
+            return None
+
+        lat, lon = self._position.split(',')
+        return float(lat), float(lon)
+
+    def set_position(self, lat, lon):
+        if lat is None and lon is None:
+            self._position = None
+        else:
+            lat = round(lat, 2)
+            lon = round(lon, 2)
+
+            self._position = f"{lat},{lon}"
+
+        print(f'_position is {self._position}')
+
+        self.last_updated = datetime.utcnow()

@@ -13,26 +13,23 @@
 {% block title %}Settings{% endblock %}
 
 {% block content %}
-    <div class="container-fluid row h-100 p-4">
+    <div class="container-fluid row p-4">
 
         {# Navigation #}
-        <div id="sidebar" class="col col-md-2">
-            <div class="d-flex flex-md-column justify-content-between h-100">
+        <div id="sidebar" class="col col-md-2" style="min-height:100vh;">
+            <div class="d-flex flex-md-column justify-content-between">
                 <ul class="nav flex-column">
                     <li class="nav-item"><a href="#general" class="nav-link h4">General</a></li>
                     <li class="nav-item"><a href="#calendar" class="nav-link h4">Calendar</a></li>
-                    <li class="nav--item"><a href="#location" class="nav-link h4">Location</a></li>
+                    <li class="nav--item"><a href="#weather" class="nav-link h4">Weather</a></li>
                     <li class="nav-item"><a href="#logout" class="nav-link h4">Logout</a></li>
                 </ul>
-
-                <div>
-                    <button id="settings-submit" class="btn btn-lg btn-primary w-100">Save</button>
-                </div>
             </div>
+            <button id="settings-submit" class="btn btn-lg font-weight-bold w-100">Save</button>
         </div>
 
         <div class="col-md-10">
-            <div class="flash--container bottom">
+            <div id="flash--container" class="bottom">
                 {% for category, message in get_flashed_messages(with_categories=true) %}
                 <p class="flash {{ category }}">{{ message }}</p>
                 {% endfor %}
@@ -43,15 +40,20 @@
                 <div id="general" class="mx-1 my-2 py-2 px-3 border border-secondary">
                     <h2 class="my-2">General</h2>
 
+                    <div class="form-group my-3">
+                        {{ form.device_name.label(class='h5') }}
+                        {{ form.device_name(class='ml-2 p-1') }}
+                    </div>
+
                     <div class="form-group my-2">
                         {{ form.date_format.label(class='h5') }}
-                        <p>Choose how to display the date.</p>
+                        <p>{{ form.date_format.description }}</p>
                         {{ form.date_format(class='form--list') }}
                     </div>
 
                     <div class="form-group my-2">
                         {{ form.time_format.label(class='h5') }}
-                        <p>Choose how to display the time.</p>
+                        <p>{{ form.time_format.description }}</p>
                         {{ form.time_format(class='form--list mb-0') }}
                     </div>
                 </div>
@@ -61,14 +63,15 @@
 
                     <div class="form-group my-2">
                         {{ form.calendars.label(class='h5') }}
-                        <p>Choose which calendars are displayed on the dashboard</p>
+                        <p>{{ form.calendars.description }}</p>
                         {{ form.calendars(class='form--list') }}
                     </div>
                 </div>
 
-                <div id="location" class="mx-1 my-2 py-2 px-3 border border-secondary">
-                    <h2 class="my-2">Location</h2>
-                    <p>Set a position for local weather. Latitude and longitude are rounded to two decimal places (within 1.11km of your exact location).</p>
+                <div id="weather" class="mx-1 my-2 py-2 px-3 border border-secondary">
+                    <h2 class="my-2">Weather</h2>
+                    <h5>Location</h5>
+                    <p>Set a location for local weather.</p>
 
                     <div class="form-group my-2 row">
                         <div class="col-md-6 col-xl-4 my-2">
@@ -88,9 +91,7 @@
                         </div>
                     </div>
 
-                    {#
-                    <button id="btn-location" class="rounded my-2">Use Current Location</button>
-                    #}
+                    <button id="btn-uselocation" class="btn btn-sm rounded my-2" type="button">Use This Device's Location</button>
                 </div>
             </form>
 
@@ -120,8 +121,35 @@
 
     <script type="text/javascript">
         {# add event listener to submit button on sidebar #}
-        const saveButton = document.getElementById('settings-submit');
-        const settingsForm = document.getElementById('settings--form');
-        saveButton.addEventListener('click', () => settingsForm.submit());
+        const saveButton = document.getElementById("settings-submit");
+        const settingsForm = document.getElementById("settings--form");
+        saveButton.addEventListener("click", () => settingsForm.submit());
+    </script>
+
+    <script type="module">
+        import { requestLocation } from "{{ url_for('static', filename='scripts/location.mjs') }}";
+
+        function setFromGeolocation() {
+            const latTextbox = document.getElementById("location-lat");
+            const lonTextbox = document.getElementById("location-lon");
+
+            requestLocation()
+                .then(geolocation => {
+                    const { latitude, longitude } = geolocation.coords;
+
+                    if (latitude && longitude) {
+                        latTextbox.value = latitude;
+                        lonTextbox.value = longitude;
+                    } else {
+                        throw Error("Latitude and/or longitude could not be obtained from navigator.geolocation");
+                    }
+                }).catch(err => {
+                    console.error(err);
+                    alert("Could not get location. Share your location or update it manually.");
+                });
+        }
+
+        const useLocationButton = document.getElementById("btn-uselocation");
+        useLocationButton.addEventListener("click", setFromGeolocation);
     </script>
 {% endblock %}

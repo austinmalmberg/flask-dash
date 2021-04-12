@@ -8,7 +8,7 @@ TODO: Allow user to update their preferred weather units through `/settings`
 from flask import Blueprint, request, render_template, g
 from flask_login import login_required
 
-from daily_dashboard.helpers.location_manager import use_location
+from daily_dashboard.helpers.device_manager import use_device
 from daily_dashboard.providers.openweathermap import request_weather, ACCEPTABLE_UNITS
 from daily_dashboard.dto.weather_dto import WeatherDto, CurrentWeatherDto
 from daily_dashboard.util.errors import BaseApplicationException
@@ -18,14 +18,13 @@ bp = Blueprint('weather_api', __name__, url_prefix='/api/v0')
 
 @bp.route('/weather', methods=('GET',))
 @login_required
-@use_location
+@use_device
 def forecast():
     """
-    Requests the weather through the OpenWeatherMap API with 'lat' and 'lon' variables set by the 'use_location'
-    decorator.
+    Requests the weather through the OpenWeatherMap API
 
     Possible error responses:
-        400 - use_location aborted the request due to missing or invalid variables
+        400 - Location not set on the device
         504 - There was an error requesting the weather from the provider
     """
 
@@ -34,8 +33,16 @@ def forecast():
     if units in ACCEPTABLE_UNITS:
         kwargs[units] = units
 
+    if g.device.position is None:
+        return BaseApplicationException(
+            status=400,
+            title='Bad request',
+            message='Location not set. Share location or update in settings'
+        ).as_json()
+
     try:
-        weather = request_weather(g.lat, g.lon, **kwargs)
+        lat, lon = g.device.position
+        weather = request_weather(lat, lon, **kwargs)
     except BaseApplicationException as err:
         return err.as_json()
 

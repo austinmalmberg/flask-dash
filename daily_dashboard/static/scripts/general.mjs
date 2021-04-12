@@ -1,5 +1,3 @@
-const flashContainer = document.getElementById('flash--container');
-
 /*
  * Creates a new element and append it to the given parent element.
  * param {string} tag
@@ -30,7 +28,7 @@ export function flashError(message, classList=[], secTimeout=30) {
         tag: 'p',
         classes: ['flash', 'error', ...classList],
         innerHTML: message
-    }, flashContainer);
+    }, document.getElementById('flash--container'));
 
     setElementTimeout(newElement, secTimeout);
 
@@ -42,7 +40,7 @@ export function flashInfo(message, classList=[], secTimeout=30) {
         tag: 'p',
         classes: ['flash', 'info', ...classList],
         innerHTML: message
-    }, flashContainer);
+    }, document.getElementById('flash--container'));
 
     setElementTimeout(newElement, secTimeout);
 

@@ -4,7 +4,13 @@ from flask import session, g, Request, flash, redirect
 from flask_login import logout_user
 from google.auth.exceptions import RefreshError
 
+from daily_dashboard.helpers.device_manager import use_device
 from daily_dashboard.providers.google import build_credentials
+
+
+class AuthenticationMethod:
+    DIRECT = 'direct'
+    INDIRECT = 'indirect'
 
 
 def use_credentials(view):
@@ -30,7 +36,8 @@ def use_credentials(view):
 
             token = session.get('token', None)
 
-            credentials = build_credentials(token, session['refresh_token'], g.device.is_lid)
+            credentials = build_credentials(token, session['refresh_token'],
+                                            limited_input_device=session['auth_method']==AuthenticationMethod.INDIRECT)
 
             # attempt to refresh invalid credentials
             if not credentials.valid:
@@ -74,10 +81,13 @@ def set_refresh_token(refresh_token):
 
 
 def set_tokens(**kwargs):
+    if 'auth_method' in kwargs:
+        session['auth_method'] = kwargs['auth_method']
+
     if 'token' in kwargs:
         token = kwargs['token']
         set_access_token(token)
 
     if 'refresh_token' in kwargs:
         refresh_token = kwargs['refresh_token']
-        set_access_token(refresh_token)
+        set_refresh_token(refresh_token)

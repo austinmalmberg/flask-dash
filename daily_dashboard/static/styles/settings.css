@@ -10,3 +10,10 @@ form ul {
   list-style: none;
   padding-left: 0.5em;
 }
+
+#settings-submit {
+  margin-top: 1em;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 1em;
+}

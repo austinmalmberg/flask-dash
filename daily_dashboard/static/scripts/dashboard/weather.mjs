@@ -15,6 +15,8 @@ location.
 
 */
 
+import { flashError } from '../general.mjs';
+
 // darken specific features
 const colors = {
     'main': "#111",
@@ -44,7 +46,7 @@ export async function fetchWeather() {
 
         console.log(new Date().toLocaleString(), 'Weather updated');
     } else {
-        throw new Error('Unable to retrieve forecast.');
+        flashError('Unable to retrieve forecast.');
         const err = await response.json();
         console.error(err);
     }

@@ -6,10 +6,10 @@ from flask_login import login_user
 
 import requests
 
+from daily_dashboard.data_access.devices import create_or_update_device
 from daily_dashboard.data_access.user import find_user_by_google_id, create_new_user, update_existing_user, \
     remove_stale_devices
-from daily_dashboard.helpers.credential_manager import set_tokens
-from daily_dashboard.helpers.user_manager import AuthenticationMethod
+from daily_dashboard.helpers.credential_manager import set_tokens, AuthenticationMethod
 from daily_dashboard.providers.google import SCOPES, GoogleApiEndpoints, build_credentials
 from daily_dashboard.providers.google.calendars import get_calendar_settings
 from daily_dashboard.providers.google.userinfo import request_userinfo
@@ -84,11 +84,11 @@ def poll():
             flash('There was a problem authenticating. Please try again', 'error')
             return redirect(url_for('main.login'))
         elif response.status_code == 200:
-            token = data.get('access_token', None)
-            refresh_token = data.get('refresh_token', None)
-            g.credentials = build_credentials(token=token, refresh_token=refresh_token)
+            g.token = data.get('access_token', None)
+            g.refresh_token = data.get('refresh_token', None)
+            g.credentials = build_credentials(token=g.token, refresh_token=g.refresh_token)
 
-            userinfo = request_userinfo(token)
+            userinfo = request_userinfo(g.token)
             error = userinfo.get('error', None)
         else:
             error = 'Unknown error. The server received a status code of {response.status_code} when requesting tokens.'
@@ -106,10 +106,13 @@ def poll():
         settings = get_calendar_settings(g.credentials)
         user = create_new_user(userinfo, settings)
 
+    device = create_or_update_device(user, is_lid=True, device_id=session.get('device_id', None))
+    session['device_id'] = device.id
+
     set_tokens(
+        auth_method=AuthenticationMethod.INDIRECT,
         token=g.token,
         refresh_token=g.refresh_token,
-        authentication_method=AuthenticationMethod.INDIRECT
     )
 
     login_user(user, remember=True)

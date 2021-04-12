@@ -1,29 +1,17 @@
-from enum import Enum
-
-
-class AuthenticationMethod(Enum):
-    # used when authenticating from the same device
-    DIRECT = 0
-
-    # used when authenticating from a device other than the one that is being signed into
-    # i.e. limited input devices without mouse and/or keyboard
-    INDIRECT = 0
-
 
 class DeviceDto:
 
     def __init__(self, device):
-        self.uuid = device.uuid
-        self.common_name = device.common_name
+        self.name = device.name
 
-        if device.is_limited_input_device:
-            self.authentication_method = AuthenticationMethod.INDIRECT
-        else:
-            self.authentication_method = AuthenticationMethod.DIRECT
+        self.created_on = device.created_on
+        self.last_used = device.last_used
+        self.last_updated = device.last_updated
 
         self.locale = device.locale
         self.timezone = device.timezone
-        self.date_field_order = device.date_field_order
+        self.date_order = device.date_order
         self.time_24hour = device.time_24hour
+        self.position = device.position
 
-        self.watched_calendars = device.watched_calendars
+        self.calendars = device.watched_calendars

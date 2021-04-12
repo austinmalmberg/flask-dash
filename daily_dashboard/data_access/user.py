@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from daily_dashboard.database import db
 from daily_dashboard.database.models import User
@@ -86,12 +86,10 @@ def remove_devices(user):
 
 
 def remove_stale_devices(user):
-    DAY_THRESHOLD_UNTIL_STALE = 30
-
     device_removed = False
 
     for device in user.devices:
-        if datetime.utcnow() >= device.last_used + timedelta(days=DAY_THRESHOLD_UNTIL_STALE):
+        if device.is_stale:
             db.session.delete(device)
             device_removed = True
 

@@ -6,6 +6,7 @@ from flask_login import login_required
 
 from daily_dashboard.dto.event_dto import EventDto
 from daily_dashboard.helpers.credential_manager import use_credentials
+from daily_dashboard.helpers.device_manager import use_device
 from daily_dashboard.providers.google.calendars import get_events_from_multiple_calendars, get_colors
 from daily_dashboard.util.dt_formatter import strftime_date_format, strftime_time_format
 
@@ -15,6 +16,7 @@ bp = Blueprint('calendar_api', __name__, url_prefix='/api/v0')
 @bp.route('/events', methods=('GET',))
 @login_required
 @use_credentials
+@use_device
 def events():
     # session variable for max_days not implemented yet
     max_days = 7  # session.get('max_days', 7)

@@ -1,15 +1,15 @@
 import os
 import hashlib
 
-from flask import Blueprint, session, url_for, redirect, request, flash
+from flask import Blueprint, session, url_for, redirect, request, flash, g
 from flask_login import login_required, current_user, login_user, logout_user
 
 import requests
 
+from daily_dashboard.data_access.devices import create_or_update_device
 from daily_dashboard.data_access.user import find_user_by_google_id, create_new_user, update_existing_user, \
     remove_stale_devices, remove_devices
-from daily_dashboard.helpers.credential_manager import set_tokens, use_credentials
-from daily_dashboard.helpers.user_manager import AuthenticationMethod
+from daily_dashboard.helpers.credential_manager import set_tokens, use_credentials, AuthenticationMethod
 from daily_dashboard.providers.google import GoogleApiEndpoints, get_flow
 from daily_dashboard.providers.google.calendars import get_calendar_settings
 from daily_dashboard.providers.google.userinfo import request_userinfo
@@ -71,6 +71,7 @@ def callback():
 
     user = find_user_by_google_id(userinfo['id'])
 
+    # create or update existing user
     if user:
         user = update_existing_user(user, userinfo)
         remove_stale_devices(user)
@@ -78,10 +79,13 @@ def callback():
         settings = get_calendar_settings(credentials)
         user = create_new_user(userinfo, settings)
 
+    device = create_or_update_device(user, is_lid=False, device_id=session.get('device_id', None))
+    session['device_id'] = device.id
+
     set_tokens(
+        auth_method=AuthenticationMethod.DIRECT,
         token=credentials.token,
         refresh_token=credentials.refresh_token,
-        authentication_method=AuthenticationMethod.DIRECT
     )
 
     login_user(user, remember=True)

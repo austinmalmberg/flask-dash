@@ -3,11 +3,10 @@ from datetime import datetime
 from flask import Blueprint, render_template, session, redirect, url_for, request, g
 from flask_login import login_required
 
-from daily_dashboard.data_access.devices import update_device_settings
+from daily_dashboard.data_access.devices import update_device_settings, set_device_position
 from daily_dashboard.forms.settings import SettingsForm
 from daily_dashboard.helpers.credential_manager import use_credentials
-from daily_dashboard.helpers.location_manager import set_location
-from daily_dashboard.helpers.location_manager import use_location
+from daily_dashboard.helpers.device_manager import use_device
 from daily_dashboard.providers.google.calendars import get_calendar_list
 from daily_dashboard.routes.google import oauth_limited_input_device
 
@@ -16,6 +15,7 @@ bp = Blueprint('main', __name__)
 
 @bp.route('/')
 @login_required
+@use_device
 def dashboard():
     """
     Sends basic dashboard template.
@@ -33,14 +33,15 @@ def dashboard():
         card_count=max_days,
         date_order=date_order,
         clock_24hr=g.device.time_24hour,
-        external_login_endpoint=url_for('main.login', _external=True)
+        external_login_endpoint=url_for('main.login', _external=True),
+        position_set=g.device.position is not None
     )
 
 
 @bp.route('/settings', methods=('GET', 'POST'))
 @login_required
 @use_credentials
-@use_location
+@use_device
 def settings():
     """
     View and update user settings
@@ -60,12 +61,11 @@ def settings():
     ]
 
     if request.method == 'POST' and form.validate():
-        if form.lat.data and form.lon.data:
-            set_location(lat=form.lat.data, lon=form.lon.data)
-
+        print(form.lat.data is None)
+        g.device.set_position(form.lat.data, form.lon.data)
         update_device_settings(
             g.device,
-            # common_name=form.device_name.data,
+            name=form.device_name.data,
             date_order=form.date_format.data,
             time_24hour=form.time_format.data == '24hr',
             calendars=form.calendars.data,
@@ -74,10 +74,15 @@ def settings():
         return redirect(url_for('index'))
 
     # prefill location info
-    if g.lat:
-        form.lat.data = g.lat
-    if g.lon:
-        form.lon.data = g.lon
+    if g.device.position is not None:
+        lat, lon = g.device.position
+        if lat:
+            form.lat.data = lat
+        if lon:
+            form.lon.data = lon
+
+    if g.device.name:
+        form.device_name.data = g.device.name
 
     # set the selected date_format value
     form.date_format.data = g.device.date_order
