@@ -4,7 +4,6 @@ from flask import session, g, Request, flash, redirect
 from flask_login import logout_user
 from google.auth.exceptions import RefreshError
 
-from daily_dashboard.helpers.device_manager import use_device
 from daily_dashboard.providers.google import build_credentials
 
 

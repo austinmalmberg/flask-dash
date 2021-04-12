@@ -38,7 +38,6 @@ def authorize():
 @bp.route('/callback')
 def callback():
     userinfo = None
-    credentials = None
 
     # ensure authorization was provided
     if request.args.get('error'):
@@ -59,9 +58,9 @@ def callback():
         # to exchange the authentication code for an access token
         flow.fetch_token(authorization_response=request.url)
 
-        credentials = flow.credentials
+        g.credentials = flow.credentials
 
-        userinfo = request_userinfo(credentials.token)
+        userinfo = request_userinfo(g.credentials.token)
 
         error = userinfo.get('error', None)
 
@@ -76,7 +75,7 @@ def callback():
         user = update_existing_user(user, userinfo)
         remove_stale_devices(user)
     else:
-        settings = get_calendar_settings(credentials)
+        settings = get_calendar_settings(g.credentials)
         user = create_new_user(userinfo, settings)
 
     device = create_or_update_device(user, is_lid=False, device_id=session.get('device_id', None))
@@ -84,8 +83,8 @@ def callback():
 
     set_tokens(
         auth_method=AuthenticationMethod.DIRECT,
-        token=credentials.token,
-        refresh_token=credentials.refresh_token,
+        token=g.credentials.token,
+        refresh_token=g.credentials.refresh_token
     )
 
     login_user(user, remember=True)
