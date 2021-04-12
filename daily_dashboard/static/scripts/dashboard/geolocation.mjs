@@ -1,9 +1,8 @@
-import { getCookie, setCookie } from '../cookieManager.mjs';
-import { flashError } from './general.mjs';
-
-function requestPosition(options = {}, timeout) {
+function getGeolocation() {
+    // request user's location for 10 seconds
+    const timeout = 10000;
+    const options = { timeout };
     const positionPromise = new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, options));
-    if (!timeout) return positionPromise;
 
     const timeoutPromise = new Promise((resolve, reject) => {
         let id = setTimeout(function() {
@@ -16,42 +15,16 @@ function requestPosition(options = {}, timeout) {
 }
 
 
-export async function getPosition() {
-    const COOKIE_NAME = 'position';
-
-    const position = getCookie(COOKIE_NAME);
-    if (position)
-        return position;
-
-    return await setPositionCookie();
-
-
-    async function setPositionCookie() {
-        const DECIMAL_PLACES = 2;
-        const COOKIE_DURATION = 30;
-
-        // if the browser does not have the grid data stored as a cookie, set it
-        try {
-            // request user's location for 10 seconds
-            const positionTimeout = 10000;
-            const { coords } = await requestPosition({ timeout: positionTimeout }, positionTimeout);
-            const { latitude, longitude } = coords;
-
-            const result = `lat=${formatDecimal(latitude, DECIMAL_PLACES)}&lon=${formatDecimal(longitude, DECIMAL_PLACES)}`;
-
-            setCookie(COOKIE_NAME, result, COOKIE_DURATION);
-
-            return result;
-        } catch (err) {
-            console.log(err);
+export async function requestPosition() {
+    try {
+        const { coords } = await getGeolocation();
+        return coords;
+    } catch (err) {
+        console.error(err);
+        if (err instanceof GeolocationPositionError) {
+            throw new Error('Could not get position. Share it or set it manually through settings.')
         }
-
-        return null;
-
-
-        function formatDecimal(n, decimalPlaces) {
-            const factor = Math.pow(10, decimalPlaces);
-            return Math.round(n * factor) / factor;
-        }
+        throw new Error(err.message);
     }
+    return null;
 }

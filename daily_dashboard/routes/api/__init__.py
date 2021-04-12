@@ -1,7 +1,7 @@
 
 def register_blueprints(app):
-    from . import calendars
-    app.register_blueprint(calendars.bp)
+    from . import v0_calendars
+    app.register_blueprint(v0_calendars.bp)
 
-    from . import weather
-    app.register_blueprint(weather.bp)
+    from . import v0_weather
+    app.register_blueprint(v0_weather.bp)

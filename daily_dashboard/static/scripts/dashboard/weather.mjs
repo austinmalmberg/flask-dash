@@ -15,9 +15,6 @@ location.
 
 */
 
-import { flashInfo, flashError, clearContainer, generateElement } from './general.mjs';
-import { getPosition } from './geolocation.mjs';
-
 // darken specific features
 const colors = {
     'main': "#111",
@@ -34,15 +31,8 @@ const skycons = new Skycons({ monochrome: false, colors });
 
 
 export async function fetchWeather() {
-    const position = await getPosition();
 
-    let response;
-    if (position !== null) {
-        response = await fetch(`${WEATHER_ENDPOINT}?${position}`);
-        console.log()
-    } else {
-        response = await fetch(WEATHER_ENDPOINT);
-    }
+    const response = await fetch(WEATHER_ENDPOINT);
 
     if (response.ok) {
         const text = await response.text();
@@ -54,11 +44,12 @@ export async function fetchWeather() {
 
         console.log(new Date().toLocaleString(), 'Weather updated');
     } else {
-        flashError('Unable to retrieve forecast.');
-
+        throw new Error('Unable to retrieve forecast.');
         const err = await response.json();
         console.error(err);
     }
+
+    return response;
 }
 
 

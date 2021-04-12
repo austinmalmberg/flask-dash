@@ -1,13 +1,15 @@
 import os
 from datetime import datetime, timedelta
 
-from flask import Blueprint, session, Response, redirect, url_for, flash
+from flask import Blueprint, session, Response, redirect, url_for, flash, g
 from flask_login import login_user
 
 import requests
 
-from daily_dashboard.data_access.devices import create_device
-from daily_dashboard.data_access.user import find_user, create_new_user, update_existing_user, remove_stale_devices
+from daily_dashboard.data_access.user import find_user_by_google_id, create_new_user, update_existing_user, \
+    remove_stale_devices
+from daily_dashboard.helpers.credential_manager import set_tokens
+from daily_dashboard.helpers.user_manager import AuthenticationMethod
 from daily_dashboard.providers.google import SCOPES, GoogleApiEndpoints, build_credentials
 from daily_dashboard.providers.google.calendars import get_calendar_settings
 from daily_dashboard.providers.google.userinfo import request_userinfo
@@ -41,8 +43,11 @@ def poll():
     """
 
     error = None
+    userinfo = None
 
-    if 'device_credentials' in session and datetime.utcnow() < session['device_credentials']['valid_until']:
+    if 'device_credentials' in session and datetime.utcnow() >= session['device_credentials']['valid_until']:
+        error = 'Access code expired'
+    else:
         # make a request to google for tokens
         response = requests.post(
             GoogleApiEndpoints.AUTH['oauth_token'],
@@ -78,41 +83,39 @@ def poll():
             # 403, user denied access
             flash('There was a problem authenticating. Please try again', 'error')
             return redirect(url_for('main.login'))
+        elif response.status_code == 200:
+            token = data.get('access_token', None)
+            refresh_token = data.get('refresh_token', None)
+            g.credentials = build_credentials(token=token, refresh_token=refresh_token)
 
-        token = data.get('access_token')
-        userinfo = request_userinfo(token)
+            userinfo = request_userinfo(token)
+            error = userinfo.get('error', None)
+        else:
+            error = 'Unknown error. The server received a status code of {response.status_code} when requesting tokens.'
 
-        error = userinfo.get('error', None)
+    if error:
+        flash(error, 'error')
+        return redirect(url_for('main.login'))
 
-        if not error:
-            session['token'] = token
-            session['refresh_token'] = data['refresh_token']
+    user = find_user_by_google_id(userinfo['id'])
 
-            user = find_user(userinfo['id'])
-
-            if user:
-                user = update_existing_user(user, userinfo)
-                remove_stale_devices(user)
-            else:
-                credentials = build_credentials(token, refresh_token=session['refresh_token'])
-                settings = get_calendar_settings(credentials)
-                user = create_new_user(userinfo, settings)
-
-            # create a new device if the device has not been signed into before
-            if 'device_id' not in session:
-                device = create_device(user, is_limited_input_device=True)
-                session['device_id'] = device.id
-
-            login_user(user, remember=True)
-
-            # redirect to dashboard on creation
-            return redirect(
-                location=url_for('index'),
-                code=303
-            )
-
+    if user:
+        user = update_existing_user(user, userinfo)
+        remove_stale_devices(user)
     else:
-        error = 'Access code expired'
+        settings = get_calendar_settings(g.credentials)
+        user = create_new_user(userinfo, settings)
 
-    flash(error, 'error')
-    return redirect(url_for('main.login'))
+    set_tokens(
+        token=g.token,
+        refresh_token=g.refresh_token,
+        authentication_method=AuthenticationMethod.INDIRECT
+    )
+
+    login_user(user, remember=True)
+
+    # redirect to dashboard on creation
+    return redirect(
+        location=url_for('index'),
+        code=303
+    )

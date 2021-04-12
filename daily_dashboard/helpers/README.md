@@ -1,0 +1,1 @@
+The modules in this directory manage session variables and contains decorators to assign variables to the request context object known as `g`.

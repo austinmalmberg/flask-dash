@@ -1,6 +1,9 @@
+import { flashError } from './general.mjs'
+import { requestPosition } from './geolocation.mjs';
 import { Clock, Subscriber } from './clock.mjs';
 import { fetchWeather, clearWeather } from './weather.mjs';
 import { fetchEvents, clearEvents } from './calendarEvents.mjs';
+import { getCookie, setCookie } from '../cookieManager.mjs';
 
 /*
  * Returns a date in the format: '2020-06-30'
@@ -34,33 +37,6 @@ function setDateHeaders(cards, date=new Date()) {
 }
 
 
-function dateRollover() {
-    const secondaryNode = document.querySelector('#secondary');
-    const secondaryDateCards = secondaryNode.querySelectorAll('.date--card');
-
-    const primaryNode = document.querySelector('#primary');
-    primaryNode.innerHTML = secondaryDateCards[0].outerHTML;
-
-    secondaryNode.removeChild(secondaryDateCards[0]);
-
-    const lastCard = secondaryDateCards[secondaryDateCards.length - 1];
-
-    // create a new date card to append to secondary
-    const newCard = lastCard.cloneNode(true);
-    clearEvents(newCard);
-    clearWeather(newCard);
-    setDateHeaders([newCard], getNextDay(newCard.id));
-
-    secondaryNode.appendChild(newCard);
-
-    function getNextDay(isoDate) {
-        const nextDay = new Date(`${isoDate}T00:00:00`);
-        nextDay.setDate(nextDay.getDate() + 1);
-
-        return nextDay;
-    }
-}
-
 const dateCards = document.querySelectorAll('.date--card');
 const clock = new Clock('clock');
 
@@ -73,8 +49,34 @@ clock.addSubscriber(setNewHeadersSubscriber, 'force');
 
 clock.start();
 
-fetchWeather();
-setInterval(fetchWeather, 1000 * 60 * 10);
+async function startWeatherInterval() {
+    let error;
+
+    // attempt to set position cookie from navigator.geolocation
+    if (!getCookie('position')) {
+        await requestPosition()
+            .then(coords => {
+                let { latitude, longitude } = coords;
+
+                // round to two decimal places
+                latitude = parseInt(Math.round(latitude * 100)) / 100;
+                longitude = parseInt(Math.round(longitude * 100)) / 100;
+
+                // set the position cookie with location
+                setCookie('position', `${latitude},${longitude}`, 14)
+            })
+            .catch(err => error = err.message);
+    }
+
+    // try once to fetch weather (whether or not the cookie was set)
+    // if successful, fetch weather on a 10 minute interval
+    fetchWeather()
+        .then(response => {
+            if (response.ok) setInterval(fetchWeather, 1000 * 60 * 10);
+        }).catch(err => flashError(error || err.message));
+}
+
+startWeatherInterval();
 
 fetchEvents();
 setInterval(fetchEvents, 1000 * 60 * 10);

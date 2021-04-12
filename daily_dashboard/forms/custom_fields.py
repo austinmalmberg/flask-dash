@@ -13,4 +13,4 @@ class MultiCheckboxField(SelectMultipleField):
 
     def iter_choices(self):
         for value, label, selected in self.choices:
-            yield (value, label, selected)
+            yield value, label, selected

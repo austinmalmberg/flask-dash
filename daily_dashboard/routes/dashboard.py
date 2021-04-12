@@ -5,7 +5,9 @@ from flask_login import login_required
 
 from daily_dashboard.data_access.devices import update_device_settings
 from daily_dashboard.forms.settings import SettingsForm
-from daily_dashboard.helpers.request_context_manager import use_credentials
+from daily_dashboard.helpers.credential_manager import use_credentials
+from daily_dashboard.helpers.location_manager import set_location
+from daily_dashboard.helpers.location_manager import use_location
 from daily_dashboard.providers.google.calendars import get_calendar_list
 from daily_dashboard.routes.google import oauth_limited_input_device
 
@@ -38,6 +40,7 @@ def dashboard():
 @bp.route('/settings', methods=('GET', 'POST'))
 @login_required
 @use_credentials
+@use_location
 def settings():
     """
     View and update user settings
@@ -57,16 +60,24 @@ def settings():
     ]
 
     if request.method == 'POST' and form.validate():
-        print(form.time_format.data)
+        if form.lat.data and form.lon.data:
+            set_location(lat=form.lat.data, lon=form.lon.data)
+
         update_device_settings(
             g.device,
             # common_name=form.device_name.data,
             date_order=form.date_format.data,
             time_24hour=form.time_format.data == '24hr',
-            calendars=form.calendars.data
+            calendars=form.calendars.data,
         )
 
         return redirect(url_for('index'))
+
+    # prefill location info
+    if g.lat:
+        form.lat.data = g.lat
+    if g.lon:
+        form.lon.data = g.lon
 
     # set the selected date_format value
     form.date_format.data = g.device.date_order

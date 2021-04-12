@@ -45,13 +45,13 @@
 
                     <div class="form-group my-2">
                         {{ form.date_format.label(class='h5') }}
-                        <p>Choose how to display the date</p>
+                        <p>Choose how to display the date.</p>
                         {{ form.date_format(class='form--list') }}
                     </div>
 
                     <div class="form-group my-2">
                         {{ form.time_format.label(class='h5') }}
-                        <p>Choose how to display the time</p>
+                        <p>Choose how to display the time.</p>
                         {{ form.time_format(class='form--list mb-0') }}
                     </div>
                 </div>
@@ -66,25 +66,32 @@
                     </div>
                 </div>
 
-                {#
                 <div id="location" class="mx-1 my-2 py-2 px-3 border border-secondary">
                     <h2 class="my-2">Location</h2>
-                    <p>Uses your location to determine your timezone and the weather forecast</p>
+                    <p>Set a position for local weather. Latitude and longitude are rounded to two decimal places (within 1.11km of your exact location).</p>
 
-                    <div class="form-group my-2">
-                        {{ form.zip_code.label }}
-                        {{ form.zip_code(class='ml-2 p-1') }}
-                    </div>
-                    {% if form.zip_code.errors %}
-                        <ul class="p-0">
-                            {% for error in form.zip_code.errors %}
-                                <li class="alert alert-danger px-2 py-1">{{ error }}</li>
+                    <div class="form-group my-2 row">
+                        <div class="col-md-6 col-xl-4 my-2">
+                            {{ form.lat.label(class='h5') }}
+                            {{ form.lat(id='location-lat', class='p-1') }}
+                            {% for error in form.lat.errors %}
+                            <p class="text-danger py-1">*{{ error }}</p>
                             {% endfor %}
-                        </ul>
-                    {% endif %}
-                </div>
-                #}
+                        </div>
 
+                        <div class="col-md-6 col-xl-4 my-2">
+                            {{ form.lon.label(class='h5') }}
+                            {{ form.lon(id='location-lon', class='p-1') }}
+                            {% for error in form.lon.errors %}
+                            <p class="text-danger py-1">*{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    {#
+                    <button id="btn-location" class="rounded my-2">Use Current Location</button>
+                    #}
+                </div>
             </form>
 
             <div id="logout" class="mx-1 my-2 py-2 px-3 border border-secondary">
@@ -92,13 +99,12 @@
                 <div class="row">
                     <div class="form-group col-md mb-0">
                         <a id="btn-logout" href="{{ url_for('oauth.logout') }}" class="btn btn-danger my-2" role="button">Logout</a>
-                        <p>Log out of the application from this device</p>
+                        <p>Logout of this device.</p>
                     </div>
 
                     <div class="form-group col-md mb-0">
                         <a id="btn-deauthorize" href="{{ url_for('oauth.revoke') }}" class="btn btn-danger my-2" role="button">Deauthorize</a>
-                        <p>Revoke access to this application.<br/>
-                        <b>Caution:</b> Doing this will cause other devices to stop working</p>
+                        <p>Revoke access to this application. Doing this will cause other devices you are logged into to stop working.</p>
                     </div>
                 </div>
             </div>

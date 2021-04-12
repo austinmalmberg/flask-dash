@@ -1,5 +1,4 @@
-from datetime import datetime, timedelta
-import uuid
+from datetime import datetime
 
 from flask_login import UserMixin
 
@@ -63,11 +62,7 @@ class Device(db.Model):
         return self._watched_calendars.split(';')
 
     def __init__(self, user, is_lid=False):
-        self.update_uuid()
-
         self.is_lid = is_lid
-
-        self.name = f'Device {self.uuid[:5]}'
 
         self.user_id = user.id
 
@@ -78,9 +73,13 @@ class Device(db.Model):
 
         self._watched_calendars = user.email
 
-    def update_device(self, name=None, locale=None, timezone=None, date_order=None, time_24hour=None,
+    def update_device(self, is_lid=None, name=None, locale=None, timezone=None, date_order=None, time_24hour=None,
                       calendars=None):
         was_modified = False
+
+        if is_lid is not None:
+            self.is_lid = is_lid
+            was_modified = True
 
         if name:
             self.name = name
@@ -138,10 +137,3 @@ class Device(db.Model):
         self.last_updated = datetime.utcnow()
 
         return new_calendar_list
-
-    def update_uuid(self):
-        # TODO: check for uuid conflicts
-        self.uuid = str(uuid.uuid4())
-        self.uuid_expiration = datetime.utcnow() + timedelta(minutes=20)
-
-        self.last_updated = datetime.utcnow()

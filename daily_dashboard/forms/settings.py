@@ -1,8 +1,9 @@
-from wtforms import RadioField, StringField
-from wtforms.validators import InputRequired, Regexp
+from wtforms import RadioField, DecimalField
+from wtforms.validators import Optional
 
 from daily_dashboard.forms.csrf import CSRF_Form
 from daily_dashboard.forms.custom_fields import MultiCheckboxField
+from daily_dashboard.forms.custom_validators import RequiredIf
 
 
 class SettingsForm(CSRF_Form):
@@ -27,7 +28,9 @@ class SettingsForm(CSRF_Form):
 
     calendars = MultiCheckboxField(u'Displayed Calendars')
 
-    # zip_code = StringField(
-    #     u'Zip Code',
-    #     validators=[InputRequired(), Regexp('^\d+$')]
-    # )
+    lat = DecimalField(u'Latitude', validators=[
+        RequiredIf('lon', message='Required if setting Longitude'), Optional(strip_whitespace=True)
+    ])
+    lon = DecimalField(u'Longitude', validators=[
+        RequiredIf('lat', message='Required if setting Latitude'), Optional(strip_whitespace=True)
+    ])

@@ -6,17 +6,16 @@ from flask_login import login_required, current_user, login_user, logout_user
 
 import requests
 
-from daily_dashboard.data_access.devices import create_device
-from daily_dashboard.data_access.user import find_user, create_new_user, update_existing_user, remove_stale_devices, \
-    remove_devices
+from daily_dashboard.data_access.user import find_user_by_google_id, create_new_user, update_existing_user, \
+    remove_stale_devices, remove_devices
+from daily_dashboard.helpers.credential_manager import set_tokens, use_credentials
+from daily_dashboard.helpers.user_manager import AuthenticationMethod
 from daily_dashboard.providers.google import GoogleApiEndpoints, get_flow
 from daily_dashboard.providers.google.calendars import get_calendar_settings
 from daily_dashboard.providers.google.userinfo import request_userinfo
 
 bp = Blueprint('oauth', __name__, url_prefix='/oauth')
 
-
-# ROUTES
 
 @bp.route('/authorize')
 def authorize():
@@ -38,7 +37,8 @@ def authorize():
 
 @bp.route('/callback')
 def callback():
-    error = None
+    userinfo = None
+    credentials = None
 
     # ensure authorization was provided
     if request.args.get('error'):
@@ -65,28 +65,26 @@ def callback():
 
         error = userinfo.get('error', None)
 
-        if not error:
-            session['token'] = credentials.token
-            session['refresh_token'] = credentials.refresh_token
-
-            user = find_user(userinfo['id'])
-
-            if user:
-                user = update_existing_user(user, userinfo)
-                remove_stale_devices(user)
-            else:
-                settings = get_calendar_settings(credentials)
-                user = create_new_user(userinfo, settings)
-
-            # create a new device if the device has not been signed into before
-            if 'device_id' not in session:
-                device = create_device(user, is_limited_input_device=False)
-                session['device_id'] = device.id
-
-            login_user(user, remember=True)
-
     if error:
         flash(error, 'error')
+        return redirect(url_for('main.login'))
+
+    user = find_user_by_google_id(userinfo['id'])
+
+    if user:
+        user = update_existing_user(user, userinfo)
+        remove_stale_devices(user)
+    else:
+        settings = get_calendar_settings(credentials)
+        user = create_new_user(userinfo, settings)
+
+    set_tokens(
+        token=credentials.token,
+        refresh_token=credentials.refresh_token,
+        authentication_method=AuthenticationMethod.DIRECT
+    )
+
+    login_user(user, remember=True)
 
     return redirect(url_for('index'))
 
@@ -115,7 +113,7 @@ def revoke_token(token):
 @bp.route('/logout')
 @login_required
 def logout():
-    session.pop('token', None)
+    set_tokens(token=None)
 
     logout_user()
 
@@ -126,13 +124,16 @@ def logout():
 
 @bp.route('/revoke')
 @login_required
+@use_credentials
 def revoke():
-    revoke_token(session.get('token'))
+    revoke_token(g.credentials.token)
 
-    session.pop('token', None)
-    session.pop('refresh_token', None)
+    # clear tokens
+    set_tokens(token=None, refresh_token=None)
 
     remove_devices(current_user)
+
+    logout_user()
 
     flash('Credentials revoked', 'info')
 

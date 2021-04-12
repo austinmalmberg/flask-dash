@@ -4,8 +4,12 @@ from daily_dashboard.database import db
 from daily_dashboard.database.models import Device
 
 
-def create_device(user, is_limited_input_device):
-    device = Device(user, is_limited_input_device)
+def get_device(device_id):
+    return Device.query.get(device_id)
+
+
+def create_device(user, is_lid):
+    device = Device(user, is_lid)
     db.session.add(device)
     db.session.flush()
     db.session.commit()
@@ -18,8 +22,12 @@ def remove_device(device):
     db.session.commit()
 
 
-def device_check_in(device):
+def device_check_in(device, is_lid=None):
     device.last_used = datetime.utcnow()
+
+    if is_lid is not None:
+        device.is_lid = is_lid
+
     db.session.commit()
 
 

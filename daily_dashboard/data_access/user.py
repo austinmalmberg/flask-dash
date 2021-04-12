@@ -4,7 +4,7 @@ from daily_dashboard.database import db
 from daily_dashboard.database.models import User
 
 
-def find_user(google_id):
+def find_user_by_google_id(google_id):
     if google_id is None:
         raise ValueError('google_id cannot be None')
 
