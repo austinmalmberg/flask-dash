@@ -27,8 +27,7 @@ def authorize():
     # get the authorization url
     authorization_url, _ = flow.authorization_url(
         state=session['oauth_state'],
-        access_type='offline',
-        # prompt='consent'
+        access_type='offline'
     )
 
     # redirect request to the authorization url received from the flow
@@ -60,6 +59,12 @@ def callback():
 
         g.credentials = flow.credentials
 
+        set_tokens(
+            auth_method=AuthenticationMethod.DIRECT,
+            token=g.credentials.token,
+            refresh_token=g.credentials.refresh_token
+        )
+
         userinfo = request_userinfo(g.credentials.token)
 
         error = userinfo.get('error', None)
@@ -80,12 +85,6 @@ def callback():
 
     device = create_or_update_device(user, is_lid=False, device_id=session.get('device_id', None))
     session['device_id'] = device.id
-
-    set_tokens(
-        auth_method=AuthenticationMethod.DIRECT,
-        token=g.credentials.token,
-        refresh_token=g.credentials.refresh_token
-    )
 
     login_user(user, remember=True)
 

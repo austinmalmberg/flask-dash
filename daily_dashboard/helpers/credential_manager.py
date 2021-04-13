@@ -35,8 +35,11 @@ def use_credentials(view):
 
             token = session.get('token', None)
 
-            credentials = build_credentials(token, session['refresh_token'],
-                                            limited_input_device=session['auth_method']==AuthenticationMethod.INDIRECT)
+            credentials = build_credentials(
+                token,
+                session['refresh_token'],
+                limited_input_device=session['auth_method'] == AuthenticationMethod.INDIRECT
+            )
 
             # attempt to refresh invalid credentials
             if not credentials.valid:
