@@ -53,7 +53,7 @@ def set_device_position(device, lat, lon):
 
 
 def update_device_settings(device, is_lid=None, name=None, locale=None, timezone=None, date_order=None,
-                           time_24hour=None, calendars=None):
+                           time_24hour=None, calendars=None, position=None):
     was_modified = False
 
     if is_lid is not None:
@@ -82,6 +82,10 @@ def update_device_settings(device, is_lid=None, name=None, locale=None, timezone
 
     if calendars:
         device.set_calendars(calendars)
+        was_modified = True
+
+    if position is not None:
+        device.set_position(**position)
         was_modified = True
 
     if was_modified:

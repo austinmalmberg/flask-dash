@@ -61,14 +61,13 @@ def settings():
     ]
 
     if request.method == 'POST' and form.validate():
-        print(form.lat.data is None)
-        g.device.set_position(form.lat.data, form.lon.data)
         update_device_settings(
             g.device,
             name=form.device_name.data,
             date_order=form.date_format.data,
             time_24hour=form.time_format.data == '24hr',
             calendars=form.calendars.data,
+            position=dict(lat=form.lat.data, lon=form.lon.data)
         )
 
         return redirect(url_for('index'))
