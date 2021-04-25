@@ -5,12 +5,14 @@ from flask import Blueprint, session, url_for, redirect, request, flash, g
 from flask_login import login_required, current_user, login_user, logout_user
 
 import requests
+from google_auth_oauthlib.flow import Flow
 
 from daily_dashboard.data_access.devices import create_or_update_device
 from daily_dashboard.data_access.user import find_user_by_google_id, create_new_user, update_existing_user, \
     remove_stale_devices, remove_devices
-from daily_dashboard.helpers.credential_manager import set_tokens, use_credentials, AuthenticationMethod
-from daily_dashboard.providers.google import GoogleApiEndpoints, get_flow
+from daily_dashboard.helpers.credential_manager import set_tokens, use_credentials, AuthenticationMethod, \
+    remove_credentials
+from daily_dashboard.providers.google import GoogleApiEndpoints, CLIENT_SECRETS, SCOPES
 from daily_dashboard.providers.google.calendars import get_calendar_settings
 from daily_dashboard.providers.google.userinfo import request_userinfo
 
@@ -22,7 +24,11 @@ def authorize():
     # create a random state variable
     session['oauth_state'] = hashlib.sha256(os.urandom(1024)).hexdigest()
 
-    flow = get_flow(url_for('oauth.callback', _external=True))
+    flow = Flow.from_client_config(
+        {'web': CLIENT_SECRETS},
+        SCOPES,
+        redirect_uri=url_for('oauth.callback', _external=True)
+    )
 
     # get the authorization url
     authorization_url, _ = flow.authorization_url(
@@ -51,7 +57,11 @@ def callback():
         session.pop('oauth_state', None)
         session.pop('device_credentials', None)
 
-        flow = get_flow(url_for('oauth.callback', _external=True))
+        flow = Flow.from_client_config(
+            {'web': CLIENT_SECRETS},
+            SCOPES,
+            redirect_uri=url_for('oauth.callback', _external=True)
+        )
 
         # use the request url (or more specifically, the params passed in the url)
         # to exchange the authentication code for an access token
@@ -131,7 +141,7 @@ def revoke():
     revoke_token(g.credentials.token)
 
     # clear tokens
-    set_tokens(token=None, refresh_token=None)
+    remove_credentials()
 
     remove_devices(current_user)
 

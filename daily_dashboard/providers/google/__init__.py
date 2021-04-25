@@ -1,7 +1,6 @@
 import os
 
 from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import Flow
 
 
 class GoogleApiEndpoints:
@@ -18,35 +17,35 @@ class GoogleApiEndpoints:
     # }
     USER_INFO = 'https://www.googleapis.com/oauth2/v2/userinfo'
 
-    AUTH = {
+    AUTH = dict(
         # used in client secrets
-        'auth_uri': 'https://accounts.google.com/o/oauth2/auth',
-        'token_uri': 'https://oauth2.googleapis.com/token',
+        auth_uri='https://accounts.google.com/o/oauth2/auth',
+        token_uri='https://oauth2.googleapis.com/token',
 
         # for requesting/refreshing tokens
-        'oauth_token': 'https://oauth2.googleapis.com/token',
+        oauth_token='https://oauth2.googleapis.com/token',
 
         # for revoking tokens
-        'oauth_token_revoke': 'https://oauth2.googleapis.com/revoke',
+        oauth_token_revoke='https://oauth2.googleapis.com/revoke',
 
         # for authorizing an application from a different device
-        'limited_input_device_code': 'https://oauth2.googleapis.com/device/code',
-    }
+        limited_input_device_code='https://oauth2.googleapis.com/device/code',
+    )
 
 
-CLIENT_SECRETS = {
-    'client_id': os.environ['GOOGLE_OAUTH2_CLIENT_ID'],
-    'client_secret': os.environ['GOOGLE_OAUTH2_CLIENT_SECRET'],
-    'auth_uri': GoogleApiEndpoints.AUTH['auth_uri'],
-    'token_uri': GoogleApiEndpoints.AUTH['token_uri']
-}
+CLIENT_SECRETS = dict(
+    client_id=os.environ['GOOGLE_OAUTH2_CLIENT_ID'],
+    client_secret=os.environ['GOOGLE_OAUTH2_CLIENT_SECRET'],
+    auth_uri=GoogleApiEndpoints.AUTH['auth_uri'],
+    token_uri=GoogleApiEndpoints.AUTH['token_uri']
+)
 
-CLIENT_SECRETS_LIMITED = {
-    'client_id': os.environ['GOOGLE_OAUTH2_CLIENT_ID_LIMITED'],
-    'client_secret': os.environ['GOOGLE_OAUTH2_CLIENT_SECRET_LIMITED'],
-    'auth_uri': GoogleApiEndpoints.AUTH['auth_uri'],
-    'token_uri': GoogleApiEndpoints.AUTH['token_uri']
-}
+CLIENT_SECRETS_LIMITED = dict(
+    client_id=os.environ['GOOGLE_OAUTH2_CLIENT_ID_LIMITED'],
+    client_secret=os.environ['GOOGLE_OAUTH2_CLIENT_SECRET_LIMITED'],
+    auth_uri=GoogleApiEndpoints.AUTH['auth_uri'],
+    token_uri=GoogleApiEndpoints.AUTH['token_uri']
+)
 
 SCOPES = [
     'openid',
@@ -54,30 +53,3 @@ SCOPES = [
     'https://www.googleapis.com/auth/userinfo.profile',
     'https://www.googleapis.com/auth/calendar.readonly'
 ]
-
-
-def get_flow(redirect_uri):
-    return Flow.from_client_config({
-        'web': CLIENT_SECRETS
-    }, SCOPES, redirect_uri=redirect_uri)
-
-
-def build_credentials(token=None, refresh_token=None, limited_input_device=False):
-    if limited_input_device:
-        return Credentials(
-            token=token,
-            refresh_token=refresh_token,
-            token_uri=GoogleApiEndpoints.AUTH['token_uri'],
-            client_id=CLIENT_SECRETS_LIMITED['client_id'],
-            client_secret=CLIENT_SECRETS_LIMITED['client_secret'],
-            scopes=SCOPES
-        )
-
-    return Credentials(
-        token=token,
-        refresh_token=refresh_token,
-        token_uri=GoogleApiEndpoints.AUTH['token_uri'],
-        client_id=CLIENT_SECRETS['client_id'],
-        client_secret=CLIENT_SECRETS['client_secret'],
-        scopes=SCOPES
-    )

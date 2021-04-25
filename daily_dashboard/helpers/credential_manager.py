@@ -1,10 +1,11 @@
 import functools
 
-from flask import session, g, Request, flash, redirect
+from flask import session, g, flash, redirect
 from flask_login import logout_user
 from google.auth.exceptions import RefreshError
+from google.oauth2.credentials import Credentials
 
-from daily_dashboard.providers.google import build_credentials
+from daily_dashboard.providers.google import GoogleApiEndpoints, SCOPES, CLIENT_SECRETS, CLIENT_SECRETS_LIMITED
 
 
 class AuthenticationMethod:
@@ -25,71 +26,77 @@ def use_credentials(view):
 
     @functools.wraps(view)
     def wrapped_view(*args, **kwargs):
-        credentials = None
         error = None
 
-        if 'refresh_token' not in session:
-            error = 'Refresh token not set.'
-            set_tokens(token=None)
+        if 'credentials' in session:
+            # set the credentials to be accessed within the view
+            g.credentials = build_credentials()
+
+            # the Google OAuth2 library automatically refreshes stale credentials
+            # but we still need to catch any RefreshError that might occur.
+            # This can happen if the credentials were revoked by the user, or
+            # invalidated by Google usage conditions
+            try:
+                # the RefreshError would be caused within the view, where they are being
+                # used by the Google OAuth2 library, should one occur
+                v = view(*args, **kwargs)
+
+                # store credentials in the event that they were refreshed
+                set_tokens(
+                    token=g.credentials.token,
+                    refresh_token=g.credentials.refresh_token,
+                )
+
+                return v
+
+            except RefreshError:
+                remove_credentials()
+                error = 'Token refresh error'
         else:
-
-            token = session.get('token', None)
-
-            credentials = build_credentials(
-                token,
-                session['refresh_token'],
-                limited_input_device=session['auth_method'] == AuthenticationMethod.INDIRECT
-            )
-
-            # attempt to refresh invalid credentials
-            if not credentials.valid:
-                try:
-                    credentials.refresh(Request())
-
-                    # update session token
-                    set_tokens(token=credentials.token)
-
-                    # set request variable
-                    g.credentials = credentials
-
-                except RefreshError:
-                    error = 'Token refresh error'
-                    set_tokens(token=None, refresh_token=None)
-
-        if error:
+            # credentials are not stored within the session
             logout_user()
-            flash(error, 'error')
-            return redirect('main.login', code=307)
+            error = 'Credentials do not exist'
 
-        g.credentials = credentials
-
-        return view(*args, **kwargs)
+        flash(error, 'error')
+        return redirect('main.login', code=307)
 
     return wrapped_view
-
-
-def set_access_token(token):
-    if token is None:
-        session.pop('token', None)
-    else:
-        session['token'] = token
-
-
-def set_refresh_token(refresh_token):
-    if refresh_token is None:
-        session.pop('refresh_token', None)
-    else:
-        session['refresh_token'] = refresh_token
 
 
 def set_tokens(**kwargs):
     if 'auth_method' in kwargs:
         session['auth_method'] = kwargs['auth_method']
 
+    # initialize credentials dict if not present
+    if 'credentials' not in session:
+        session['credentials'] = dict()
+
     if 'token' in kwargs:
-        token = kwargs['token']
-        set_access_token(token)
+        session['credentials']['token'] = kwargs['token']
 
     if 'refresh_token' in kwargs:
-        refresh_token = kwargs['refresh_token']
-        set_refresh_token(refresh_token)
+        session['credentials']['refresh_token'] = kwargs['refresh_token']
+
+
+def build_credentials():
+    if session['auth_method'] == AuthenticationMethod.INDIRECT:
+        kwargs = dict(
+            client_id=CLIENT_SECRETS_LIMITED['client_id'],
+            client_secret=CLIENT_SECRETS_LIMITED['client_secret']
+        )
+    else:
+        kwargs = dict(
+            client_id=CLIENT_SECRETS['client_id'],
+            client_secret=CLIENT_SECRETS['client_secret']
+        )
+
+    return Credentials(
+        token_uri=GoogleApiEndpoints.AUTH['token_uri'],
+        scopes=SCOPES,
+        **session['credentials'],
+        **kwargs
+    )
+
+
+def remove_credentials():
+    session.pop('credentials', None)
