@@ -130,6 +130,4 @@ class Device(db.Model):
 
             self._position = f"{lat},{lon}"
 
-        print(f'_position is {self._position}')
-
         self.last_updated = datetime.utcnow()
