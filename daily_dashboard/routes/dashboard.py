@@ -3,7 +3,7 @@ from datetime import datetime
 from flask import Blueprint, render_template, session, redirect, url_for, request, g
 from flask_login import login_required
 
-from daily_dashboard.data_access.devices import update_device_settings, set_device_position
+from daily_dashboard.data_access.devices import update_device_settings
 from daily_dashboard.forms.settings import SettingsForm
 from daily_dashboard.helpers.credential_manager import use_credentials
 from daily_dashboard.helpers.device_manager import use_device
