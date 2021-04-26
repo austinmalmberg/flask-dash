@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'layouts/base.html' %}
 
 {% block title %}Home{% endblock %}
 
@@ -14,7 +14,9 @@
             <p class="flash {{ category }}">{{ message }}</p>
             {% endfor %}
         </div>
-        <a id="settings" href="{{ url_for('main.settings') }}">Settings</a>
+        <a id="settings" href="{{ url_for('main.settings') }}">
+            <img id="qr-settings" src="{{ url_for('static', filename='images/settings.png') }}" alt="Settings" />
+        </a>
         <h1 id="clock"></h1>
     </section>
     <section id="primary">

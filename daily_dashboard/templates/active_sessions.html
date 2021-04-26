@@ -1,0 +1,57 @@
+{% extends 'layouts/bootstrap.html' %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/navbar.css') }}">
+{% endblock %}
+
+{% block content %}
+
+{% include 'layouts/navbar.html' with context %}
+
+<div class="container py-2">
+    <h1 class="text-center">{% block title %}Active Sessions{% endblock %}</h1>
+    <p></p>
+
+    {% if devices|length == 0 %}
+        <p>No current devices authenticated. <a href="{{ url_for('index') }}">Click here to view your dashboard from this device.</a></p>
+    {% else %}
+
+        {# display forms for each device #}
+        {% for device in devices %}
+            <div class="row my-2">
+                <div class="card w-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            {% set device_name = device.name or 'Unnamed device' %}
+                            <h3 class="card-title">{{ device_name }}
+                                {% if device.is_current %}
+                                <span class="text-secondary"> (this device)</span>
+                                {% endif %}
+                            </h3>
+                            <a href="{{ url_for('main.settings', uuid=device.uuid) }}">Edit</a>
+                        </div>
+                        <div class="card-text">
+                            <p><span class="h5">Date Format:</span> {{ device.date_order }}</p>
+                            <p><span class="h5">Time Format:</span> {{ device.time_format }}</p>
+                            <p><span class="h5">Timezone:</span> {{ device.timezone }}</p>
+                            <p><span class="h5">Weather Location:</span> {{ device.position }}</p>
+                            <h5>Watched Calendars:</h5>
+                            {%- set calendars = device.calendar_summaries or device.calendars -%}
+                            <ul class="list-group col-lg-6">
+                            {%- for calendar in calendars -%}
+                                <li class="list-group-item border-0">{{ calendar }}</li>
+                            {%- endfor -%}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">//test script</script>
+{% endblock %}

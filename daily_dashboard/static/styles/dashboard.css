@@ -58,17 +58,21 @@ main.content {
   text-decoration: none;
   color: inherit;
 
-  text-indent: -9999px;
+  /*text-indent: -9999px;*/
 }
 
-#settings::before {
+#settings:hover {
+  content: 'Settings';
+}
+
+/*#settings::before {
   content: '\2630';
 
   position: absolute;
   left: calc(9999px + 0.25em);
 
   font-size: 2em;
-}
+}*/
 
 #clock {
   font-size: 6em;

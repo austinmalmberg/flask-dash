@@ -8,6 +8,10 @@ def get_device(device_id):
     return Device.query.get(device_id)
 
 
+def get_device_by_uuid(uuid):
+    return Device.query.filter_by(uuid=uuid).first()
+
+
 def create_device(user, is_lid):
     device = Device(user, is_lid)
     db.session.add(device)

@@ -1,5 +1,5 @@
-from wtforms import RadioField, DecimalField, StringField
-from wtforms.validators import Optional, NumberRange, Length
+from wtforms import RadioField, DecimalField, StringField, HiddenField
+from wtforms.validators import Optional, NumberRange, Length, InputRequired
 
 from daily_dashboard.forms.csrf import CSRF_Form
 from daily_dashboard.forms.custom_fields import MultiCheckboxField
@@ -8,9 +8,17 @@ from daily_dashboard.forms.custom_validators import RequiredIf
 
 class SettingsForm(CSRF_Form):
 
+    device_uuid = HiddenField(
+        u'Device UUID',
+        validators=[
+            InputRequired()
+        ],
+        description='The device UUID.'
+    )
+
     device_name = StringField(
         u'Device Name',
-        description='A friendly name for this device so it can be easily identified',
+        description='A friendly name for this device so it can be easily identified.',
         validators=[
             Length(max=20),
             Optional()

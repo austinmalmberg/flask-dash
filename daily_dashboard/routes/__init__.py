@@ -19,3 +19,6 @@ def register_blueprints(app):
     # API
     from daily_dashboard.routes import api
     api.register_blueprints(app)
+
+    from daily_dashboard.routes import active_sessions
+    app.register_blueprint(active_sessions.bp)

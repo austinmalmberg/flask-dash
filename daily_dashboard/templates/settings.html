@@ -1,42 +1,42 @@
-{% extends 'base.html' %}
+{% extends 'layouts/bootstrap.html' %}
 
 {% block head %}
-    {# navbar styling #}
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/navbar.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/flash.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/settings.css') }}">
-
-    {# Bootstrap 4 #}
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 {% endblock %}
 
 {% block title %}Settings{% endblock %}
 
 {% block content %}
+    {% include 'layouts/navbar.html' with context %}
+
     <div class="container-fluid row p-4">
 
         {# Navigation #}
-        <div id="sidebar" class="col col-md-2" style="min-height:100vh;">
+        <div id="sidebar" class="col col-md-3 col-lg-2" style="height:auto;">
             <div class="d-flex flex-md-column justify-content-between">
                 <ul class="nav flex-column">
                     <li class="nav-item"><a href="#general" class="nav-link h4">General</a></li>
                     <li class="nav-item"><a href="#calendar" class="nav-link h4">Calendar</a></li>
                     <li class="nav--item"><a href="#weather" class="nav-link h4">Weather</a></li>
-                    <li class="nav-item"><a href="#logout" class="nav-link h4">Logout</a></li>
+                    <li class="nav--item"><a href="#active-sessions" class="nav-link h4">Active Sessions</a></li>
+                    <li class="nav-item"><a href="#authentication" class="nav-link h4">Authentication</a></li>
                 </ul>
             </div>
-            <button id="settings-submit" class="btn btn-lg font-weight-bold w-100">Save</button>
+            <button id="settings-submit" class="btn btn-lg font-weight-bold w-100 my-2">Save</button>
         </div>
 
-        <div class="col-md-10">
+        <div class="col-md-9 col-lg-10">
             <div id="flash--container" class="bottom">
-                {% for category, message in get_flashed_messages(with_categories=true) %}
+                {%- for category, message in get_flashed_messages(with_categories=true) -%}
                 <p class="flash {{ category }}">{{ message }}</p>
-                {% endfor %}
+                {%- endfor -%}
             </div>
 
             <form id="settings--form" method="post">
                 {{ form.csrf_token }}
+                {{ form.device_uuid() }}
                 <div id="general" class="mx-1 my-2 py-2 px-3 border border-secondary">
                     <h2 class="my-2">General</h2>
 
@@ -73,6 +73,8 @@
                     <h5>Location</h5>
                     <p>Set a location for local weather.</p>
 
+                    <button id="btn-uselocation" class="btn btn-sm rounded mb-2" type="button">Use Your Location</button>
+
                     <div class="form-group my-2 row">
                         <div class="col-md-6 col-xl-4 my-2">
                             {{ form.lat.label(class='h5') }}
@@ -90,20 +92,25 @@
                             {% endfor %}
                         </div>
                     </div>
-
-                    <button id="btn-uselocation" class="btn btn-sm rounded my-2" type="button">Use This Device's Location</button>
                 </div>
             </form>
 
-            <div id="logout" class="mx-1 my-2 py-2 px-3 border border-secondary">
-                <h2 class="my-2">Logout</h2>
+            <div id="active-sessions" class="mx-1 my-2 py-3 px-3 border border-secondary">
+                <h2 class="my-2">Active Sessions</h2>
+                <a href="{{ url_for('sessions.active') }}" class="btn">View All Active Device Sessions</a>
+            </div>
+
+            <div id="authentication" class="mx-1 my-2 py-2 px-3 border border-secondary">
+                <h2 class="my-2">Authentication</h2>
                 <div class="row">
-                    <div class="form-group col-md mb-0">
+                    {%- if current_device -%}
+                    <div class="form-group col-md col-lg-4 mb-0">
                         <a id="btn-logout" href="{{ url_for('oauth.logout') }}" class="btn btn-danger my-2" role="button">Logout</a>
                         <p>Logout of this device.</p>
                     </div>
+                    {% endif %}
 
-                    <div class="form-group col-md mb-0">
+                    <div class="form-group col-md col-lg-4 mb-0">
                         <a id="btn-deauthorize" href="{{ url_for('oauth.revoke') }}" class="btn btn-danger my-2" role="button">Deauthorize</a>
                         <p>Revoke access to this application. Doing this will cause other devices you are logged into to stop working.</p>
                     </div>
@@ -115,10 +122,6 @@
 {% endblock %}
 
 {% block scripts %}
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-
     <script type="text/javascript">
         {# add event listener to submit button on sidebar #}
         const saveButton = document.getElementById("settings-submit");

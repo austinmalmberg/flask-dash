@@ -67,9 +67,7 @@ async function setLocation() {
                 })
             }).catch(console.error);
 
-            if (response.ok) fetchWeather();
-
-            return true;
+            return response.ok;
         }
 
         throw new Error('Latitude and/or longitude could not be obtained from navigator.geolocation');
@@ -82,12 +80,19 @@ async function setLocation() {
     return false;
 }
 
-if (!locationSet) {
-    setLocation();
-} else {
-    fetchWeather();
+async function initWeather() {
+    if (locationSet) {
+        fetchWeather();
+    } else {
+        // attempt to set location when not set
+        const success = await setLocation();
+
+        // on success, fetch the weather
+        if (success) fetchWeather();
+    }
 }
 
+initWeather();
 setInterval(fetchWeather, 1000 * 60 * 5);
 
 fetchEvents();

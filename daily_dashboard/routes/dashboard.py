@@ -1,9 +1,9 @@
 from datetime import datetime
 
-from flask import Blueprint, render_template, session, redirect, url_for, request, g
-from flask_login import login_required
+from flask import Blueprint, render_template, session, redirect, url_for, request, g, abort
+from flask_login import login_required, current_user
 
-from daily_dashboard.data_access.devices import update_device_settings
+from daily_dashboard.data_access.devices import update_device_settings, get_device_by_uuid
 from daily_dashboard.forms.settings import SettingsForm
 from daily_dashboard.helpers.credential_manager import use_credentials
 from daily_dashboard.helpers.device_manager import use_device
@@ -56,13 +56,21 @@ def settings():
     calendar_list = get_calendar_list(g.credentials)
 
     form.calendars.choices = [
-        (calendar['id'], calendar['summary'], calendar['id'] in g.device.watched_calendars)
+        (calendar['id'], calendar['summary'], (calendar['id'] in g.device.watched_calendars))
         for calendar in calendar_list
     ]
 
     if request.method == 'POST' and form.validate():
+        device = g.device
+
+        if 'device_uuid' in request.form:
+            uuid = request.args.get('uuid', None)
+            device = get_device_by_uuid(uuid)
+            if device is None:
+                return abort(404)
+
         update_device_settings(
-            g.device,
+            device,
             name=form.device_name.data,
             date_order=form.date_format.data,
             time_24hour=form.time_format.data == '24hr',
@@ -72,24 +80,39 @@ def settings():
 
         return redirect(url_for('index'))
 
+    device = g.device
+    if 'uuid' in request.args:
+        uuid = request.args.get('uuid', None)
+        device = get_device_by_uuid(uuid)
+        if device is None:
+            return abort(404)
+        elif device.user_id != current_user.id:
+            return abort(403)
+
     # prefill location info
-    if g.device.position is not None:
-        lat, lon = g.device.position
+    if device.position is not None:
+        lat, lon = device.position
         if lat:
             form.lat.data = lat
         if lon:
             form.lon.data = lon
 
+    form.device_uuid.data = device.uuid
+
     if g.device.name:
-        form.device_name.data = g.device.name
+        form.device_name.data = device.name
 
     # set the selected date_format value
-    form.date_format.data = g.device.date_order
+    form.date_format.data = device.date_order
 
     # set the selected time_format value
-    form.time_format.data = '24hr' if g.device.time_24hour else '12hr'
+    form.time_format.data = '24hr' if device.time_24hour else '12hr'
 
-    return render_template('settings.html', form=form)
+    return render_template(
+        'settings.html',
+        form=form,
+        current_device=(g.device.id == device.id)
+    )
 
 
 @bp.route('/login')

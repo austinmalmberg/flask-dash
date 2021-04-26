@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+import uuid
 
 from flask_login import UserMixin
 
@@ -38,6 +39,7 @@ class Device(db.Model):
     last_updated = db.Column(db.DateTime, default=datetime.utcnow())
 
     name = db.Column(db.String(), default='')
+    uuid = db.Column(db.String(), nullable=False)
 
     # set depending on the authentication method
     is_lid = db.Column(db.Boolean, default=False)
@@ -61,6 +63,7 @@ class Device(db.Model):
     _position = db.Column(db.String(20))
 
     def __init__(self, user, is_lid=False):
+        self.uuid = str(uuid.uuid4())
         self.is_lid = is_lid
 
         self.user_id = user.id
